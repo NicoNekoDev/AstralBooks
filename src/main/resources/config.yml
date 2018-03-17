@@ -1,0 +1,57 @@
+#######################################################################
+#     _____ _ _   _                     ____              _           #
+#    / ____(_) | (_)                   |  _ \            | |          #
+#   | |     _| |_ _ _______ _ __  ___  | |_) | ___   ___ | | _____    #
+#   | |    | | __| |_  / _ \ '_ \/ __| |  _ < / _ \ / _ \| |/ / __|   #
+#   | |____| | |_| |/ /  __/ | | \__ \ | |_) | (_) | (_) |   <\__ \   #
+#    \_____|_|\__|_/___\___|_| |_|___/ |____/ \___/ \___/|_|\_\___/   #
+#                                                                     #
+#######################################################################
+
+version: 4 #DO NOT CHANGE/REMOVE
+lang:
+  header: "&f[&6CitizensBooks&f] &r"
+  noPermission: "&cYou don''t have permission!"
+  pluginReloaded: "&aPlugin config reloaded."
+  setMenuForNPC: "&aYou have set the book for %npc%&a!"
+  removeMenuForNPC: "&aYou have removed the book for %npc%&a!"
+  noNPCSelected: "&cYou need to have an NPC selected!"
+  noBookInHand: "&cYou need to have a book in your hand!"
+  notValidBook: "&cThis NPC does not have a valid book."
+  notValidFilterBook: "&cThis filter does not have a valid book."
+  noBookForNPC: "&cThis NPC doesn''t have a book!"
+  noBookForFilter: "&cThis filter doesn''t have a book!"
+  filterSaved: "&aFilter %filter_name% was saved."
+  filterRemoved: "&aFilter %filter_name% was removed."
+  bookRecived: "&aYou recived the book in your inventory!"
+  noCitizens: "&cCitizens plugin is not enabled!"
+  setCommand: "&aCommand %command% has been set!"
+  remCommand: "&aCommand %command% has been removed!"
+  usage:
+    set: "&aUsage: &f/npcbook set"
+    remove: "&aUsage: &f/npcbook remove"
+    getbook: "&aUsage: &f/npcbook getbook"
+    openbook: "&aUsage: &f/npcbook openbook"
+    setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name>"
+    remcmd: "&aUsage: &f/npcbook remcmd <command>"
+    filter:
+      set: "&aUsage: &f/npcbook filter set <filter name>"
+      remove: "&aUsage: &f/npcbook filter remove <filter name>"
+      getbook: "&aUsage: &f/npcbook filter getbook <filter name>"
+  help:
+    about: "&f/npcbook about &c- &9Informations about plugin."
+    set: "&f/npcbook set &c- &9Set book for npc."
+    remove: "&f/npcbook remove &c- &9Remove book for npc."
+    getbook: "&f/npcbook getbook &c- &9Get the book of npc."
+    openbook: "&f/npcbook openbook &c- &9Open a writen book."
+    reload: "&f/npcbook reload &c- &9Reload config file."
+    setcmd: "&f/npcbook setcmd <command> <filter name> &c- &9Set command by the given filter name."
+    remcmd: "&f/npcbook remcmd <command> &c- &9Remove command."
+    filter:
+       set: "&f/npcbook filter set <filter name> &c- &9Set a filter by the given name."
+       remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter by the given name."
+       getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of filter by the given name."
+filters: {} 
+save: {} 
+commands:
+  helloworld: "test1"
