@@ -8,7 +8,7 @@
 #                                                                     #
 #######################################################################
 
-version: 4 #DO NOT CHANGE/REMOVE
+version: 5 #DO NOT CHANGE/REMOVE
 lang:
   header: "&f[&6CitizensBooks&f] &r"
   noPermission: "&cYou don''t have permission!"

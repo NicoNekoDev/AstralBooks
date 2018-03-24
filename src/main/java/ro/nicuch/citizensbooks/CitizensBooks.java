@@ -57,15 +57,13 @@ public class CitizensBooks extends JavaPlugin {
 	public void reloadSettings() {
 		File config = new File(this.getDataFolder() + File.separator + "config.yml");
 		if (!config.exists()) {
-			this.getConfig().options().copyDefaults(true);
-			this.saveDefaultConfig();
+			this.saveResource("config.yml", false);
 		}
-		if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 4) {
+		if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 5) {
 			File copy = new File(
 					this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
 			config.renameTo(copy);
-			this.getConfig().options().copyDefaults(true);
-			this.saveDefaultConfig();
+			this.saveResource("config.yml", true);
 		}
 	}
 

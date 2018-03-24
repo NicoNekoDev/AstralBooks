@@ -17,9 +17,9 @@ public class CitizensActions implements Listener {
 	@EventHandler
 	public void event(NPCRightClickEvent event) {
 		int npcId = event.getNPC().getId();
-		if (!this.plugin.getConfig().isItemStack("save." + npcId))
+		if (!this.plugin.getConfig().isString("save." + npcId))
 			return;
-		ItemStack book = this.plugin.getConfig().getItemStack("save." + npcId);
+		ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
 		if (book == null)
 			return;
 		BookNPCRightClickEvent e = new BookNPCRightClickEvent(event.getClicker(), event.getNPC(), book);

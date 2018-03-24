@@ -5,8 +5,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -32,15 +34,15 @@ public class CitizensBooksAPI {
 	}
 
 	public ItemStack getFilter(String filterName) {
-		return this.plugin.getConfig().getItemStack("filters." + filterName, new ItemStack(Material.WRITTEN_BOOK));
+		return this.stringToBook(this.plugin.getConfig().getString("filters." + filterName, ""));
 	}
 
 	public boolean hasFilter(String filterName) {
-		return this.plugin.getConfig().isItemStack("filters." + filterName);
+		return this.plugin.getConfig().isString("filters." + filterName);
 	}
 
 	public void createFilter(String filterName, ItemStack book) {
-		this.plugin.getConfig().set("filters." + filterName, book);
+		this.plugin.getConfig().set("filters." + filterName, this.bookToString(book));
 		this.plugin.saveSettings();
 	}
 
@@ -102,5 +104,16 @@ public class CitizensBooksAPI {
 		meta.setPages(PlaceholderAPI.setPlaceholders(player, meta.getPages()));
 		item.setItemMeta(meta);
 		return item;
+	}
+
+	protected String bookToString(ItemStack book) {
+		net.minecraft.server.v1_12_R1.ItemStack nmsStack = CraftItemStack.asNMSCopy(book);
+		return nmsStack.getTag().toString();
+	}
+
+	@SuppressWarnings("deprecation")
+	protected ItemStack stringToBook(String arg) {
+		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+		return Bukkit.getUnsafe().modifyItemStack(book, arg);
 	}
 }

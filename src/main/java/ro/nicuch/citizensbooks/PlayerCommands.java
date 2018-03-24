@@ -18,9 +18,10 @@ import net.milkbowl.vault.permission.Permission;
 
 public class PlayerCommands implements TabExecutor {
 	private final CitizensBooks plugin;
+	private final CitizensBooksAPI api;
 
 	public PlayerCommands(CitizensBooks plugin) {
-		this.plugin = plugin;
+		api = (this.plugin = plugin).getAPI();
 	}
 
 	@Override
@@ -61,7 +62,7 @@ public class PlayerCommands implements TabExecutor {
 				break;
 			case "openbook":
 				if (perm.has(sender, "npcbook.command.getbook")) {
-					if (hasBookInHand((Player) sender)) {
+					if (this.hasBookInHand((Player) sender)) {
 						this.openBook((Player) sender, this.getBookFromHand((Player) sender));
 					} else
 						sender.sendMessage(this.plugin.getMessage("lang.noBookInHand", LangDefaults.noBookInHand));
@@ -98,8 +99,8 @@ public class PlayerCommands implements TabExecutor {
 					case "set":
 						if (perm.has(sender, "npcbook.command.filter.set")) {
 							if (args.length > 2) {
-								if (hasBookInHand((Player) sender)) {
-									this.plugin.getAPI().createFilter(args[2], this.getBookFromHand((Player) sender));
+								if (this.hasBookInHand((Player) sender)) {
+									this.api.createFilter(args[2], this.getBookFromHand((Player) sender));
 									sender.sendMessage(
 											this.plugin.getMessage("lang.filterSaved", LangDefaults.filterSaved)
 													.replaceAll("%filter_name%", args[2]));
@@ -115,7 +116,7 @@ public class PlayerCommands implements TabExecutor {
 					case "remove":
 						if (perm.has(sender, "npcbook.command.filter.remove")) {
 							if (args.length > 2) {
-								this.plugin.getAPI().removeFilter(args[2]);
+								this.api.removeFilter(args[2]);
 								sender.sendMessage(
 										this.plugin.getMessage("lang.filterRemoved", LangDefaults.filterRemoved)
 												.replaceAll("%filter_name%", args[2]));
@@ -128,8 +129,8 @@ public class PlayerCommands implements TabExecutor {
 					case "getbook":
 						if (perm.has(sender, "npcbook.command.filter.getbook")) {
 							if (args.length > 2) {
-								if (this.plugin.getAPI().hasFilter(args[2])) {
-									ItemStack book = this.plugin.getAPI().getFilter(args[2]);
+								if (this.api.hasFilter(args[2])) {
+									ItemStack book = this.api.getFilter(args[2]);
 									if (book != null) {
 										((Player) sender).getInventory().addItem(book);
 										sender.sendMessage(
