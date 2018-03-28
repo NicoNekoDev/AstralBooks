@@ -20,8 +20,6 @@ public class CitizensActions implements Listener {
 		if (!this.plugin.getConfig().isString("save." + npcId))
 			return;
 		ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
-		if (book == null)
-			return;
 		BookNPCRightClickEvent e = new BookNPCRightClickEvent(event.getClicker(), event.getNPC(), book);
 		this.plugin.getServer().getPluginManager().callEvent(e);
 		if (e.isCancelled())

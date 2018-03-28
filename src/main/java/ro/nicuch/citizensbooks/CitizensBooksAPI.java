@@ -2,13 +2,11 @@ package ro.nicuch.citizensbooks;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.BookMeta;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -81,29 +79,34 @@ public class CitizensBooksAPI {
 	protected ItemStack placeholderHook(Player player, ItemStack item) {
 		if (!this.plugin.isPlaceHolderEnabled())
 			return item;
-		if (!(item.getItemMeta() instanceof BookMeta))
-			return item;
-		BookMeta meta = (BookMeta) item.getItemMeta();
-		meta.setPages(PlaceholderAPI.setPlaceholders(player, meta.getPages()));
-		item.setItemMeta(meta);
-		return item;
+		return this.stringToBook(PlaceholderAPI.setPlaceholders(player, this.bookToString(item)));
 	}
 
 	protected String bookToString(ItemStack book) {
 		try {
 			Class<?> cisobc = this.getOBCClass("inventory.CraftItemStack");
 			Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, book);
-			Object tag = nms.getClass().getMethod("getTag", this.getNMSClass("NBTTagCompound")).invoke(nms);
-			return (String) tag.getClass().getMethod("toString", String.class).invoke(tag);
+			Object nbtTag = nms.getClass().getMethod("getTag").invoke(nms);
+			return (String) nbtTag.getClass().getMethod("toString").invoke(nbtTag);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return "";
 	}
 
-	@SuppressWarnings("deprecation")
-	protected ItemStack stringToBook(String arg) {
-		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-		return Bukkit.getUnsafe().modifyItemStack(book, arg);
+	protected ItemStack stringToBook(String nbt) {
+		ItemStack def = new ItemStack(Material.WRITTEN_BOOK);
+		try {
+			Class<?> msonp = this.getNMSClass("MojangsonParser");
+			Object tag = msonp.getDeclaredMethod("parse", String.class).invoke(msonp, nbt);
+			Class<?> cisobc = this.getOBCClass("inventory.CraftItemStack");
+			Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, def);
+			nms.getClass().getMethod("setTag", this.getNMSClass("NBTTagCompound")).invoke(nms, tag);
+			return (ItemStack) cisobc.getDeclaredMethod("asBukkitCopy", this.getNMSClass("ItemStack")).invoke(cisobc,
+					nms);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return def;
 	}
 }

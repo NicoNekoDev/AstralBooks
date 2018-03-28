@@ -80,13 +80,8 @@ public class CitizensCommands implements TabExecutor {
 					if (npc != null) {
 						if (this.plugin.getConfig().isString("save." + npcId)) {
 							ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
-							if (book != null) {
-								((Player) sender).getInventory().addItem(book);
-								sender.sendMessage(
-										this.plugin.getMessage("lang.bookRecived", LangDefaults.bookRecived));
-							} else
-								sender.sendMessage(
-										this.plugin.getMessage("lang.notValidBook", LangDefaults.notValidBook));
+							((Player) sender).getInventory().addItem(book);
+							sender.sendMessage(this.plugin.getMessage("lang.bookRecived", LangDefaults.bookRecived));
 						} else
 							sender.sendMessage(this.plugin.getMessage("lang.noBookForNPC", LangDefaults.noBookForNPC)
 									.replaceFirst("%npc%",

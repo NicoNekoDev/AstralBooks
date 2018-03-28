@@ -26,7 +26,7 @@ public class PlayerActions implements Listener {
 			player.sendMessage(this.plugin.getMessage("lang.notValidFilterBook", LangDefaults.notValidFilterBook));
 			return;
 		}
-		ItemStack book = this.api.getFilter(filterName).clone();
+		ItemStack book = this.api.getFilter(filterName);
 		api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
 	}
 
