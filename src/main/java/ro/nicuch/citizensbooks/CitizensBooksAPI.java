@@ -2,6 +2,7 @@ package ro.nicuch.citizensbooks;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,12 +15,20 @@ import me.clip.placeholderapi.PlaceholderAPI;
 
 public class CitizensBooksAPI {
 	private final CitizensBooks plugin;
-	private final String version;
+	private static final String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",")
+			.split(",")[3];
+	private static final Class<?> cisobc = getOBCClass("inventory.CraftItemStack");
+	private static final Class<?> pds = getNMSClass("PacketDataSerializer");
+	private static final Class<?> pc = getNMSClass("PlayerConnection");
+	private static final Class<?> p = getNMSClass("Packet");
+	private static final Class<?> ppocp = getNMSClass("PacketPlayOutCustomPayload");
+	private static final Class<?> msonp = getNMSClass("MojangsonParser");
+	private static final Class<?> nbtTag = getNMSClass("NBTTagCompound");
+	private static final Class<?> nmsIs = getNMSClass("ItemStack");
 
 	public CitizensBooksAPI(CitizensBooks plugin) {
 		this.plugin = plugin;
-		this.version = plugin.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-		this.plugin.getLogger().info(ChatColor.GREEN + "Your server is running version " + this.version + "!");
+		this.plugin.getLogger().info(ChatColor.GREEN + "Your server is running version " + version + "!");
 	}
 
 	public ItemStack getFilter(String filterName) {
@@ -40,12 +49,22 @@ public class CitizensBooksAPI {
 		this.plugin.saveSettings();
 	}
 
-	private Class<?> getNMSClass(String nmsClassString) throws ClassNotFoundException {
-		return Class.forName("net.minecraft.server." + this.version + "." + nmsClassString);
+	private static Class<?> getNMSClass(String nmsClassString) {
+		try {
+			return Class.forName("net.minecraft.server." + version + "." + nmsClassString);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
-	private Class<?> getOBCClass(String cbClassString) throws ClassNotFoundException {
-		return Class.forName("org.bukkit.craftbukkit." + this.version + "." + cbClassString);
+	private static Class<?> getOBCClass(String cbClassString) {
+		try {
+			return Class.forName("org.bukkit.craftbukkit." + version + "." + cbClassString);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	private Object getConnection(Player player) throws SecurityException, NoSuchMethodException, NoSuchFieldException,
@@ -56,12 +75,9 @@ public class CitizensBooksAPI {
 
 	protected void rightClick(Player player) {
 		try {
-			Class<?> pds = this.getNMSClass("PacketDataSerializer");
-			this.getNMSClass("PlayerConnection").getMethod("sendPacket", this.getNMSClass("Packet")).invoke(
-					this.getConnection(player),
-					this.getNMSClass("PacketPlayOutCustomPayload").getConstructor(String.class, pds)
-							.newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
-									.newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+			pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
+					ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
+							.newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -84,7 +100,6 @@ public class CitizensBooksAPI {
 
 	protected String bookToString(ItemStack book) {
 		try {
-			Class<?> cisobc = this.getOBCClass("inventory.CraftItemStack");
 			Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, book);
 			Object nbtTag = nms.getClass().getMethod("getTag").invoke(nms);
 			return (String) nbtTag.getClass().getMethod("toString").invoke(nbtTag);
@@ -97,13 +112,10 @@ public class CitizensBooksAPI {
 	protected ItemStack stringToBook(String nbt) {
 		ItemStack def = new ItemStack(Material.WRITTEN_BOOK);
 		try {
-			Class<?> msonp = this.getNMSClass("MojangsonParser");
 			Object tag = msonp.getDeclaredMethod("parse", String.class).invoke(msonp, nbt);
-			Class<?> cisobc = this.getOBCClass("inventory.CraftItemStack");
 			Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, def);
-			nms.getClass().getMethod("setTag", this.getNMSClass("NBTTagCompound")).invoke(nms, tag);
-			return (ItemStack) cisobc.getDeclaredMethod("asBukkitCopy", this.getNMSClass("ItemStack")).invoke(cisobc,
-					nms);
+			nms.getClass().getMethod("setTag", nbtTag).invoke(nms, tag);
+			return (ItemStack) cisobc.getDeclaredMethod("asBukkitCopy", nmsIs).invoke(cisobc, nms);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
