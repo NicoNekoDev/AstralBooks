@@ -8,25 +8,23 @@
 #                                                                     #
 #######################################################################
 
-version: 5 #DO NOT CHANGE/REMOVE
+version: 6 #DO NOT CHANGE/REMOVE
 lang:
   header: "&f[&6CitizensBooks&f] &r"
-  noPermission: "&cYou don''t have permission!"
-  pluginReloaded: "&aPlugin config reloaded."
-  setMenuForNPC: "&aYou have set the book for %npc%&a!"
-  removeMenuForNPC: "&aYou have removed the book for %npc%&a!"
-  noNPCSelected: "&cYou need to have an NPC selected!"
-  noBookInHand: "&cYou need to have a book in your hand!"
-  notValidBook: "&cThis NPC does not have a valid book."
-  notValidFilterBook: "&cThis filter does not have a valid book."
-  noBookForNPC: "&cThis NPC doesn''t have a book!"
-  noBookForFilter: "&cThis filter doesn''t have a book!"
-  filterSaved: "&aFilter %filter_name% was saved."
-  filterRemoved: "&aFilter %filter_name% was removed."
-  bookRecived: "&aYou recived the book in your inventory!"
-  noCitizens: "&cCitizens plugin is not enabled!"
-  setCommand: "&aCommand %command% has been set!"
-  remCommand: "&aCommand %command% has been removed!"
+  no_permission: "&cYou don''t have permission!"
+  config_reloaded: "&aConfig reloaded."
+  set_book_successfully: "&aYou have set the book for %npc%&a!"
+  remove_book_successfully: "&aYou have removed the book for %npc%&a!"
+  no_npc_selected: "&cYou need to have an NPC selected!"
+  no_book_in_hand: "&cYou need to have a book in your hand!"
+  no_book_for_npc: "&cThis NPC doesn''t have a book!"
+  no_book_for_filter: "&cThis filter doesn''t have a book!"
+  filter_saved: "&aFilter %filter_name% was saved."
+  filter_removed: "&aFilter %filter_name% was removed."
+  book_recived: "&aYou recived the book in your inventory!"
+  citizens_not_enabled: "&cCitizens plugin is not enabled!"
+  set_custom_command_successfully: "&aCommand %command% has been set!"
+  remove_custom_command_successfully: "&aCommand %command% has been removed!"
   usage:
     set: "&aUsage: &f/npcbook set"
     remove: "&aUsage: &f/npcbook remove"

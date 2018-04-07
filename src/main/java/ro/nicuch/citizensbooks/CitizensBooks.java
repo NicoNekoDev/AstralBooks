@@ -65,6 +65,7 @@ public class CitizensBooks extends JavaPlugin {
 			config.renameTo(copy);
 			this.saveResource("config.yml", true);
 		}
+		this.reloadConfig();
 	}
 
 	public void saveSettings() {

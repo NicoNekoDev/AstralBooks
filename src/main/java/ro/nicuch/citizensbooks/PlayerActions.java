@@ -23,7 +23,7 @@ public class PlayerActions implements Listener {
 		event.setCancelled(true);
 		String filterName = this.plugin.getConfig().getString("commands." + command);
 		if (!this.api.hasFilter(filterName)) {
-			player.sendMessage(this.plugin.getMessage("lang.notValidFilterBook", LangDefaults.notValidFilterBook));
+			player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", LangDefaults.no_book_for_filter));
 			return;
 		}
 		ItemStack book = this.api.getFilter(filterName);

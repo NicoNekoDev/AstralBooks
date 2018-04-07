@@ -39,41 +39,44 @@ public class CitizensCommands implements TabExecutor {
 			case "reload":
 				if (perm.has(sender, "npcbook.command.reload")) {
 					this.plugin.reloadSettings();
-					sender.sendMessage(this.plugin.getMessage("lang.pluginReloaded", LangDefaults.pluginReloaded));
+					sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", LangDefaults.config_reloaded));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "set":
 				if (perm.has(sender, "npcbook.command.set")) {
-					if (hasBookInHand((Player) sender)) {
+					if (this.hasBookInHand((Player) sender)) {
 						if (npc != null) {
 							this.plugin.getConfig().set("save." + npcId,
 									this.api.bookToString(this.getBookFromHand((Player) sender)));
 							this.plugin.saveSettings();
-							sender.sendMessage(this.plugin.getMessage("lang.setMenuForNPC", LangDefaults.setMenuForNPC)
+							sender.sendMessage(this.plugin
+									.getMessage("lang.set_book_successfully", LangDefaults.set_book_successfully)
 									.replaceFirst("%npc%", npc.getFullName()));
 						} else
 							sender.sendMessage(
-									this.plugin.getMessage("lang.noNPCSelected", LangDefaults.noNPCSelected));
+									this.plugin.getMessage("lang.no_npc_selected", LangDefaults.no_npc_selected));
 					} else
-						sender.sendMessage(this.plugin.getMessage("lang.noBookInHand", LangDefaults.noBookInHand));
+						sender.sendMessage(
+								this.plugin.getMessage("lang.no_book_in_hand", LangDefaults.no_book_in_hand));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "remove":
 				if (perm.has(sender, "npcbook.command.remove")) {
 					if (npc != null) {
-						if (this.plugin.getConfig().isString("save." + npcId)) {
-							this.plugin.getConfig().set("save." + npcId, null);
-							this.plugin.saveSettings();
-						}
-						sender.sendMessage(
-								this.plugin.getMessage("lang.removeMenuForNPC", LangDefaults.removeMenuForNPC)
-										.replaceFirst("%menu%", args[1]).replaceFirst("%npc%", npc.getFullName()));
+						/* if (this.plugin.getConfig().isString("save." + npcId)) {} */
+						// Useless check, we just remove the data whatever exist or not
+						this.plugin.getConfig().set("save." + npcId, null);
+						this.plugin.saveSettings(); // Save is not mandatory, because the value may exist
+						sender.sendMessage(this.plugin
+								.getMessage("lang.remove_book_successfully", LangDefaults.remove_book_successfully)
+								.replaceFirst("%npc%", npc.getFullName()));
 					} else
-						sender.sendMessage(this.plugin.getMessage("lang.noNPCSelected", LangDefaults.noNPCSelected));
+						sender.sendMessage(
+								this.plugin.getMessage("lang.no_npc_selected", LangDefaults.no_npc_selected));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "getbook":
 				if (perm.has(sender, "npcbook.command.getbook")) {
@@ -81,48 +84,54 @@ public class CitizensCommands implements TabExecutor {
 						if (this.plugin.getConfig().isString("save." + npcId)) {
 							ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
 							((Player) sender).getInventory().addItem(book);
-							sender.sendMessage(this.plugin.getMessage("lang.bookRecived", LangDefaults.bookRecived));
+							sender.sendMessage(this.plugin.getMessage("lang.book_recived", LangDefaults.book_recived));
 						} else
-							sender.sendMessage(this.plugin.getMessage("lang.noBookForNPC", LangDefaults.noBookForNPC)
-									.replaceFirst("%npc%",
-											CitizensAPI.getDefaultNPCSelector().getSelected(sender).getFullName()));
+							sender.sendMessage(
+									this.plugin.getMessage("lang.no_book_for_npc", LangDefaults.no_book_for_npc)
+											.replaceFirst("%npc%", npc.getFullName()));
 					} else
-						sender.sendMessage(this.plugin.getMessage("lang.noNPCSelected", LangDefaults.noNPCSelected));
+						sender.sendMessage(
+								this.plugin.getMessage("lang.no_npc_selected", LangDefaults.no_npc_selected));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "openbook":
 				if (perm.has(sender, "npcbook.command.getbook")) {
 					if (this.hasBookInHand((Player) sender)) {
 						this.openBook((Player) sender, this.getBookFromHand((Player) sender));
 					} else
-						sender.sendMessage(this.plugin.getMessage("lang.noBookInHand", LangDefaults.noBookInHand));
+						sender.sendMessage(
+								this.plugin.getMessage("lang.no_book_in_hand", LangDefaults.no_book_in_hand));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "setcmd":
 				if (perm.has(sender, "npcbook.command.setcmd")) {
 					if (args.length > 2) {
 						this.plugin.getConfig().set("commands." + args[1], args[2]);
 						this.plugin.saveSettings();
-						sender.sendMessage(this.plugin.getMessage("lang.setCommand", LangDefaults.setCommand)
+						sender.sendMessage(this.plugin
+								.getMessage("lang.set_custom_command_successfully",
+										LangDefaults.set_custom_command_successfully)
 								.replaceAll("%command%", args[1]).replaceAll("%filter_name%", args[2]));
 					} else
 						sender.sendMessage(this.plugin.getMessage("lang.usage.setcmd", LangDefaults.usage_setcmd));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "remcmd":
 				if (perm.has(sender, "npcbook.command.remcmd")) {
 					if (args.length > 1) {
 						this.plugin.getConfig().set("commands." + args[1], null);
 						this.plugin.saveSettings();
-						sender.sendMessage(this.plugin.getMessage("lang.remCommand", LangDefaults.remCommand)
+						sender.sendMessage(this.plugin
+								.getMessage("lang.remove_custom_command_successfully",
+										LangDefaults.remove_custom_command_successfully)
 								.replaceAll("%command%", args[1]));
 					} else
 						sender.sendMessage(this.plugin.getMessage("lang.usage.remcmd", LangDefaults.usage_remcmd));
 				} else
-					sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+					sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 				break;
 			case "filter":
 				if (args.length > 1) {
@@ -133,50 +142,49 @@ public class CitizensCommands implements TabExecutor {
 								if (this.hasBookInHand((Player) sender)) {
 									this.api.createFilter(args[2], this.getBookFromHand((Player) sender));
 									sender.sendMessage(
-											this.plugin.getMessage("lang.filterSaved", LangDefaults.filterSaved)
+											this.plugin.getMessage("lang.filter_saved", LangDefaults.filter_saved)
 													.replaceAll("%filter_name%", args[2]));
 								} else
-									sender.sendMessage(
-											this.plugin.getMessage("lang.noBookInHand", LangDefaults.noBookInHand));
+									sender.sendMessage(this.plugin.getMessage("lang.no_book_in_hand",
+											LangDefaults.no_book_in_hand));
 							} else
 								sender.sendMessage(
 										this.plugin.getMessage("lang.usage.filter.set", LangDefaults.usage_filter_set));
 						} else
-							sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+							sender.sendMessage(
+									this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 						break;
 					case "remove":
 						if (perm.has(sender, "npcbook.command.filter.remove")) {
 							if (args.length > 2) {
 								this.api.removeFilter(args[2]);
 								sender.sendMessage(
-										this.plugin.getMessage("lang.filterRemoved", LangDefaults.filterRemoved)
+										this.plugin.getMessage("lang.filter_removed", LangDefaults.filter_removed)
 												.replaceAll("%filter_name%", args[2]));
 							} else
 								sender.sendMessage(this.plugin.getMessage("lang.usage.filter.remove",
 										LangDefaults.usage_filter_remove));
 						} else
-							sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+							sender.sendMessage(
+									this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 						break;
 					case "getbook":
 						if (perm.has(sender, "npcbook.command.filter.getbook")) {
 							if (args.length > 2) {
 								if (this.api.hasFilter(args[2])) {
 									ItemStack book = this.api.getFilter(args[2]);
-									if (book != null) {
-										((Player) sender).getInventory().addItem(book);
-										sender.sendMessage(
-												this.plugin.getMessage("lang.bookRecived", LangDefaults.bookRecived));
-									} else
-										sender.sendMessage(this.plugin.getMessage("lang.notValidFilterBook",
-												LangDefaults.notValidFilterBook));
+									((Player) sender).getInventory().addItem(book);
+									sender.sendMessage(
+											this.plugin.getMessage("lang.book_recived", LangDefaults.book_recived));
 								} else
-									sender.sendMessage(this.plugin.getMessage("lang.noBookForFilter",
-											LangDefaults.noBookForFilter));
+									sender.sendMessage(this.plugin.getMessage("lang.no_book_for_filter",
+											LangDefaults.no_book_for_filter));
 							} else
 								sender.sendMessage(this.plugin.getMessage("lang.usage.filter.getbook",
 										LangDefaults.usage_filter_getbook));
 						} else
-							sender.sendMessage(this.plugin.getMessage("lang.noPermission", LangDefaults.noPermission));
+							sender.sendMessage(
+									this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
 						break;
 					default:
 						this.sendFilterHelp(sender);
