@@ -7,30 +7,30 @@ import org.bukkit.inventory.ItemStack;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 
 public class CitizensActions implements Listener {
-	private final CitizensBooks plugin;
-	private final CitizensBooksAPI api;
+    private final CitizensBooks plugin;
+    private final CitizensBooksAPI api;
 
-	public CitizensActions(CitizensBooks plugin) {
-		api = (this.plugin = plugin).getAPI();
-	}
+    public CitizensActions(CitizensBooks plugin) {
+        api = (this.plugin = plugin).getAPI();
+    }
 
-	@EventHandler
-	public void event(NPCRightClickEvent event) {
-		int npcId = event.getNPC().getId();
-		if (!this.plugin.getConfig().isString("save." + npcId))
-			return;
-		ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
-		BookNPCRightClickEvent e = new BookNPCRightClickEvent(event.getClicker(), event.getNPC(), book);
-		this.plugin.getServer().getPluginManager().callEvent(e);
-		if (e.isCancelled())
-			return;
-		book = e.getBook();
-		if (book == null)
-			return;
-		if (e.usePlaceHolders())
-			this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));
-		else
-			this.api.openBook(event.getClicker(), book);
-	}
+    @EventHandler
+    public void event(NPCRightClickEvent event) {
+        int npcId = event.getNPC().getId();
+        if (!this.plugin.getConfig().isString("save." + npcId))
+            return;
+        ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
+        BookNPCRightClickEvent e = new BookNPCRightClickEvent(event.getClicker(), event.getNPC(), book);
+        this.plugin.getServer().getPluginManager().callEvent(e);
+        if (e.isCancelled())
+            return;
+        book = e.getBook();
+        if (book == null)
+            return;
+        if (e.usePlaceHolders())
+            this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));
+        else
+            this.api.openBook(event.getClicker(), book);
+    }
 
 }

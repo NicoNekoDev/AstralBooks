@@ -31,7 +31,7 @@ public class CitizensBooks extends JavaPlugin {
 			this.placeholder = true;
 		}
 		this.PERMISSION = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
-		TabExecutor te = null;
+		TabExecutor te;
 		manager.registerEvents(new PlayerActions(this), this);
 		if (!manager.isPluginEnabled("Citizens")) {
 			this.getLogger().info(ChatColor.BLUE + "Citizens not found!");
