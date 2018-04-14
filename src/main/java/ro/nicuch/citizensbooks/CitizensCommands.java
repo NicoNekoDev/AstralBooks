@@ -45,6 +45,10 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
                     break;
                 case "set":
+                    if (!this.isPlayer(sender)) {
+                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", LangDefaults.console_cannot_use_command));
+                        break;
+                    }
                     if (perm.has(sender, "npcbook.command.set")) {
                         if (this.hasBookInHand((Player) sender)) {
                             if (npc != null) {
@@ -80,6 +84,10 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
                     break;
                 case "getbook":
+                    if (!this.isPlayer(sender)) {
+                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", LangDefaults.console_cannot_use_command));
+                        break;
+                    }
                     if (perm.has(sender, "npcbook.command.getbook")) {
                         if (npc != null) {
                             if (this.plugin.getConfig().isString("save." + npcId)) {
@@ -97,6 +105,10 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
                     break;
                 case "openbook":
+                    if (!this.isPlayer(sender)) {
+                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", LangDefaults.console_cannot_use_command));
+                        break;
+                    }
                     if (perm.has(sender, "npcbook.command.getbook")) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.openBook((Player) sender, this.getBookFromHand((Player) sender));
@@ -138,6 +150,10 @@ public class CitizensCommands implements TabExecutor {
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set":
+                                if (!this.isPlayer(sender)) {
+                                    sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", LangDefaults.console_cannot_use_command));
+                                    break;
+                                }
                                 if (perm.has(sender, "npcbook.command.filter.set")) {
                                     if (args.length > 2) {
                                         if (this.hasBookInHand((Player) sender)) {
@@ -170,6 +186,10 @@ public class CitizensCommands implements TabExecutor {
                                             this.plugin.getMessage("lang.no_permission", LangDefaults.no_permission));
                                 break;
                             case "getbook":
+                                if (!this.isPlayer(sender)) {
+                                    sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", LangDefaults.console_cannot_use_command));
+                                    break;
+                                }
                                 if (perm.has(sender, "npcbook.command.filter.getbook")) {
                                     if (args.length > 2) {
                                         if (this.api.hasFilter(args[2])) {
@@ -274,6 +294,10 @@ public class CitizensCommands implements TabExecutor {
         return item.getType().equals(Material.WRITTEN_BOOK);
     }
 
+    private boolean isPlayer(CommandSender sender) {
+        return (sender instanceof Player);
+    }
+
     private ItemStack getBookFromHand(Player player) {
         switch (api.version) {
             case "v1_8_R3":
@@ -302,7 +326,7 @@ public class CitizensCommands implements TabExecutor {
     private void sendAbout(CommandSender sender) {
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.YELLOW + "CitizensBooks");
+        sender.sendMessage(ChatColor.RED + "<+ CitizensBooks +>");
         sender.sendMessage(ChatColor.GOLD + "Version: " + ChatColor.RED + this.plugin.getDescription().getVersion());
         sender.sendMessage(ChatColor.GOLD + "Auhtor: " + ChatColor.RED + "nicuch");
         sender.sendMessage("");
