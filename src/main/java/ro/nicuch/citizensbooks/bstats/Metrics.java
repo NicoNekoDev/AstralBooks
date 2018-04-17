@@ -1,4 +1,4 @@
-package ro.nicuch.citizensbooks.ro.nicuch.citizensbooks.bstats;
+package ro.nicuch.citizensbooks.bstats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;

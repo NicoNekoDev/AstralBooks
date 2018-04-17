@@ -8,7 +8,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.milkbowl.vault.permission.Permission;
-import ro.nicuch.citizensbooks.ro.nicuch.citizensbooks.bstats.Metrics;
+import ro.nicuch.citizensbooks.bstats.Metrics;
 
 public class CitizensBooks extends JavaPlugin {
     private Permission PERMISSION;

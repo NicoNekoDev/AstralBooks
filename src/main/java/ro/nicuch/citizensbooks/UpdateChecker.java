@@ -66,6 +66,6 @@ public class UpdateChecker implements Listener {
         if (!this.updateAvailable)
             return;
         player.sendMessage(this.plugin.getMessage("new_version_available", LangDefaults.new_version_available)
-                .replace("version", this.latestVersion == null ? "" : this.latestVersion));
+                .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }
