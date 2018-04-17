@@ -86,7 +86,7 @@ public class PlayerCommands implements TabExecutor {
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.set_custom_command_successfully",
                                             LangDefaults.set_custom_command_successfully)
-                                    .replaceAll("%command%", args[1]).replaceAll("%filter_name%", args[2]));
+                                    .replace("%command%", args[1]).replace("%filter_name%", args[2]));
                         } else
                             sender.sendMessage(this.plugin.getMessage("lang.usage.setcmd", LangDefaults.usage_setcmd));
                     } else
@@ -100,7 +100,7 @@ public class PlayerCommands implements TabExecutor {
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.remove_custom_command_successfully",
                                             LangDefaults.remove_custom_command_successfully)
-                                    .replaceAll("%command%", args[1]));
+                                    .replace("%command%", args[1]));
                         } else
                             sender.sendMessage(this.plugin.getMessage("lang.usage.remcmd", LangDefaults.usage_remcmd));
                     } else
@@ -120,7 +120,7 @@ public class PlayerCommands implements TabExecutor {
                                             this.api.createFilter(args[2], this.getBookFromHand((Player) sender));
                                             sender.sendMessage(
                                                     this.plugin.getMessage("lang.filter_saved", LangDefaults.filter_saved)
-                                                            .replaceAll("%filter_name%", args[2]));
+                                                            .replace("%filter_name%", args[2]));
                                         } else
                                             sender.sendMessage(this.plugin.getMessage("lang.no_book_in_hand",
                                                     LangDefaults.no_book_in_hand));
@@ -137,7 +137,7 @@ public class PlayerCommands implements TabExecutor {
                                         this.api.removeFilter(args[2]);
                                         sender.sendMessage(
                                                 this.plugin.getMessage("lang.filter_removed", LangDefaults.filter_removed)
-                                                        .replaceAll("%filter_name%", args[2]));
+                                                        .replace("%filter_name%", args[2]));
                                     } else
                                         sender.sendMessage(this.plugin.getMessage("lang.usage.filter.remove",
                                                 LangDefaults.usage_filter_remove));

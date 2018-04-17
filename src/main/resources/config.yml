@@ -9,6 +9,8 @@
 #######################################################################
 
 version: 6 #DO NOT CHANGE/REMOVE
+metrics: true
+update_check: true
 lang:
   header: "&f[&6CitizensBooks&f] &r"
   no_permission: "&cYou don''t have permission!"
@@ -26,6 +28,7 @@ lang:
   set_custom_command_successfully: "&aCommand %command% has been set!"
   remove_custom_command_successfully: "&aCommand %command% has been removed!"
   console_cannot_use_command: "&cYou have to be a player if you want to use this command!"
+  new_version_available: "&aA new version of CitizensBooks is available!"
   usage:
     set: "&aUsage: &f/npcbook set"
     remove: "&aUsage: &f/npcbook remove"
