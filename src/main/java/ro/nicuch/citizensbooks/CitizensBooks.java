@@ -39,35 +39,36 @@ public class CitizensBooks extends JavaPlugin {
         this.reloadSettings();
         //bStats Metrics, by default enabled
         if (this.getConfig().getBoolean("metrics", true)) {
-            this.getLogger().info(ChatColor.AQUA + "bStats Metrics starting...");
+            this.getLogger().info("bStats Metrics starting...");
             new Metrics(this);
         }
         PluginManager manager = this.getServer().getPluginManager();
         if (!manager.isPluginEnabled("Vault")) {
-            this.getLogger().warning(ChatColor.RED + "Vault not enabled, plugin disabled!");
+            this.getLogger().warning("Vault not enabled, plugin disabled!");
             this.setEnabled(false);
             return;
         }
         this.api = new CitizensBooksAPI(this);
         if (!manager.isPluginEnabled("PlaceholderAPI")) {
-            this.getLogger().info(ChatColor.BLUE + "PlaceholderAPI not found!");
+            this.getLogger().info("PlaceholderAPI not found!");
         } else {
-            this.getLogger().info(ChatColor.GREEN + "PlaceholderAPI found, try hooking!");
+            this.getLogger().info("PlaceholderAPI found, try hooking!");
             this.placeholder = true;
         }
         this.PERMISSION = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
         TabExecutor te;
         manager.registerEvents(new PlayerActions(this), this);
         if (!manager.isPluginEnabled("Citizens")) {
-            this.getLogger().info(ChatColor.BLUE + "Citizens not found!");
+            this.getLogger().info("Citizens not found!");
             te = new PlayerCommands(this);
         } else {
-            this.getLogger().info(ChatColor.GREEN + "Citizens found, try hooking!");
+            this.getLogger().info("Citizens found, try hooking!");
             manager.registerEvents(new CitizensActions(this), this);
             te = new CitizensCommands(this);
         }
         this.getCommand("npcbook").setExecutor(te);
         this.getCommand("npcbook").setTabCompleter(te);
+        //Update checker, by default enabled
         if (this.getConfig().getBoolean("update_check", true))
             new UpdateChecker(this);
     }
@@ -85,11 +86,13 @@ public class CitizensBooks extends JavaPlugin {
         File config = new File(this.getDataFolder() + File.separator + "config.yml");
         if (!config.exists()) {
             this.saveResource("config.yml", false);
+            this.getLogger().info("A new config.yml was created!");
         }
         if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 5) {
             File copy = new File(
                     this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
             config.renameTo(copy);
+            this.getLogger().info("A new config.yml was generated!");
             this.saveResource("config.yml", true);
         }
         this.reloadConfig();

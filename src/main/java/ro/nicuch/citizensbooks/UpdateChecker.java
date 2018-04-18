@@ -20,7 +20,6 @@
 package ro.nicuch.citizensbooks;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,16 +40,16 @@ public class UpdateChecker implements Listener {
     public UpdateChecker(CitizensBooks plugin) {
         this.plugin = plugin;
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info(ChatColor.GREEN + "Checking for updates..."));
+            Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Checking for updates..."));
             if (this.checkForUpdate())
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info(ChatColor.GOLD + "An update for CitizensBooks (" + this.latestVersion + ") is available at:");
-                    this.plugin.getLogger().info(ChatColor.GOLD + "https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
+                    this.plugin.getLogger().info("An update for CitizensBooks (" + this.latestVersion + ") is available at:");
+                    this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
                     Bukkit.getPluginManager().registerEvents(this, this.plugin);
                 });
             else
                 Bukkit.getScheduler().runTask(this.plugin, () ->
-                        this.plugin.getLogger().info(ChatColor.GREEN + "No new version available!"));
+                        this.plugin.getLogger().info("No new version available!"));
         }, 0, 30 * 60 * 20);
     }
 
@@ -60,7 +59,7 @@ public class UpdateChecker implements Listener {
             con.setRequestMethod("GET");
             return new BufferedReader(new InputStreamReader(con.getInputStream())).readLine();
         } catch (Exception ex) {
-            this.plugin.getLogger().warning(ChatColor.RED + "Failed to check for a update on spigot.");
+            this.plugin.getLogger().warning("Failed to check for a update on spigot.");
         }
         return null;
     }

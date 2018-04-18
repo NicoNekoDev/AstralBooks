@@ -46,7 +46,7 @@ public class PlayerActions implements Listener {
             return;
         }
         ItemStack book = this.api.getFilter(filterName);
-        api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
+        api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
     }
 
 }
