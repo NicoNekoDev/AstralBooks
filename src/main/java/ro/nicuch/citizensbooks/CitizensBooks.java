@@ -88,7 +88,7 @@ public class CitizensBooks extends JavaPlugin {
             this.saveResource("config.yml", false);
             this.getLogger().info("A new config.yml was created!");
         }
-        if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 5) {
+        if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 6) {
             File copy = new File(
                     this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
             config.renameTo(copy);
