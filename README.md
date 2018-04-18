@@ -19,8 +19,8 @@ mvn clean install
 ```
     <repositories>
         <repository>
-	        <id>citizensbooks_repo</id>
-	        <url>https://raw.github.com/nicuch/maven_repo/</url>
+            <id>citizensbooks_repo</id>
+            <url>https://raw.github.com/nicuch/maven_repo/</url>
         </repository>
     </repositories>
     <dependencies>
