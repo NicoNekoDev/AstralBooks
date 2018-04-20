@@ -20,6 +20,7 @@
 package ro.nicuch.citizensbooks;
 
 import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -91,10 +92,15 @@ public class BookNPCRightClickEvent extends PlayerEvent implements Cancellable {
      * Set the book that's gonna be opened after
      *
      * @param book the book
+     * @throws NullPointerException if the book is null
+     * @throws IllegalArgumentException if the ItemStack is not a written book
      */
     public void setBook(ItemStack book) {
-        if ((this.book = book) == null)
+        if (book == null)
             throw new NullPointerException("ItemStack can\'t be null!");
+        if (book.getType() != Material.WRITTEN_BOOK)
+            throw new IllegalArgumentException("The filter can only be a written book!");
+        this.book = book;
     }
 
     /**

@@ -83,7 +83,7 @@ public class CitizensBooksAPI {
     public void createFilter(String filterName, ItemStack book) {
         if (book == null)
             throw new NullPointerException("ItemStack can\'t be null!");
-        if (book.getType() == Material.WRITTEN_BOOK)
+        if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.plugin.getConfig().set("filters." + filterName, this.bookToString(book));
         this.plugin.saveSettings();
@@ -146,7 +146,7 @@ public class CitizensBooksAPI {
     public void openBook(Player player, ItemStack book) {
         if (book == null)
             throw new NullPointerException("ItemStack can\'t be null!");
-        if (book.getType() == Material.WRITTEN_BOOK)
+        if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         int slot = player.getInventory().getHeldItemSlot();
         ItemStack old = player.getInventory().getItem(slot);
