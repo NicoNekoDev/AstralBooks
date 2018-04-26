@@ -70,7 +70,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         this.getCommand("npcbook").setTabCompleter(te);
         //Update checker, by default enabled
         if (this.getConfig().getBoolean("update_check", true))
-            manager.registerEvent(new UpdateChecker(this), this);
+            manager.registerEvents(new UpdateChecker(this), this);
     }
 
     public CitizensBooksAPI getAPI() {
