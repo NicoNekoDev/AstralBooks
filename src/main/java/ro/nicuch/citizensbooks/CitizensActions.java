@@ -1,6 +1,6 @@
 /*
 
-   CitizensBooks
+   CitizensBooksPlugin
    Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,10 @@ import org.bukkit.inventory.ItemStack;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 
 public class CitizensActions implements Listener {
-    private final CitizensBooks plugin;
+    private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
 
-    public CitizensActions(CitizensBooks plugin) {
+    public CitizensActions(CitizensBooksPlugin plugin) {
         api = (this.plugin = plugin).getAPI();
     }
 

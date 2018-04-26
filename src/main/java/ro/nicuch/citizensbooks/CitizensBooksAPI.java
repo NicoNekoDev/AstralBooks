@@ -1,6 +1,6 @@
 /*
 
-   CitizensBooks
+   CitizensBooksPlugin
    Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ import io.netty.buffer.Unpooled;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class CitizensBooksAPI {
-    private final CitizensBooks plugin;
+    private final CitizensBooksPlugin plugin;
     public static final String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",")
             .split(",")[3];
     private static final Class<?> cisobc = getOBCClass("inventory.CraftItemStack");
@@ -47,7 +47,7 @@ public class CitizensBooksAPI {
     private static final Class<?> nbtTag = getNMSClass("NBTTagCompound");
     private static final Class<?> nmsIs = getNMSClass("ItemStack");
 
-    public CitizensBooksAPI(CitizensBooks plugin) {
+    public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.plugin.getLogger().info(ChatColor.GREEN + "Your server is running version " + version + "!");
     }

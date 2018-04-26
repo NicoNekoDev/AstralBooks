@@ -1,6 +1,6 @@
 /*
 
-   CitizensBooks
+   CitizensBooksPlugin
    Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,10 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class PlayerActions implements Listener {
-    private final CitizensBooks plugin;
+    private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
 
-    public PlayerActions(CitizensBooks plugin) {
+    public PlayerActions(CitizensBooksPlugin plugin) {
         api = (this.plugin = plugin).getAPI();
     }
 
@@ -42,7 +42,7 @@ public class PlayerActions implements Listener {
         event.setCancelled(true);
         String filterName = this.plugin.getConfig().getString("commands." + command);
         if (!this.api.hasFilter(filterName)) {
-            player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", LangDefaults.no_book_for_filter));
+            player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", ConfigDefaults.no_book_for_filter));
             return;
         }
         ItemStack book = this.api.getFilter(filterName);

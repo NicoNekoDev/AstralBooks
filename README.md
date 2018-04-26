@@ -27,7 +27,7 @@ mvn clean install
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks</artifactId>
-            <version>2.3.9</version>
+            <version>2.4.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

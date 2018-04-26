@@ -5,4 +5,4 @@ main: ro.nicuch.citizensbooks.CitizensBooks
 softdepend: [PlaceholderAPI, Citizens, Vault]
 commands:
   npcbook:
-    description: Basic CitizensBooks command.
+    description: Basic CitizensBooksPlugin command.

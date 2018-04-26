@@ -1,6 +1,6 @@
 /*
 
-   CitizensBooks
+   CitizensBooksPlugin
    Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,18 +32,18 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class UpdateChecker implements Listener {
-    private final CitizensBooks plugin;
+    private final CitizensBooksPlugin plugin;
     private final int resourceId = 37465;
     private String latestVersion;
     private boolean updateAvailable;
 
-    public UpdateChecker(CitizensBooks plugin) {
+    public UpdateChecker(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Checking for updates..."));
             if (this.checkForUpdate())
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info("An update for CitizensBooks (" + this.latestVersion + ") is available at:");
+                    this.plugin.getLogger().info("An update for CitizensBooksPlugin (" + this.latestVersion + ") is available at:");
                     this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
                     Bukkit.getPluginManager().registerEvents(this, this.plugin);
                 });
@@ -83,7 +83,7 @@ public class UpdateChecker implements Listener {
             return;
         if (!this.updateAvailable)
             return;
-        player.sendMessage(this.plugin.getMessage("new_version_available", LangDefaults.new_version_available)
+        player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
                 .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }
