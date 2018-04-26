@@ -1,6 +1,6 @@
 /*
 
-   CitizensBooksPlugin
+   CitizensBooks
    Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ public class ConfigDefaults {
     public static final String set_custom_command_successfully = "&aCommand %command% has been set!";
     public static final String remove_custom_command_successfully = "&aCommand %command% has been removed!";
     public static final String console_cannot_use_command = "&cYou have to be a player if you want to use this command!";
-    public static final String new_version_available = "&aA new version of CitizensBooksPlugin is available!";
+    public static final String new_version_available = "&aA new version of CitizensBooks is available!";
     //
     public static final String usage_set = "&aUsage: &f/npcbook set";
     public static final String usage_remove = "&aUsage: &f/npcbook remove";
