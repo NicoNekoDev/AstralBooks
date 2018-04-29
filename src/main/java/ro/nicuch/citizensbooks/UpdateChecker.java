@@ -79,7 +79,8 @@ public class UpdateChecker implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!this.plugin.getPermission().has(player, "npcbook.notify"))
+        if ((this.plugin.isVaultEnabled() && !this.plugin.getPermission().has(player, "npcbook.notify"))
+                || !player.hasPermission("npcbook.notify"))
             return;
         if (!this.updateAvailable)
             return;

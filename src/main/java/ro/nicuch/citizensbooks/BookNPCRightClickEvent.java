@@ -20,6 +20,7 @@
 package ro.nicuch.citizensbooks;
 
 import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -34,6 +35,7 @@ import org.bukkit.inventory.ItemStack;
 public class BookNPCRightClickEvent extends PlayerEvent implements Cancellable {
     private final static HandlerList handlers = new HandlerList();
     private final NPC npc;
+    private final CitizensBooksPlugin plugin; //Added this for devs who need to access the API
     private ItemStack book;
     private boolean usePlaceHolders = true;
     private boolean cancel;
@@ -49,6 +51,7 @@ public class BookNPCRightClickEvent extends PlayerEvent implements Cancellable {
         this.npc = npc;
         if ((this.book = book) == null)
             throw new NullPointerException("ItemStack can\'t be null!");
+        this.plugin = (CitizensBooksPlugin) Bukkit.getPluginManager().getPlugin("CitizensBooks");
     }
 
     /**
@@ -101,6 +104,16 @@ public class BookNPCRightClickEvent extends PlayerEvent implements Cancellable {
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.book = book;
+    }
+
+    /**
+     * Get the plugin that implemented this event. (CitizensBooks)
+     * You can access the API more easy in this way.
+     *
+     * @return the plugin
+     */
+    public CitizensBooksPlugin getCBPlugin() {
+        return this.plugin;
     }
 
     /**

@@ -48,7 +48,8 @@ public class CitizensCommands implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        Permission perm = this.plugin.getPermission();
+        Permission perm = this.plugin.getPermission(); //If vault not enabled, this will return null
+        boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is enabled
         NPC npc = CitizensAPI.getDefaultNPCSelector().getSelected(sender);
         int npcId = npc != null ? npc.getId() : 0;
         if (args.length > 0) {
@@ -57,7 +58,7 @@ public class CitizensCommands implements TabExecutor {
                     this.sendAbout(sender);
                     break;
                 case "reload":
-                    if (perm.has(sender, "npcbook.command.reload")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.reload")) || sender.hasPermission("npcbook.command.reload")) {
                         this.plugin.reloadSettings();
                         sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", ConfigDefaults.config_reloaded));
                     } else
@@ -68,7 +69,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if (perm.has(sender, "npcbook.command.set")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.set")) || sender.hasPermission("npcbook.command.set")) {
                         if (this.hasBookInHand((Player) sender)) {
                             if (npc != null) {
                                 this.plugin.getConfig().set("save." + npcId,
@@ -87,7 +88,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "remove":
-                    if (perm.has(sender, "npcbook.command.remove")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove")) {
                         if (npc != null) {
                             /* if (this.plugin.getConfig().isString("save." + npcId)) {} */
                             // Useless check, we just remove the data whatever exist or not
@@ -107,7 +108,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if (perm.has(sender, "npcbook.command.getbook")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook")) {
                         if (npc != null) {
                             if (this.plugin.getConfig().isString("save." + npcId)) {
                                 ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
@@ -128,7 +129,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if (perm.has(sender, "npcbook.command.getbook")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook")) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.openBook((Player) sender, this.getBookFromHand((Player) sender));
                         } else
@@ -138,7 +139,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "setcmd":
-                    if (perm.has(sender, "npcbook.command.setcmd")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd")) {
                         if (args.length > 2) {
                             this.plugin.getConfig().set("commands." + args[1], args[2]);
                             this.plugin.saveSettings();
@@ -152,7 +153,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "remcmd":
-                    if (perm.has(sender, "npcbook.command.remcmd")) {
+                    if ((useVault && perm.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd")) {
                         if (args.length > 1) {
                             this.plugin.getConfig().set("commands." + args[1], null);
                             this.plugin.saveSettings();
@@ -173,7 +174,7 @@ public class CitizensCommands implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                                     break;
                                 }
-                                if (perm.has(sender, "npcbook.command.filter.set")) {
+                                if ((useVault && perm.has(sender, "npcbook.command.filter.set")) || sender.hasPermission("npcbook.command.filter.set")) {
                                     if (args.length > 2) {
                                         if (this.hasBookInHand((Player) sender)) {
                                             this.api.createFilter(args[2], this.getBookFromHand((Player) sender));
@@ -191,7 +192,7 @@ public class CitizensCommands implements TabExecutor {
                                             this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                                 break;
                             case "remove":
-                                if (perm.has(sender, "npcbook.command.filter.remove")) {
+                                if ((useVault && perm.has(sender, "npcbook.command.filter.remove")) || sender.hasPermission("npcbook.command.filter.remove")) {
                                     if (args.length > 2) {
                                         this.api.removeFilter(args[2]);
                                         sender.sendMessage(
@@ -209,7 +210,7 @@ public class CitizensCommands implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                                     break;
                                 }
-                                if (perm.has(sender, "npcbook.command.filter.getbook")) {
+                                if ((useVault && perm.has(sender, "npcbook.command.filter.getbook")) || sender.hasPermission("npcbook.command.filter.getbook")) {
                                     if (args.length > 2) {
                                         if (this.api.hasFilter(args[2])) {
                                             ItemStack book = this.api.getFilter(args[2]);
@@ -234,14 +235,14 @@ public class CitizensCommands implements TabExecutor {
                         this.sendFilterHelp(sender);
                     break;
                 default:
-                    if (perm.has(sender, "npcbook.command.help"))
+                    if ((useVault && perm.has(sender, "npcbook.command.help")) || sender.hasPermission("npcbook.command.help"))
                         this.sendHelp(sender);
                     else
                         this.sendAbout(sender);
                     break;
             }
         } else {
-            if (perm.has(sender, "npcbook.command.help"))
+            if ((useVault && perm.has(sender, "npcbook.command.help")) || sender.hasPermission("npcbook.command.help"))
                 this.sendHelp(sender);
             else
                 this.sendAbout(sender);
@@ -253,30 +254,31 @@ public class CitizensCommands implements TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         List<String> completions = Lists.newArrayList();
         List<String> commands = Lists.newArrayList();
-        Permission perm = this.plugin.getPermission();
+        Permission perm = this.plugin.getPermission(); //If vault not enabled, this will return null
+        boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is enabled
         if (args.length == 1) {
-            if (perm.has(sender, "npcbook.command.set"))
+            if ((useVault && perm.has(sender, "npcbook.command.set")) || sender.hasPermission("npcbook.command.set"))
                 commands.add("set");
-            if (perm.has(sender, "npcbook.command.remove"))
+            if ((useVault && perm.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove"))
                 commands.add("remove");
-            if (perm.has(sender, "npcbook.command.getbook"))
+            if ((useVault && perm.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook"))
                 commands.add("getbook");
-            if (perm.has(sender, "npcbook.command.openbook"))
+            if ((useVault && perm.has(sender, "npcbook.command.openbook")) || sender.hasPermission("npcbook.command.openbook"))
                 commands.add("openbook");
-            if (perm.has(sender, "npcbook.command.filter"))
+            if ((useVault && perm.has(sender, "npcbook.command.filter")) || sender.hasPermission("npcbook.command.filter"))
                 commands.add("filter");
-            if (perm.has(sender, "npcbook.command.setcmd"))
+            if ((useVault && perm.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd"))
                 commands.add("setcmd");
-            if (perm.has(sender, "npcbook.command.remcmd"))
+            if ((useVault && perm.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd"))
                 commands.add("remcmd");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             if (args[0].equals("filter")) {
-                if (perm.has(sender, "npcbook.command.filter.set"))
+                if ((useVault && perm.has(sender, "npcbook.command.filter.set")) || sender.hasPermission("npcbook.command.filter.set"))
                     commands.add("set");
-                if (perm.has(sender, "npcbook.command.filter.remove"))
+                if ((useVault && perm.has(sender, "npcbook.command.filter.remove")) || sender.hasPermission("npcbook.command.filter.remove"))
                     commands.add("remove");
-                if (perm.has(sender, "npcbook.command.filter.getbook"))
+                if ((useVault && perm.has(sender, "npcbook.command.filter.getbook")) || sender.hasPermission("npcbook.command.filter.getbook"))
                     commands.add("getbook");
             }
             StringUtil.copyPartialMatches(args[1], commands, completions);

@@ -3,6 +3,65 @@ version: ${project.version}
 author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
 softdepend: [PlaceholderAPI, Citizens, Vault]
+website: https://www.spigotmc.org/resources/citizensbooks.37465/
 commands:
   npcbook:
     description: Basic CitizensBooks command.
+    permission: npcbook.command.*
+permissions:
+  npcbook.*:
+    children:
+      npcbook.command.help: true
+      npcbook.command.set: true
+      npcbook.command.remove: true
+      npcbook.command.getbook: true
+      npcbook.command.openbook: true
+      npcbook.command.reload: true
+      npcbook.command.setcmd: true
+      npcbook.command.remcmd: true
+      npcbook.command.filter.set: true
+      npcbook.command.filter.remove: true
+      npcbook.command.filter.getbook: true
+      npcbook.notify: true
+  npcbook.command.*:
+    children:
+      npcbook.command.help: true
+      npcbook.command.set: true
+      npcbook.command.remove: true
+      npcbook.command.getbook: true
+      npcbook.command.openbook: true
+      npcbook.command.reload: true
+      npcbook.command.setcmd: true
+      npcbook.command.remcmd: true
+      npcbook.command.filter.set: true
+      npcbook.command.filter.remove: true
+      npcbook.command.filter.getbook: true
+  npcbook.command.filter.*:
+    children:
+      npcbook.command.filter.set: true
+      npcbook.command.filter.remove: true
+      npcbook.command.filter.getbook: true
+  npcbook.command.help:
+    default: false
+  npcbook.command.set:
+    default: false
+  npcbook.command.remove:
+    default: false
+  npcbook.command.getbook:
+    default: false
+  npcbook.command.openbook:
+    default: false
+  npcbook.command.reload:
+    default: false
+  npcbook.command.setcmd:
+    default: false
+  npcbook.command.remcmd:
+    default: false
+  npcbook.command.filter.set:
+    default: false
+  npcbook.command.filter.remove:
+    default: false
+  npcbook.command.filter.getbook:
+    default: false
+  npcbook.notify:
+    default: op

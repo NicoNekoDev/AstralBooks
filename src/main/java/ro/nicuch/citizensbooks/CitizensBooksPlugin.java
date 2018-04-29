@@ -30,7 +30,7 @@ import net.milkbowl.vault.permission.Permission;
 import ro.nicuch.citizensbooks.bstats.Metrics;
 
 public class CitizensBooksPlugin extends JavaPlugin {
-    private Permission PERMISSION;
+    private Permission permission;
     private boolean placeholder;
     private CitizensBooksAPI api;
 
@@ -44,9 +44,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
         }
         PluginManager manager = this.getServer().getPluginManager();
         if (!manager.isPluginEnabled("Vault")) {
-            this.getLogger().warning("Vault not enabled, plugin disabled!");
-            this.setEnabled(false);
-            return;
+            this.getLogger().warning("Vault not found!");
+        } else {
+            this.getLogger().info("Vault found, try hooking!");
+            this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
         }
         this.api = new CitizensBooksAPI(this);
         if (!manager.isPluginEnabled("PlaceholderAPI")) {
@@ -55,7 +56,6 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.getLogger().info("PlaceholderAPI found, try hooking!");
             this.placeholder = true;
         }
-        this.PERMISSION = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
         TabExecutor te;
         manager.registerEvents(new PlayerActions(this), this);
         if (!manager.isPluginEnabled("Citizens")) {
@@ -103,7 +103,11 @@ public class CitizensBooksPlugin extends JavaPlugin {
     }
 
     public Permission getPermission() {
-        return this.PERMISSION;
+        return this.permission;
+    }
+
+    public boolean isVaultEnabled() {
+        return this.permission != null;
     }
 
     public boolean isPlaceHolderEnabled() {
