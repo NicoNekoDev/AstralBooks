@@ -44,8 +44,6 @@ public class CitizensActions implements Listener {
         if (e.isCancelled())
             return;
         book = e.getBook();
-        if (book == null)
-            return;
         if (e.usePlaceHolders())
             this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book, event.getNPC()));
         else

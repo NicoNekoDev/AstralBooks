@@ -126,12 +126,12 @@ public class CitizensBooksAPI {
     protected void rightClick(Player player) {
         try {
             if (pc == null || ppocp == null || pds == null)
-                throw new NullPointerException();
+                throw new NullPointerException("Craftbukkit classes not found!");
             pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                     ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
                             .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            this.plugin.printError(ex);
         }
     }
 
@@ -174,12 +174,12 @@ public class CitizensBooksAPI {
     protected String bookToString(ItemStack book) {
         try {
             if (cisobc == null)
-                throw new NullPointerException();
+                throw new NullPointerException("Craftbukkit classes not found!");
             Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, book);
             Object nbtTag = nms.getClass().getMethod("getTag").invoke(nms);
             return (String) nbtTag.getClass().getMethod("toString").invoke(nbtTag);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            this.plugin.printError(ex);
         }
         return "";
     }
@@ -188,13 +188,13 @@ public class CitizensBooksAPI {
         ItemStack def = new ItemStack(Material.WRITTEN_BOOK);
         try {
             if (msonp == null || cisobc == null)
-                throw new NullPointerException();
+                throw new NullPointerException("Craftbukkit classes not found!");
             Object tag = msonp.getDeclaredMethod("parse", String.class).invoke(msonp, nbt);
             Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, def);
             nms.getClass().getMethod("setTag", nbtTag).invoke(nms, tag);
             return (ItemStack) cisobc.getDeclaredMethod("asBukkitCopy", nmsIs).invoke(cisobc, nms);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            this.plugin.printError(ex);
         }
         return def;
     }

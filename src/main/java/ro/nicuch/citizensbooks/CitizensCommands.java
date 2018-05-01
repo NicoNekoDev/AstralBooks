@@ -300,7 +300,7 @@ public class CitizensCommands implements TabExecutor {
 
     private boolean hasBookInHand(Player player) {
         ItemStack item;
-        switch (api.version) {
+        switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":
             case "v1_8_R1":
@@ -320,7 +320,7 @@ public class CitizensCommands implements TabExecutor {
     }
 
     private ItemStack getBookFromHand(Player player) {
-        switch (api.version) {
+        switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":
             case "v1_8_R1":
@@ -334,7 +334,7 @@ public class CitizensCommands implements TabExecutor {
         BookMeta meta = (BookMeta) book.getItemMeta();
         ItemStack item = new ItemStack(Material.BOOK_AND_QUILL);
         item.setItemMeta(meta);
-        switch (api.version) {
+        switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":
             case "v1_8_R1":

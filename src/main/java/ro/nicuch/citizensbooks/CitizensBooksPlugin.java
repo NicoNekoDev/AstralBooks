@@ -83,23 +83,31 @@ public class CitizensBooksPlugin extends JavaPlugin {
     }
 
     public void reloadSettings() {
-        File config = new File(this.getDataFolder() + File.separator + "config.yml");
-        if (!config.exists()) {
-            this.saveResource("config.yml", false);
-            this.getLogger().info("A new config.yml was created!");
+        try {
+            File config = new File(this.getDataFolder() + File.separator + "config.yml");
+            if (!config.exists()) {
+                this.saveResource("config.yml", false);
+                this.getLogger().info("A new config.yml was created!");
+            }
+            if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 6) {
+                File copy = new File(
+                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
+                config.renameTo(copy);
+                this.getLogger().info("A new config.yml was generated!");
+                this.saveResource("config.yml", true);
+            }
+            this.reloadConfig();
+        } catch (Exception ex) {
+            this.printError(ex); //Saving files can cause IOException
         }
-        if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 6) {
-            File copy = new File(
-                    this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
-            config.renameTo(copy);
-            this.getLogger().info("A new config.yml was generated!");
-            this.saveResource("config.yml", true);
-        }
-        this.reloadConfig();
     }
 
     public void saveSettings() {
-        this.saveConfig();
+        try {
+            this.saveConfig();
+        } catch (Exception ex) {
+            this.printError(ex); //Saving files can cause IOException
+        }
     }
 
     public Permission getPermission() {
@@ -122,5 +130,23 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public String getMessageNoHeader(String path, String def) {
         return ChatColor.translateAlternateColorCodes('&', this.getConfig().getString(path, def));
+    }
+
+    /*
+     * author GamerKing195 (from AutoupdaterAPI)
+     */
+    public void printError(Exception ex) {
+        this.getLogger().severe("A severe error has occurred with CitizensBooks.");
+        this.getLogger().severe("If you cannot figure out this error on your own (e.g. a config error) please copy and paste everything from here to END ERROR and post it at https://github.com/nicuch/CitizensBooks/issues.");
+        this.getLogger().severe("");
+        this.getLogger().severe("============== BEGIN ERROR ==============");
+        this.getLogger().severe("PLUGIN VERSION: CitizensBooks " + getDescription().getVersion());
+        this.getLogger().severe("");
+        this.getLogger().severe("MESSAGE: " + ex.getMessage());
+        this.getLogger().severe("");
+        this.getLogger().severe("STACKTRACE: ");
+        ex.printStackTrace();
+        this.getLogger().severe("");
+        this.getLogger().severe("============== END ERROR ==============");
     }
 }

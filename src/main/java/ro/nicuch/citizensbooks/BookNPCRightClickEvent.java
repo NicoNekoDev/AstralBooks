@@ -95,7 +95,7 @@ public class BookNPCRightClickEvent extends PlayerEvent implements Cancellable {
      * Set the book that's gonna be opened after
      *
      * @param book the book
-     * @throws NullPointerException if the book is null
+     * @throws NullPointerException     if the book is null
      * @throws IllegalArgumentException if the ItemStack is not a written book
      */
     public void setBook(ItemStack book) {
