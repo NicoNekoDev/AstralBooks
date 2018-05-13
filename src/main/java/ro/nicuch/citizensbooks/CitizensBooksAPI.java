@@ -20,6 +20,7 @@
 package ro.nicuch.citizensbooks;
 
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -86,7 +87,7 @@ public class CitizensBooksAPI {
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.plugin.getConfig().set("filters." + filterName, this.bookToString(book));
-        this.plugin.saveSettings();
+        this.plugin.saveConfig();
     }
 
     /**
@@ -96,7 +97,7 @@ public class CitizensBooksAPI {
      */
     public void removeFilter(String filterName) {
         this.plugin.getConfig().set("filters." + filterName, null);
-        this.plugin.saveSettings();
+        this.plugin.saveConfig();
     }
 
     private static Class<?> getNMSClass(String nmsClassString) {
@@ -109,6 +110,8 @@ public class CitizensBooksAPI {
     }
 
     private static Class<?> getOBCClass(String obcClassString) {
+        /*IntelliJ thinks that this method is useless as if is only used once but
+         *if I try to remove the try-catch block, is gonna give me errors no warnings.*/
         try {
             return Class.forName("org.bukkit.craftbukkit." + version + "." + obcClassString);
         } catch (ClassNotFoundException e) {
@@ -197,5 +200,27 @@ public class CitizensBooksAPI {
             this.plugin.printError(ex);
         }
         return def;
+    }
+
+    protected String crypt(String arg) {
+        try {
+            return new BigInteger(arg.getBytes()).toString();
+        } catch (Exception ex) {
+            this.plugin.printError(ex);
+            return "CRYPT ERROR"; //Default value if the crypt fails
+        }
+    }
+
+    protected String decrypt(String arg) {
+        if ("CRYPT ERROR".equals(arg))
+            return "{pages:[\"\"],title:\"\",author:\"\"}";
+        /*Don't throw another exception, as crypt already failed*/
+        try {
+            return new String(new BigInteger(arg).toByteArray());
+        } catch (Exception ex) {
+            this.plugin.printError(ex);
+            return "{pages:[\"\"],title:\"\",author:\"\"}";
+            /*Default value if decrypt fails*/
+        }
     }
 }

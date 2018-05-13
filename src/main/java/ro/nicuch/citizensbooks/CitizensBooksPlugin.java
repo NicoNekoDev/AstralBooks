@@ -36,7 +36,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        this.reloadSettings();
+        this.reloadConfig();
         //bStats Metrics, by default enabled
         if (this.getConfig().getBoolean("metrics", true)) {
             this.getLogger().info("bStats Metrics starting...");
@@ -79,10 +79,11 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        this.saveSettings();
+        this.saveConfig();
     }
 
-    public void reloadSettings() {
+    @Override
+    public void reloadConfig() {
         try {
             File config = new File(this.getDataFolder() + File.separator + "config.yml");
             if (!config.exists()) {
@@ -96,15 +97,15 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("A new config.yml was generated!");
                 this.saveResource("config.yml", true);
             }
-            this.reloadConfig();
+            super.reloadConfig();
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }
     }
 
-    public void saveSettings() {
+    public void saveConfig() {
         try {
-            this.saveConfig();
+            super.saveConfig();
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }

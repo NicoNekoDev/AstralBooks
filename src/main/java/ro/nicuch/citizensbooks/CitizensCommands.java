@@ -59,7 +59,8 @@ public class CitizensCommands implements TabExecutor {
                     break;
                 case "reload":
                     if ((useVault && perm.has(sender, "npcbook.command.reload")) || sender.hasPermission("npcbook.command.reload")) {
-                        this.plugin.reloadSettings();
+                        this.plugin.saveConfig(); //Save it first
+                        this.plugin.reloadConfig();
                         sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", ConfigDefaults.config_reloaded));
                     } else
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
@@ -74,7 +75,7 @@ public class CitizensCommands implements TabExecutor {
                             if (npc != null) {
                                 this.plugin.getConfig().set("save." + npcId,
                                         this.api.bookToString(this.getBookFromHand((Player) sender)));
-                                this.plugin.saveSettings();
+                                this.plugin.saveConfig();
                                 sender.sendMessage(this.plugin
                                         .getMessage("lang.set_book_successfully", ConfigDefaults.set_book_successfully)
                                         .replace("%npc%", npc.getFullName()));
@@ -93,7 +94,7 @@ public class CitizensCommands implements TabExecutor {
                             /* if (this.plugin.getConfig().isString("save." + npcId)) {} */
                             // Useless check, we just remove the data whatever exist or not
                             this.plugin.getConfig().set("save." + npcId, null);
-                            this.plugin.saveSettings(); // Save is not mandatory, because the value may exist
+                            this.plugin.saveConfig(); // Save is not mandatory, because the value may exist
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.remove_book_successfully", ConfigDefaults.remove_book_successfully)
                                     .replace("%npc%", npc.getFullName()));
@@ -142,7 +143,7 @@ public class CitizensCommands implements TabExecutor {
                     if ((useVault && perm.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd")) {
                         if (args.length > 2) {
                             this.plugin.getConfig().set("commands." + args[1], args[2]);
-                            this.plugin.saveSettings();
+                            this.plugin.saveConfig();
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.set_custom_command_successfully",
                                             ConfigDefaults.set_custom_command_successfully)
@@ -156,7 +157,7 @@ public class CitizensCommands implements TabExecutor {
                     if ((useVault && perm.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd")) {
                         if (args.length > 1) {
                             this.plugin.getConfig().set("commands." + args[1], null);
-                            this.plugin.saveSettings();
+                            this.plugin.saveConfig();
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.remove_custom_command_successfully",
                                             ConfigDefaults.remove_custom_command_successfully)

@@ -55,7 +55,8 @@ public class PlayerCommands implements TabExecutor {
                     break;
                 case "reload":
                     if ((useVault && perm.has(sender, "npcbook.command.reload")) || sender.hasPermission("npcbook.command.reload")) {
-                        this.plugin.reloadSettings();
+                        this.plugin.saveConfig();
+                        this.plugin.reloadConfig();
                         sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", ConfigDefaults.config_reloaded));
                     } else
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
@@ -102,7 +103,7 @@ public class PlayerCommands implements TabExecutor {
                     if ((useVault && perm.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd")) {
                         if (args.length > 2) {
                             this.plugin.getConfig().set("commands." + args[1], args[2]);
-                            this.plugin.saveSettings();
+                            this.plugin.saveConfig();
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.set_custom_command_successfully",
                                             ConfigDefaults.set_custom_command_successfully)
@@ -116,7 +117,7 @@ public class PlayerCommands implements TabExecutor {
                     if ((useVault && perm.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd")) {
                         if (args.length > 1) {
                             this.plugin.getConfig().set("commands." + args[1], null);
-                            this.plugin.saveSettings();
+                            this.plugin.saveConfig();
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.remove_custom_command_successfully",
                                             ConfigDefaults.remove_custom_command_successfully)
