@@ -201,26 +201,4 @@ public class CitizensBooksAPI {
         }
         return def;
     }
-
-    protected String crypt(String arg) {
-        try {
-            return new BigInteger(arg.getBytes()).toString();
-        } catch (Exception ex) {
-            this.plugin.printError(ex);
-            return "CRYPT ERROR"; //Default value if the crypt fails
-        }
-    }
-
-    protected String decrypt(String arg) {
-        if ("CRYPT ERROR".equals(arg))
-            return "{pages:[\"\"],title:\"\",author:\"\"}";
-        /*Don't throw another exception, as crypt already failed*/
-        try {
-            return new String(new BigInteger(arg).toByteArray());
-        } catch (Exception ex) {
-            this.plugin.printError(ex);
-            return "{pages:[\"\"],title:\"\",author:\"\"}";
-            /*Default value if decrypt fails*/
-        }
-    }
 }

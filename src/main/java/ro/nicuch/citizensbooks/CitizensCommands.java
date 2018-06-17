@@ -52,6 +52,12 @@ public class CitizensCommands implements TabExecutor {
         boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is enabled
         NPC npc = CitizensAPI.getDefaultNPCSelector().getSelected(sender);
         int npcId = npc != null ? npc.getId() : 0;
+
+        String bookPathBasedByHand = "save." + npcId + ".right_side"; //Default
+
+        if (args.length > 1 && "left".equalsIgnoreCase(args[1]))
+            bookPathBasedByHand = "save." + npcId + ".left_side";
+
         if (args.length > 0) {
             switch (args[0]) {
                 case "about":
@@ -73,7 +79,7 @@ public class CitizensCommands implements TabExecutor {
                     if ((useVault && perm.has(sender, "npcbook.command.set")) || sender.hasPermission("npcbook.command.set")) {
                         if (this.hasBookInHand((Player) sender)) {
                             if (npc != null) {
-                                this.plugin.getConfig().set("save." + npcId,
+                                this.plugin.getConfig().set(bookPathBasedByHand,
                                         this.api.bookToString(this.getBookFromHand((Player) sender)));
                                 this.plugin.saveConfig();
                                 sender.sendMessage(this.plugin
@@ -93,7 +99,7 @@ public class CitizensCommands implements TabExecutor {
                         if (npc != null) {
                             /* if (this.plugin.getConfig().isString("save." + npcId)) {} */
                             // Useless check, we just remove the data whatever exist or not
-                            this.plugin.getConfig().set("save." + npcId, null);
+                            this.plugin.getConfig().set(bookPathBasedByHand, null);
                             this.plugin.saveConfig(); // Save is not mandatory, because the value may exist
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.remove_book_successfully", ConfigDefaults.remove_book_successfully)
@@ -111,8 +117,8 @@ public class CitizensCommands implements TabExecutor {
                     }
                     if ((useVault && perm.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook")) {
                         if (npc != null) {
-                            if (this.plugin.getConfig().isString("save." + npcId)) {
-                                ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId));
+                            if (this.plugin.getConfig().isString(bookPathBasedByHand)) {
+                                ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString(bookPathBasedByHand));
                                 ((Player) sender).getInventory().addItem(book);
                                 sender.sendMessage(this.plugin.getMessage("lang.book_recived", ConfigDefaults.book_recived));
                             } else
