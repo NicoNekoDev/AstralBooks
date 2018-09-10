@@ -8,7 +8,7 @@
 #                                                                     #
 #######################################################################
 
-version: 6 #DO NOT CHANGE/REMOVE
+version: 7 #DO NOT CHANGE/REMOVE
 metrics: true
 update_check: true
 lang:

@@ -43,9 +43,8 @@ public class UpdateChecker implements Listener {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Checking for updates..."));
             if (this.checkForUpdate())
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info("An update for CitizensBooksPlugin (" + this.latestVersion + ") is available at:");
+                    this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available at:");
                     this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
-                    Bukkit.getPluginManager().registerEvents(this, this.plugin);
                 });
             else
                 Bukkit.getScheduler().runTask(this.plugin, () ->
