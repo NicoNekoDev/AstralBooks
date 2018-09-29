@@ -50,7 +50,7 @@ public class CitizensBooksAPI {
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
-        this.plugin.getLogger().info(ChatColor.GREEN + "Your server is running version " + version + "!");
+        this.plugin.getLogger().info("Your server is running version " + version + "!");
     }
 
     /**

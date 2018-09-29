@@ -39,12 +39,14 @@ public class CitizensBooksPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
+            this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
             //bStats Metrics, by default enabled
             if (this.settings.getBoolean("metrics", true)) {
                 this.getLogger().info("bStats Metrics starting...");
                 new Metrics(this);
             }
+            this.api = new CitizensBooksAPI(this);
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("Vault")) {
                 this.getLogger().warning("Vault not found!");
@@ -52,7 +54,6 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("Vault found, try hooking!");
                 this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
             }
-            this.api = new CitizensBooksAPI(this);
             if (!manager.isPluginEnabled("PlaceholderAPI")) {
                 this.getLogger().info("PlaceholderAPI not found!");
             } else {
@@ -74,8 +75,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
             //Update checker, by default enabled
             if (this.settings.getBoolean("update_check", true))
                 manager.registerEvents(new UpdateChecker(this), this);
+            this.getLogger().info("============== END LOAD ==============");
         } catch (Exception ex) {
             this.printError(ex); //StackOverflows are not catched directly, maybe this will help?
+            this.getLogger().info("============== END LOAD ==============");
             this.setEnabled(false);
         }
     }
