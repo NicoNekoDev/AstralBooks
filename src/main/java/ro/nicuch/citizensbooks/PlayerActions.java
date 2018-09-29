@@ -37,7 +37,7 @@ public class PlayerActions implements Listener {
     public void event(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         String command = event.getMessage().substring(1).split(" ")[0];
-        if (!this.plugin.getConfig().isString("commands." + command))
+        if (!this.plugin.getSettings().isString("commands." + command))
             return;
         event.setCancelled(true);
         String filterName = this.plugin.getConfig().getString("commands." + command);

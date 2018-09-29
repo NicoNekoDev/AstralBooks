@@ -87,7 +87,7 @@ public class CitizensBooksAPI {
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.plugin.getConfig().set("filters." + filterName, this.bookToString(book));
-        this.plugin.saveConfig();
+        this.plugin.saveSettings();
     }
 
     /**

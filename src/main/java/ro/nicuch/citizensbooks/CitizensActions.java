@@ -37,9 +37,9 @@ public class CitizensActions implements Listener {
     @EventHandler
     public void event(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getConfig().isString("save." + npcId + ".right_side"))
+        if (!this.plugin.getSettings().isString("save." + npcId + ".right_side"))
             return;
-        ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId + ".right_side"));
+        ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("save." + npcId + ".right_side"));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.RIGHT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -54,9 +54,9 @@ public class CitizensActions implements Listener {
     @EventHandler
     public void event(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getConfig().isString("save." + npcId + ".left_side"))
+        if (!this.plugin.getSettings().isString("save." + npcId + ".left_side"))
             return;
-        ItemStack book = this.api.stringToBook(this.plugin.getConfig().getString("save." + npcId + ".left_side"));
+        ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("save." + npcId + ".left_side"));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.LEFT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())

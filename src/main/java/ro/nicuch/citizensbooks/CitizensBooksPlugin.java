@@ -23,6 +23,7 @@ import java.io.File;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,44 +34,50 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private Permission permission;
     private boolean placeholder;
     private CitizensBooksAPI api;
+    private YamlConfiguration settings;
 
     @Override
     public void onEnable() {
-        this.reloadConfig();
-        //bStats Metrics, by default enabled
-        if (this.getConfig().getBoolean("metrics", true)) {
-            this.getLogger().info("bStats Metrics starting...");
-            new Metrics(this);
+        try {
+            this.reloadSettings();
+            //bStats Metrics, by default enabled
+            if (this.settings.getBoolean("metrics", true)) {
+                this.getLogger().info("bStats Metrics starting...");
+                new Metrics(this);
+            }
+            PluginManager manager = this.getServer().getPluginManager();
+            if (!manager.isPluginEnabled("Vault")) {
+                this.getLogger().warning("Vault not found!");
+            } else {
+                this.getLogger().info("Vault found, try hooking!");
+                this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+            }
+            this.api = new CitizensBooksAPI(this);
+            if (!manager.isPluginEnabled("PlaceholderAPI")) {
+                this.getLogger().info("PlaceholderAPI not found!");
+            } else {
+                this.getLogger().info("PlaceholderAPI found, try hooking!");
+                this.placeholder = true;
+            }
+            TabExecutor te;
+            manager.registerEvents(new PlayerActions(this), this);
+            if (!manager.isPluginEnabled("Citizens")) {
+                this.getLogger().info("Citizens not found!");
+                te = new PlayerCommands(this);
+            } else {
+                this.getLogger().info("Citizens found, try hooking!");
+                manager.registerEvents(new CitizensActions(this), this);
+                te = new CitizensCommands(this);
+            }
+            this.getCommand("npcbook").setExecutor(te);
+            this.getCommand("npcbook").setTabCompleter(te);
+            //Update checker, by default enabled
+            if (this.settings.getBoolean("update_check", true))
+                manager.registerEvents(new UpdateChecker(this), this);
+        } catch (Exception ex) {
+            this.printError(ex); //StackOverflows are not catched directly, maybe this will help?
+            this.setEnabled(false);
         }
-        PluginManager manager = this.getServer().getPluginManager();
-        if (!manager.isPluginEnabled("Vault")) {
-            this.getLogger().warning("Vault not found!");
-        } else {
-            this.getLogger().info("Vault found, try hooking!");
-            this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
-        }
-        this.api = new CitizensBooksAPI(this);
-        if (!manager.isPluginEnabled("PlaceholderAPI")) {
-            this.getLogger().info("PlaceholderAPI not found!");
-        } else {
-            this.getLogger().info("PlaceholderAPI found, try hooking!");
-            this.placeholder = true;
-        }
-        TabExecutor te;
-        manager.registerEvents(new PlayerActions(this), this);
-        if (!manager.isPluginEnabled("Citizens")) {
-            this.getLogger().info("Citizens not found!");
-            te = new PlayerCommands(this);
-        } else {
-            this.getLogger().info("Citizens found, try hooking!");
-            manager.registerEvents(new CitizensActions(this), this);
-            te = new CitizensCommands(this);
-        }
-        this.getCommand("npcbook").setExecutor(te);
-        this.getCommand("npcbook").setTabCompleter(te);
-        //Update checker, by default enabled
-        if (this.getConfig().getBoolean("update_check", true))
-            manager.registerEvents(new UpdateChecker(this), this);
     }
 
     public CitizensBooksAPI getAPI() {
@@ -79,33 +86,38 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        this.saveConfig();
+        this.saveSettings();
     }
 
-    @Override
-    public void reloadConfig() {
+    public YamlConfiguration getSettings() {
+        return this.settings;
+    }
+
+    public void reloadSettings() {
         try {
             File config = new File(this.getDataFolder() + File.separator + "config.yml");
             if (!config.exists()) {
                 this.saveResource("config.yml", false);
                 this.getLogger().info("A new config.yml was created!");
             }
-            if (this.getConfig().isInt("version") && this.getConfig().getInt("version") != 7) {
-                File copy = new File(
-                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml");
-                config.renameTo(copy);
+            this.settings = YamlConfiguration.loadConfiguration(config);
+            //Load config.yml first
+            if (this.settings.isInt("version") && this.settings.getInt("version") != 7) {
+                config.renameTo(new File(
+                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
                 this.getLogger().info("A new config.yml was generated!");
                 this.saveResource("config.yml", true);
+                //Load again the config
+                this.settings = YamlConfiguration.loadConfiguration(config);
             }
-            super.reloadConfig();
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }
     }
 
-    public void saveConfig() {
+    public void saveSettings() {
         try {
-            super.saveConfig();
+            this.settings.save(new File(this.getDataFolder() + File.separator + "config.yml"));
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }
@@ -125,12 +137,12 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public String getMessage(String path, String def) {
         return ChatColor.translateAlternateColorCodes('&',
-                this.getConfig().getString("lang.header", ConfigDefaults.header))
-                + ChatColor.translateAlternateColorCodes('&', this.getConfig().getString(path, def));
+                this.settings.getString("lang.header", ConfigDefaults.header))
+                + ChatColor.translateAlternateColorCodes('&', this.settings.getString(path, def));
     }
 
     public String getMessageNoHeader(String path, String def) {
-        return ChatColor.translateAlternateColorCodes('&', this.getConfig().getString(path, def));
+        return ChatColor.translateAlternateColorCodes('&', this.settings.getString(path, def));
     }
 
     /*
