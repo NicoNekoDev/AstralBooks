@@ -42,14 +42,11 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
             //bStats Metrics, by default enabled
-            if (this.settings.getBoolean("metrics", true)) {
-                this.getLogger().info("bStats Metrics starting...");
-                new Metrics(this);
-            }
+            new Metrics(this);
             this.api = new CitizensBooksAPI(this);
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("Vault")) {
-                this.getLogger().warning("Vault not found!");
+                this.getLogger().info("Vault not found!");
             } else {
                 this.getLogger().info("Vault found, try hooking!");
                 this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();

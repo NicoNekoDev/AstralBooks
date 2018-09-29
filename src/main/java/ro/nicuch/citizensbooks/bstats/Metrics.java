@@ -8,6 +8,8 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import ro.nicuch.citizensbooks.CitizensBooksAPI;
+import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.ByteArrayOutputStream;
@@ -58,14 +60,14 @@ public class Metrics {
     private static String serverUUID;
 
     // The plugin
-    private final JavaPlugin plugin;
+    private final CitizensBooksPlugin plugin;
 
     /**
      * Class constructor.
      *
      * @param plugin The plugin which stats should be submitted.
      */
-    public Metrics(JavaPlugin plugin) {
+    public Metrics(CitizensBooksPlugin plugin) {
         if (plugin == null) {
             throw new IllegalArgumentException("Plugin cannot be null!");
         }
@@ -103,6 +105,10 @@ public class Metrics {
         serverUUID = config.getString("serverUuid");
         logFailedRequests = config.getBoolean("logFailedRequests", false);
         if (config.getBoolean("enabled", true)) {
+
+            if (plugin.getSettings().getBoolean("metrics", true))
+                plugin.getLogger().info("bStats Metrics starting...");
+
             boolean found = false;
             // Search for all other bStats Metrics classes to see if we are the first one
             for (Class<?> service : Bukkit.getServicesManager().getKnownServices()) {
@@ -153,14 +159,17 @@ public class Metrics {
     public JSONObject getPluginData() {
         JSONObject data = new JSONObject();
 
-        String pluginName = plugin.getDescription().getName();
-        String pluginVersion = plugin.getDescription().getVersion();
+        if (this.plugin.getSettings().getBoolean("metrics", true)) { //Checking if my plugin will send data
 
-        data.put("pluginName", pluginName); // Append the name of the plugin
-        data.put("pluginVersion", pluginVersion); // Append the version of the plugin
-        JSONArray customCharts = new JSONArray();
-        data.put("customCharts", customCharts);
+            String pluginName = plugin.getDescription().getName();
+            String pluginVersion = plugin.getDescription().getVersion();
 
+            data.put("pluginName", pluginName); // Append the name of the plugin
+            data.put("pluginVersion", pluginVersion); // Append the version of the plugin
+            JSONArray customCharts = new JSONArray();
+            data.put("customCharts", customCharts);
+
+        }
         return data;
     }
 
