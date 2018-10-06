@@ -130,9 +130,21 @@ public class CitizensBooksAPI {
         try {
             if (pc == null || ppocp == null || pds == null)
                 throw new NullPointerException("Craftbukkit classes not found!");
-            pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
-                    ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
-                            .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+            switch (version) {
+                case "v1_13_R1":
+                case "v1_13_R2":
+                    Class<?> mk = getNMSClass("MinecraftKey");
+                    //Used for 1.13 and above
+                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
+                            ppocp.getConstructor(mk, pds)
+                                    .newInstance(mk.getMethod("a", String.class).invoke(mk, "minecraft:book_open"), pds.getConstructor(ByteBuf.class)
+                                            .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+                    break;
+                default:
+                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
+                            ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
+                                    .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+            }
         } catch (Exception ex) {
             this.plugin.printError(ex);
         }
