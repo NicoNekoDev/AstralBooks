@@ -27,7 +27,7 @@ mvn clean install
 	<dependency>
 		<groupId>com.github.nicuch</groupId>
 		<artifactId>CitizensBooks</artifactId>
-		<version>Tag</version>
+		<version>master-SNAPSHOT</version>
 	</dependency>
 </dependencies>
 ```
