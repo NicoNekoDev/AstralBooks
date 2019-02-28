@@ -4,16 +4,7 @@
     <groupId>ro.nicuch</groupId>
     <artifactId>CitizensBooks</artifactId>
     <version>2.4.7</version>
-    <properties>
-        <github.global.server>github</github.global.server>
-    </properties>
-    <distributionManagement>
-        <repository>
-            <id>internal.repo</id>
-            <name>Temporary Staging Repository</name>
-            <url>file://C:\Workspace\MVN_REPO</url>
-        </repository>
-    </distributionManagement>
+
     <repositories>
         <repository>
             <id>spigot-repo</id>
