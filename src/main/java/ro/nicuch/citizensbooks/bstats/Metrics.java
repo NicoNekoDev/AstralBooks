@@ -5,10 +5,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -31,6 +29,7 @@ import java.util.zip.GZIPOutputStream;
  * <p>
  * Check out https://bStats.org/ to learn more about bStats!
  */
+@SuppressWarnings("unchecked")
 public class Metrics {
 
     static {
@@ -156,7 +155,7 @@ public class Metrics {
      *
      * @return The plugin specific data.
      */
-    public JSONObject getPluginData() {
+	public JSONObject getPluginData() {
         JSONObject data = new JSONObject();
 
         if (this.plugin.getSettings().getBoolean("metrics", true)) { //Checking if my plugin will send data
