@@ -265,7 +265,8 @@ public class PlayerCommands implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
     }
 
-    private boolean hasBookInHand(Player player) {
+    @SuppressWarnings("deprecation")
+	private boolean hasBookInHand(Player player) {
         ItemStack item;
         switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
@@ -286,7 +287,8 @@ public class PlayerCommands implements TabExecutor {
         return (sender instanceof Player);
     }
 
-    private ItemStack getBookFromHand(Player player) {
+    @SuppressWarnings("deprecation")
+	private ItemStack getBookFromHand(Player player) {
         switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":
@@ -297,10 +299,15 @@ public class PlayerCommands implements TabExecutor {
         }
     }
 
-    private void openBook(Player player, ItemStack book) {
+    @SuppressWarnings("deprecation")
+	private void openBook(Player player, ItemStack book) {
         BookMeta meta = (BookMeta) book.getItemMeta();
-        ItemStack item = new ItemStack(Material.BOOK_AND_QUILL);
-        item.setItemMeta(meta);
+        ItemStack item = new ItemStack(Material.getMaterial("BOOK_AND_QUILL"));
+		if (item.getType() == null)
+			// 1.13+
+			item.setType(Material.getMaterial("WRITABLE_BOOK"));
+        if (item != null)
+        	item.setItemMeta(meta);
         switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":

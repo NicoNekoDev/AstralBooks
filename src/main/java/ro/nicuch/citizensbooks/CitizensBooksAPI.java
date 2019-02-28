@@ -20,11 +20,9 @@
 package ro.nicuch.citizensbooks;
 
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
 
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
