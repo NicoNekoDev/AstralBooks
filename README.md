@@ -18,17 +18,16 @@ mvn clean install
 
 ```
     <repositories>
-        <repository>
-            <id>citizensbooks_repo</id>
-            <url>https://raw.github.com/nicuch/maven_repo/</url>
-        </repository>
+		 <repository>
+		     <id>jitpack.io</id>
+		     <url>https://jitpack.io</url>
+		 </repository>
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>ro.nicuch</groupId>
-            <artifactId>CitizensBooks</artifactId>
-            <version>${latest.version}</version>
-            <scope>provided</scope>
+		     <groupId>com.github.nicuch</groupId>
+		     <artifactId>CitizensBooks</artifactId>
+		     <version>Tag</version>
         </dependency>
     </dependencies>
 ```
