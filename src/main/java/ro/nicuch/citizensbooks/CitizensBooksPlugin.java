@@ -21,6 +21,7 @@ package ro.nicuch.citizensbooks;
 
 import java.io.File;
 
+import me.lucko.luckperms.api.LuckPermsApi;
 import org.bukkit.ChatColor;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -31,7 +32,8 @@ import net.milkbowl.vault.permission.Permission;
 import ro.nicuch.citizensbooks.bstats.Metrics;
 
 public class CitizensBooksPlugin extends JavaPlugin {
-    private Permission permission;
+    private Permission permissions;
+    private LuckPermsApi luckPermissions;
     private boolean placeholder;
     private CitizensBooksAPI api;
     private YamlConfiguration settings;
@@ -45,11 +47,19 @@ public class CitizensBooksPlugin extends JavaPlugin {
             new Metrics(this);
             this.api = new CitizensBooksAPI(this);
             PluginManager manager = this.getServer().getPluginManager();
-            if (!manager.isPluginEnabled("Vault")) {
-                this.getLogger().info("Vault not found!");
+            if (!manager.isPluginEnabled("LuckPerms")) {
+                this.getLogger().info("LuckPerms not found!");
+                if (!manager.isPluginEnabled("Vault")) {
+                    this.getLogger().info("Vault not found!");
+                } else {
+                    this.getLogger().info("Vault found, try hooking!");
+                    this.permissions = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                }
             } else {
-                this.getLogger().info("Vault found, try hooking!");
-                this.permission = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                this.getLogger().info("LuckPerms found, try hooking!");
+                this.luckPermissions = this.getServer().getServicesManager().getRegistration(LuckPermsApi.class).getProvider();
+                if (manager.isPluginEnabled("Vault"))
+                    this.getLogger().info("Vault plugin found, but we will use LuckPerms!");
             }
             if (!manager.isPluginEnabled("PlaceholderAPI")) {
                 this.getLogger().info("PlaceholderAPI not found!");
@@ -123,12 +133,20 @@ public class CitizensBooksPlugin extends JavaPlugin {
         }
     }
 
-    public Permission getPermission() {
-        return this.permission;
+    public LuckPermsApi getLuckPermissions() {
+        return this.luckPermissions;
+    }
+
+    public boolean isLuckPermsEnabled() {
+        return this.luckPermissions != null;
+    }
+
+    public Permission getVaultPermissions() {
+        return this.permissions;
     }
 
     public boolean isVaultEnabled() {
-        return this.permission != null;
+        return this.permissions != null;
     }
 
     public boolean isPlaceHolderEnabled() {

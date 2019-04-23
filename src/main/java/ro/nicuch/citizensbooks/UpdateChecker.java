@@ -19,6 +19,8 @@
 
 package ro.nicuch.citizensbooks;
 
+import me.lucko.luckperms.api.User;
+import me.lucko.luckperms.api.context.ContextManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -80,12 +82,19 @@ public class UpdateChecker implements Listener {
         if (!this.plugin.getSettings().getBoolean("update_check", true))
             return;
         Player player = event.getPlayer();
-        if ((this.plugin.isVaultEnabled() && !this.plugin.getPermission().has(player, "npcbook.notify"))
+        if ((this.plugin.isLuckPermsEnabled()
+                && !this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(event.getPlayer().getUniqueId()), "npcbook.notify")) ||
+                (this.plugin.isVaultEnabled() && !this.plugin.getVaultPermissions().has(player, "npcbook.notify"))
                 || !player.hasPermission("npcbook.notify"))
             return;
         if (!this.updateAvailable)
             return;
         player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
                 .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
+    }
+
+    private boolean hasLuckPermission(User user, String permission) {
+        ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
+        return user.getCachedData().getPermissionData(contextManager.lookupApplicableContexts(user).orElseGet(contextManager::getStaticContexts)).getPermissionValue(permission).asBoolean();
     }
 }
