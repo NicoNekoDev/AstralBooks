@@ -1,4 +1,4 @@
-CitizensBooks [![Build Status](https://travis-ci.org/nicuch/CitizensBooks.svg?branch=master)](https://travis-ci.org/nicuch/CitizensBooks)
+CitizensBooks
 ===========
 
 ## Building
@@ -19,15 +19,15 @@ mvn clean install
 ```
 <repositories>
 	<repository>
-		<id>jitpack.io</id>
-		<url>https://jitpack.io</url>
+		<id>pikacraft-repo</id>
+		<url>http://repo.pikacraft.ro/</url>
 	</repository>
 </repositories>
 <dependencies>
 	<dependency>
-		<groupId>com.github.nicuch</groupId>
+		<groupId>ro.nicuch</groupId>
 		<artifactId>CitizensBooks</artifactId>
-		<version>master-SNAPSHOT</version>
+		<version>2.4.8</version>
 	</dependency>
 </dependencies>
 ```
