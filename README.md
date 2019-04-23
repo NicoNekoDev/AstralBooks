@@ -16,18 +16,19 @@ mvn clean install
 ```
 ## Maven repository
 
-```
+```xml
 <repositories>
-	<repository>
-		<id>pikacraft-repo</id>
-		<url>http://repo.pikacraft.ro/</url>
-	</repository>
-</repositories>
+  <repository>
+    <id>pikacraft-repo</id>
+    <url>http://repo.pikacraft.ro/</url>
+    </repository>
+  </repositories>
+
 <dependencies>
-	<dependency>
-		<groupId>ro.nicuch</groupId>
-		<artifactId>CitizensBooks</artifactId>
-		<version>2.4.8</version>
-	</dependency>
+  <dependency>
+    <groupId>ro.nicuch</groupId>
+    <artifactId>CitizensBooks</artifactId>
+    <version>2.4.8</version>
+  </dependency>
 </dependencies>
 ```
