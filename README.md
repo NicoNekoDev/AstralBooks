@@ -21,8 +21,8 @@ mvn clean install
   <repository>
     <id>pikacraft-repo</id>
     <url>http://repo.pikacraft.ro/</url>
-    </repository>
-  </repositories>
+  </repository>
+</repositories>
 
 <dependencies>
   <dependency>
