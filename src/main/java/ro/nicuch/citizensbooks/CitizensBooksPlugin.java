@@ -37,6 +37,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private boolean placeholder;
     private CitizensBooksAPI api;
     private YamlConfiguration settings;
+    private boolean useAuthme;
 
     @Override
     public void onEnable() {
@@ -76,6 +77,13 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("Citizens found, try hooking!");
                 manager.registerEvents(new CitizensActions(this), this);
                 te = new CitizensCommands(this);
+            }
+            if (!manager.isPluginEnabled("Authme")) {
+                this.getLogger().info("Authme not found!");
+            } else {
+                this.getLogger().info("Authme found, try hooking!");
+                manager.registerEvents(new AuthmeActions(this), this);
+                this.useAuthme = true;
             }
             this.getCommand("npcbook").setExecutor(te);
             this.getCommand("npcbook").setTabCompleter(te);
@@ -151,6 +159,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public boolean isPlaceHolderEnabled() {
         return this.placeholder;
+    }
+
+    public boolean isAutmeEnabled() {
+        return this.useAuthme;
     }
 
     public String getMessage(String path, String def) {

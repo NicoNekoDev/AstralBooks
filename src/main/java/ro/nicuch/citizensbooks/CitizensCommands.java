@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,8 +35,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.StringUtil;
-
-import com.google.common.collect.Lists;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -109,6 +108,25 @@ public class CitizensCommands implements TabExecutor {
                     } else
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
+                case "setjoin":
+                    if (!this.isPlayer(sender)) {
+                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                        break;
+                    }
+                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setjoin")) ||
+                            (useVault && vaultPerms.has(sender, "npcbook.command.setjoin")) || sender.hasPermission("npcbook.command.setjoin")) {
+                        if (this.hasBookInHand((Player) sender)) {
+                            this.plugin.getSettings().set("join_book",
+                                    this.api.bookToString(this.getBookFromHand((Player) sender)));
+                            this.plugin.saveSettings(); //Allways saved
+                            sender.sendMessage(this.plugin
+                                    .getMessage("lang.set_join_book_successfully", ConfigDefaults.set_join_book_successfully));
+                        } else
+                            sender.sendMessage(
+                                    this.plugin.getMessage("lang.no_book_in_hand", ConfigDefaults.no_book_in_hand));
+                    } else
+                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                    break;
                 case "remove":
                     if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remove")) ||
                             (useVault && vaultPerms.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove")) {
@@ -123,6 +141,16 @@ public class CitizensCommands implements TabExecutor {
                         } else
                             sender.sendMessage(
                                     this.plugin.getMessage("lang.no_npc_selected", ConfigDefaults.no_npc_selected));
+                    } else
+                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                    break;
+                case "remjoin":
+                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remjoin")) ||
+                            (useVault && vaultPerms.has(sender, "npcbook.command.remjoin")) || sender.hasPermission("npcbook.command.remjoin")) {
+                        this.plugin.getSettings().set("join_book", null);
+                        this.plugin.saveSettings(); //Allways saved
+                        sender.sendMessage(this.plugin
+                                .getMessage("lang.remove_join_book_successfully", ConfigDefaults.remove_join_book_successfully));
                     } else
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
@@ -284,8 +312,8 @@ public class CitizensCommands implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
-        List<String> completions = Lists.newArrayList();
-        List<String> commands = Lists.newArrayList();
+        List<String> completions = new ArrayList<>();
+        List<String> commands = new ArrayList<>();
 
         LuckPermsApi luckPerms = this.plugin.getLuckPermissions(); //If LuckPerms not enabled, this will return null
         boolean useLuckPerms = this.plugin.isLuckPermsEnabled(); //So we check if LuckPerms is enabled
@@ -300,6 +328,12 @@ public class CitizensCommands implements TabExecutor {
             if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remove")) ||
                     (useVault && vaultPerms.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove"))
                 commands.add("remove");
+            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setjoin")) ||
+                    (useVault && vaultPerms.has(sender, "npcbook.command.setjoin")) || sender.hasPermission("npcbook.command.setjoin"))
+                commands.add("setjoin");
+            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remjoin")) ||
+                    (useVault && vaultPerms.has(sender, "npcbook.command.remjoin")) || sender.hasPermission("npcbook.command.remjoin"))
+                commands.add("remjoin");
             if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.getbook")) ||
                     (useVault && vaultPerms.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook"))
                 commands.add("getbook");
@@ -360,7 +394,7 @@ public class CitizensCommands implements TabExecutor {
         }
         if (item == null)
             return false;
-        return item.getType().equals(Material.WRITTEN_BOOK);
+        return item.getType() == Material.WRITTEN_BOOK;
     }
 
     private boolean isPlayer(CommandSender sender) {
@@ -401,7 +435,7 @@ public class CitizensCommands implements TabExecutor {
     private void sendAbout(CommandSender sender) {
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.RED + "<+ CitizensBooksPlugin +>");
+        sender.sendMessage(ChatColor.RED + "<+ CitizensBooks +>");
         sender.sendMessage(ChatColor.GOLD + "Version: " + ChatColor.RED + this.plugin.getDescription().getVersion());
         sender.sendMessage(ChatColor.GOLD + "Auhtor: " + ChatColor.RED + "nicuch");
         sender.sendMessage("");
@@ -414,6 +448,8 @@ public class CitizensCommands implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.about", ConfigDefaults.help_about));
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.set", ConfigDefaults.help_set));
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.remove", ConfigDefaults.help_remove));
+        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.setjoin", ConfigDefaults.help_setjoin));
+        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.remjoin", ConfigDefaults.help_remjoin));
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.reload", ConfigDefaults.help_reload));
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.getbook", ConfigDefaults.help_getbook));
         sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.openbook", ConfigDefaults.help_openbook));

@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
+import net.citizensnpcs.api.event.NPCCloneEvent;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,7 +36,7 @@ public class CitizensActions implements Listener {
     }
 
     @EventHandler
-    public void event(NPCRightClickEvent event) {
+    public void rightClick(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isString("save." + npcId + ".right_side"))
             return;
@@ -52,7 +53,7 @@ public class CitizensActions implements Listener {
     }
 
     @EventHandler
-    public void event(NPCLeftClickEvent event) {
+    public void leftCLick(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isString("save." + npcId + ".left_side"))
             return;
@@ -66,5 +67,22 @@ public class CitizensActions implements Listener {
             this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book, event.getNPC()));
         else
             this.api.openBook(event.getClicker(), book);
+    }
+
+    @EventHandler
+    public void clone(NPCCloneEvent event) {
+        int npcId = event.getNPC().getId();
+        int cloneId = event.getClone().getId();
+        String left_book = null;
+        String right_book = null;
+        if (this.plugin.getSettings().isString("save." + npcId + ".left_side"))
+            left_book = this.plugin.getSettings().getString("save." + npcId + ".left_side");
+        if (this.plugin.getSettings().isString("save." + npcId + ".right_side"))
+            right_book = this.plugin.getSettings().getString("save." + npcId + ".right_side");
+        if (left_book != null) this.plugin.getSettings().set("save." + cloneId + ".left_side",
+                left_book);
+        if (right_book != null) this.plugin.getSettings().set("save." + cloneId + ".right_side",
+                right_book);
+        this.plugin.saveSettings(); //Allways saved
     }
 }

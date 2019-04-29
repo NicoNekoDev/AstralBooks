@@ -16,7 +16,9 @@ lang:
   no_permission: "&cYou don''t have permission!"
   config_reloaded: "&aConfig reloaded."
   set_book_successfully: "&aYou have set the book for %npc%&a!"
+  set_join_book_successfully: "&aYou have set the join book!"
   remove_book_successfully: "&aYou have removed the book for %npc%&a!"
+  remove_join_book_successfully: "&aYou have removed the join book!"
   no_npc_selected: "&cYou need to have an NPC selected!"
   no_book_in_hand: "&cYou need to have a book in your hand!"
   no_book_for_npc: "&cThis NPC doesn''t have a book!"
@@ -36,6 +38,8 @@ lang:
     openbook: "&aUsage: &f/npcbook openbook"
     setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name>"
     remcmd: "&aUsage: &f/npcbook remcmd <command>"
+    setjoin: "&aUsage: &f/npcbook setjoin"
+    remjoin: "&aUsage: &f/npcbook remjoin"
     filter:
       set: "&aUsage: &f/npcbook filter set <filter name>"
       remove: "&aUsage: &f/npcbook filter remove <filter name>"
@@ -49,6 +53,8 @@ lang:
     reload: "&f/npcbook reload &c- &9Reload config file."
     setcmd: "&f/npcbook setcmd <command> <filter name> &c- &9Set command by the given filter name."
     remcmd: "&f/npcbook remcmd <command> &c- &9Remove command."
+    setjoin: "&f/npcbook setjoin &c- &9Set the join book."
+    remjoin: "&f/npcbook remjoin &c- &9Remove the join book."
     filter:
        set: "&f/npcbook filter set <filter name> &c- &9Set a filter by the given name."
        remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter by the given name."

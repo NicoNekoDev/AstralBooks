@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class PlayerActions implements Listener {
@@ -34,7 +35,7 @@ public class PlayerActions implements Listener {
     }
 
     @EventHandler
-    public void event(PlayerCommandPreprocessEvent event) {
+    public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         String command = event.getMessage().substring(1).split(" ")[0];
         if (!this.plugin.getSettings().isString("commands." + command))
@@ -49,4 +50,13 @@ public class PlayerActions implements Listener {
         api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
     }
 
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (this.plugin.isAutmeEnabled())
+            return;
+        if (!this.plugin.getSettings().isString("join_book"))
+            return;
+        ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("join_book"));
+        this.api.openBook(event.getPlayer(), book);
+    }
 }

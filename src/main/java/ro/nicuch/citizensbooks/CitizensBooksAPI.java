@@ -45,6 +45,8 @@ public class CitizensBooksAPI {
     private static final Class<?> msonp = getNMSClass("MojangsonParser");
     private static final Class<?> nbtTag = getNMSClass("NBTTagCompound");
     private static final Class<?> nmsIs = getNMSClass("ItemStack");
+    private static final Class<?> ppoob = getNMSClass("PacketPlayOutOpenBook");
+    private static final Class<?> eh = getNMSClass("EnumHand");
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -101,8 +103,7 @@ public class CitizensBooksAPI {
     private static Class<?> getNMSClass(String nmsClassString) {
         try {
             return Class.forName("net.minecraft.server." + version + "." + nmsClassString);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException ignore) {
         }
         return null;
     }
@@ -112,8 +113,7 @@ public class CitizensBooksAPI {
          *if I try to remove the try-catch block, is gonna give me errors no warnings.*/
         try {
             return Class.forName("org.bukkit.craftbukkit." + version + "." + obcClassString);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException ignore) {
         }
         return null;
     }
@@ -138,6 +138,11 @@ public class CitizensBooksAPI {
                                     .newInstance(mk.getMethod("a", String.class).invoke(mk, "minecraft:book_open"), pds.getConstructor(ByteBuf.class)
                                             .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
                     break;
+                case "v1_14_R1":
+                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
+                            ppoob.getConstructor(eh).newInstance(
+                                    eh.getDeclaredMethod("valueOf", String.class)
+                                            .invoke(eh, "MAIN_HAND")));
                 default:
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)

@@ -23,6 +23,8 @@ permissions:
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
       npcbook.notify: true
+      npcbook.command.setjoin: true
+      npcbook.command.remjoin: true
   npcbook.command.*:
     children:
       npcbook.command.help: true
@@ -36,6 +38,8 @@ permissions:
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
+      npcbook.command.setjoin: true
+      npcbook.command.remjoin: true
   npcbook.command.filter.*:
     children:
       npcbook.command.filter.set: true
@@ -62,6 +66,10 @@ permissions:
   npcbook.command.filter.remove:
     default: false
   npcbook.command.filter.getbook:
+    default: false
+  npcbook.command.setjoin:
+    default: false
+  npcbook.command.remjoin:
     default: false
   npcbook.notify:
     default: op

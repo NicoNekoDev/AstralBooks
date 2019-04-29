@@ -37,6 +37,9 @@ public class ConfigDefaults {
     public static final String remove_custom_command_successfully = "&aCommand %command% has been removed!";
     public static final String console_cannot_use_command = "&cYou have to be a player if you want to use this command!";
     public static final String new_version_available = "&aA new version of CitizensBooks is available!";
+    // <- new
+    public static final String set_join_book_successfully = "&aYou have set the join book!";
+    public static final String remove_join_book_successfully = "&aYou have removed the join book!";
     //
     public static final String usage_set = "&aUsage: &f/npcbook set";
     public static final String usage_remove = "&aUsage: &f/npcbook remove";
@@ -44,6 +47,9 @@ public class ConfigDefaults {
     public static final String usage_openbook = "&aUsage: &f/npcbook openbook";
     public static final String usage_setcmd = "&aUsage: &f/npcbook setcmd <command> <filter name>";
     public static final String usage_remcmd = "&aUsage: &f/npcbook remcmd <command>";
+    // <- new
+    public static final String usage_setjoin = "&aUsage: &f/npcbook setjoin";
+    public static final String usage_remjoin = "&aUsage: &f/npcbook remjoin";
     //
     public static final String usage_filter_set = "&aUsage: &f/npcbook filter set <filter name>";
     public static final String usage_filter_remove = "&aUsage: &f/npcbook filter remove <filter name>";
@@ -57,6 +63,9 @@ public class ConfigDefaults {
     public static final String help_reload = "&f/npcbook reload &c- &9Reload config file.";
     public static final String help_setcmd = "&f/npcbook setcmd <command> <filter name> &c- &9Set command by the given filter name.";
     public static final String help_remcmd = "&f/npcbook remcmd <command> &c- &9Remove command.";
+    // <- new
+    public static final String help_setjoin = "&f/npcbook setjoin &c- &9Set the join book.";
+    public static final String help_remjoin = "&f/npcbook remjoin &c- &9Remove the join book.";
     //
     public static final String help_filter_set = "&f/npcbook filter set <filter name> &c- &9Set a filter by the given name.";
     public static final String help_filter_remove = "&f/npcbook filter remove <filter name> &c- &9Remove a filter by the given name.";
