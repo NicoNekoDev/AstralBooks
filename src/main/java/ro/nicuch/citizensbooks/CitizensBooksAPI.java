@@ -143,6 +143,7 @@ public class CitizensBooksAPI {
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
                                             .invoke(eh, "MAIN_HAND")));
+                    break;
                 default:
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
