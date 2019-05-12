@@ -29,8 +29,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 
 public class UpdateChecker implements Listener {
@@ -41,14 +40,23 @@ public class UpdateChecker implements Listener {
 
     public UpdateChecker(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
+        //Async check if the plugin has an update.
+        //The timer will start after the server finish loading
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            //Sync log that the plugin is checking for an update
             Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Checking for updates..."));
-            if (this.checkForUpdate())
-                Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available at:");
-                    this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
-                });
-            else
+            //Checking for updates
+            if (this.checkForUpdate()) {
+                if (this.plugin.getSettings().getBoolean("auto_update", true)) {
+                    Bukkit.getScheduler().runTask(this.plugin, () ->
+                            this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available!"));
+                    this.downloadNewVersion();
+                } else
+                    Bukkit.getScheduler().runTask(this.plugin, () -> {
+                        this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available at:");
+                        this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
+                    });
+            } else
                 Bukkit.getScheduler().runTask(this.plugin, () ->
                         this.plugin.getLogger().info("No new version available!"));
         }, 0, 30 * 60 * 20);
@@ -71,6 +79,7 @@ public class UpdateChecker implements Listener {
             if (this.plugin.getDescription().getVersion().compareTo(version) < 0) {
                 this.latestVersion = version;
                 this.updateAvailable = true;
+                Bukkit.getScheduler().runTask(this.plugin, this::announceOnlinePlayers);
                 return true;
             }
         }
@@ -83,7 +92,7 @@ public class UpdateChecker implements Listener {
             return;
         Player player = event.getPlayer();
         if ((this.plugin.isLuckPermsEnabled()
-                && !this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(event.getPlayer().getUniqueId()), "npcbook.notify")) ||
+                && !this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(player.getUniqueId()), "npcbook.notify")) ||
                 (this.plugin.isVaultEnabled() && !this.plugin.getVaultPermissions().has(player, "npcbook.notify"))
                 || !player.hasPermission("npcbook.notify"))
             return;
@@ -96,5 +105,35 @@ public class UpdateChecker implements Listener {
     private boolean hasLuckPermission(User user, String permission) {
         ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
         return user.getCachedData().getPermissionData(contextManager.lookupApplicableContexts(user).orElseGet(contextManager::getStaticContexts)).getPermissionValue(permission).asBoolean();
+    }
+
+    private void announceOnlinePlayers() {
+        Bukkit.getOnlinePlayers().forEach((Player player) -> {
+            if ((this.plugin.isLuckPermsEnabled()
+                    && this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(player.getUniqueId()), "npcbook.notify")) ||
+                    (this.plugin.isVaultEnabled() && this.plugin.getVaultPermissions().has(player, "npcbook.notify"))
+                    || player.hasPermission("npcbook.notify"))
+                player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
+                        .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
+        });
+    }
+
+    private void downloadNewVersion() {
+        try (BufferedInputStream in =
+                     new BufferedInputStream(new URL("http://repo.pikacraft.ro/ro/nicuch/CitizensBooks/" + this.latestVersion + "/CitizensBooks-" + this.latestVersion + ".jar").openStream());
+             FileOutputStream fout = new FileOutputStream("plugins" + File.separator + "CitizensBooks-" + this.latestVersion + ".jar")) {
+            final byte[] data = new byte[1024];
+            int count;
+            while ((count = in.read(data, 0, 1024)) != -1)
+                fout.write(data, 0, count);
+        } catch (Exception e) {
+            Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Failed to download new version!"));
+            return;
+        }
+        Bukkit.getScheduler().runTask(this.plugin, () -> {
+            this.plugin.getLogger().info("Succesfully downloaded update!");
+            this.plugin.getLogger().info("Shuting down the server!");
+            Bukkit.shutdown();
+        });
     }
 }
