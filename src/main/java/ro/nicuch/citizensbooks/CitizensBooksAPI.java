@@ -139,6 +139,7 @@ public class CitizensBooksAPI {
                                             .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
                     break;
                 case "v1_14_R1":
+                case "v1_14_R2":
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
