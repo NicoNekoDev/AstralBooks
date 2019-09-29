@@ -4,6 +4,7 @@ author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
 softdepend: [PlaceholderAPI, Citizens, LuckPerms, Vault]
 website: https://www.spigotmc.org/resources/citizensbooks.37465/
+api-version: 1.13
 commands:
   npcbook:
     description: Basic CitizensBooks command.

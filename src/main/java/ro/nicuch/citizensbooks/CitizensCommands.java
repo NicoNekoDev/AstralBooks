@@ -64,6 +64,9 @@ public class CitizensCommands implements TabExecutor {
         if (args.length > 1 && "left".equalsIgnoreCase(args[1]))
             bookPathBasedByHand = "save." + npcId + ".left_side";
 
+        if (useLuckPerms && luckPerms.getUser(sender.getName()) == null)
+            useLuckPerms = false;
+
         if (args.length > 0) {
             switch (args[0]) {
                 case "about":

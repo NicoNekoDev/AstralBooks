@@ -121,12 +121,15 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.settings = YamlConfiguration.loadConfiguration(config);
             //Load config.yml first
             if (this.settings.isInt("version") && this.settings.getInt("version") != 7) {
-                config.renameTo(new File(
+                boolean renamed = config.renameTo(new File(
                         this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
-                this.getLogger().info("A new config.yml was generated!");
-                this.saveResource("config.yml", true);
-                //Load again the config
-                this.settings = YamlConfiguration.loadConfiguration(config);
+                if (renamed) {
+                    this.getLogger().info("A new config.yml was generated!");
+                    this.saveResource("config.yml", true);
+                    //Load again the config
+                    this.settings = YamlConfiguration.loadConfiguration(config);
+                } else
+                    this.getLogger().info("Failed to generate a new config!");
             }
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
