@@ -22,18 +22,9 @@ package ro.nicuch.citizensbooks;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.StringUtil;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
