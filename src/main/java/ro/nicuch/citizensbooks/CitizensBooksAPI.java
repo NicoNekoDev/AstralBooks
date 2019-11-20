@@ -60,7 +60,7 @@ public class CitizensBooksAPI {
      * @return the book
      */
     public ItemStack getFilter(String filterName) {
-        return this.stringToBook(this.plugin.getConfig().getString("filters." + filterName, ""));
+        return this.stringToBook(this.plugin.getSettings().getString("filters." + filterName, ""));
     }
 
     /**
@@ -70,7 +70,7 @@ public class CitizensBooksAPI {
      * @return if the filter has the book
      */
     public boolean hasFilter(String filterName) {
-        return this.plugin.getConfig().isString("filters." + filterName);
+        return this.plugin.getSettings().isString("filters." + filterName);
     }
 
     /**
@@ -86,7 +86,7 @@ public class CitizensBooksAPI {
             throw new NullPointerException("ItemStack can\'t be null!");
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
-        this.plugin.getConfig().set("filters." + filterName, this.bookToString(book));
+        this.plugin.getSettings().set("filters." + filterName, this.bookToString(book));
         this.plugin.saveSettings();
     }
 
@@ -96,8 +96,8 @@ public class CitizensBooksAPI {
      * @param filterName filter name/id
      */
     public void removeFilter(String filterName) {
-        this.plugin.getConfig().set("filters." + filterName, null);
-        this.plugin.saveConfig();
+        this.plugin.getSettings().set("filters." + filterName, null);
+        this.plugin.saveSettings();
     }
 
     private static Class<?> getNMSClass(String nmsClassString) {

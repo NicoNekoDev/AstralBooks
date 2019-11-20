@@ -19,9 +19,12 @@
 
 package ro.nicuch.citizensbooks;
 
+import me.lucko.luckperms.api.LuckPermsApi;
 import me.lucko.luckperms.api.User;
 import me.lucko.luckperms.api.context.ContextManager;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -91,15 +94,22 @@ public class UpdateChecker implements Listener {
         if (!this.plugin.getSettings().getBoolean("update_check", true))
             return;
         Player player = event.getPlayer();
-        if ((this.plugin.isLuckPermsEnabled()
-                && !this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(player.getUniqueId()), "npcbook.notify")) ||
-                (this.plugin.isVaultEnabled() && !this.plugin.getVaultPermissions().has(player, "npcbook.notify"))
-                || !player.hasPermission("npcbook.notify"))
+        LuckPermsApi luckPerms = this.plugin.getLuckPermissions(); //If LuckPerms not enabled, this will return null
+        boolean useLuckPerms = this.plugin.isLuckPermsEnabled(); //So we check if LuckPerms is enabled
+
+        Permission vaultPerms = this.plugin.getVaultPermissions(); //If vault not enabled or luckperms is used, this will return null
+        boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is hooked
+        if (this.hasPermission(player, "npcbook.notify", useLuckPerms, luckPerms, useVault, vaultPerms))
             return;
         if (!this.updateAvailable)
             return;
         player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
                 .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
+    }
+
+    private boolean hasPermission(CommandSender sender, String permission, boolean useLuckPerms, LuckPermsApi luckPermsApi, boolean useVaultPerms, Permission vaultPermsApi) {
+        return (useLuckPerms && this.hasLuckPermission(luckPermsApi.getUser(sender.getName()), permission)) ||
+                (useVaultPerms && vaultPermsApi.has(sender, permission)) || sender.hasPermission(permission);
     }
 
     private boolean hasLuckPermission(User user, String permission) {

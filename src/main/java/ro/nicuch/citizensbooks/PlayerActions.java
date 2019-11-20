@@ -41,7 +41,7 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getSettings().isString("commands." + command))
             return;
         event.setCancelled(true);
-        String filterName = this.plugin.getConfig().getString("commands." + command);
+        String filterName = this.plugin.getSettings().getString("commands." + command);
         if (!this.api.hasFilter(filterName)) {
             player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", ConfigDefaults.no_book_for_filter));
             return;

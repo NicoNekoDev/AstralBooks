@@ -76,7 +76,7 @@ public class CitizensCommands implements TabExecutor {
                     if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.reload")) ||
                             (useVault && vaultPerms.has(sender, "npcbook.command.reload")) || sender.hasPermission("npcbook.command.reload")) {
                         /*
-                         * this.plugin.saveConfig();
+                         * this.plugin.saveSettings();
                          *
                          * No need to be saved anymore!
                          * If config is edited, when reloaded is
@@ -134,7 +134,7 @@ public class CitizensCommands implements TabExecutor {
                     if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remove")) ||
                             (useVault && vaultPerms.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove")) {
                         if (npc != null) {
-                            /* if (this.plugin.getConfig().isString("save." + npcId)) {} */
+                            /* if (this.plugin.getSettings().isString("save." + npcId)) {} */
                             // Useless check, we just remove the data whatever exist or not
                             this.plugin.getSettings().set(bookPathBasedByHand, null);
                             this.plugin.saveSettings(); // Save is not mandatory, because the value may exist
