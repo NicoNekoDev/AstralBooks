@@ -73,8 +73,7 @@ public class CitizensCommands implements TabExecutor {
                     this.sendAbout(sender);
                     break;
                 case "reload":
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.reload")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.reload")) || sender.hasPermission("npcbook.command.reload")) {
+                    if (this.hasPermission(sender, "npcbook.command.reload", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         /*
                          * this.plugin.saveSettings();
                          *
@@ -92,8 +91,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.set")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.set")) || sender.hasPermission("npcbook.command.set")) {
+                    if (this.hasPermission(sender, "npcbook.command.set", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (this.hasBookInHand((Player) sender)) {
                             if (npc != null) {
                                 this.plugin.getSettings().set(bookPathBasedByHand,
@@ -116,8 +114,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setjoin")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.setjoin")) || sender.hasPermission("npcbook.command.setjoin")) {
+                    if (this.hasPermission(sender, "npcbook.command.setjoin", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.plugin.getSettings().set("join_book",
                                     this.api.bookToString(this.getBookFromHand((Player) sender)));
@@ -131,8 +128,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "remove":
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remove")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove")) {
+                    if (this.hasPermission(sender, "npcbook.command.remove", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (npc != null) {
                             /* if (this.plugin.getSettings().isString("save." + npcId)) {} */
                             // Useless check, we just remove the data whatever exist or not
@@ -148,8 +144,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "remjoin":
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remjoin")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.remjoin")) || sender.hasPermission("npcbook.command.remjoin")) {
+                    if (this.hasPermission(sender, "npcbook.command.remjoin", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         this.plugin.getSettings().set("join_book", null);
                         this.plugin.saveSettings(); //Allways saved
                         sender.sendMessage(this.plugin
@@ -162,8 +157,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.getbook")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook")) {
+                    if (this.hasPermission(sender, "npcbook.command.getbook", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (npc != null) {
                             if (this.plugin.getSettings().isString(bookPathBasedByHand)) {
                                 ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString(bookPathBasedByHand));
@@ -184,8 +178,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                         break;
                     }
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.getbook")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook")) {
+                    if (this.hasPermission(sender, "npcbook.command.getbook", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.openBook((Player) sender, this.getBookFromHand((Player) sender));
                         } else
@@ -195,8 +188,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "setcmd":
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setcmd")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd")) {
+                    if (this.hasPermission(sender, "npcbook.command.setcmd", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (args.length > 2) {
                             this.plugin.getSettings().set("commands." + args[1], args[2]);
                             this.plugin.saveSettings();
@@ -210,8 +202,7 @@ public class CitizensCommands implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                     break;
                 case "remcmd":
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remcmd")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd")) {
+                    if (this.hasPermission(sender, "npcbook.command.remcmd", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                         if (args.length > 1) {
                             this.plugin.getSettings().set("commands." + args[1], null);
                             this.plugin.saveSettings();
@@ -232,8 +223,7 @@ public class CitizensCommands implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                                     break;
                                 }
-                                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.set")) ||
-                                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.set")) || sender.hasPermission("npcbook.command.filter.set")) {
+                                if (this.hasPermission(sender, "npcbook.command.filter.set", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                                     if (args.length > 2) {
                                         if (this.hasBookInHand((Player) sender)) {
                                             this.api.createFilter(args[2], this.getBookFromHand((Player) sender));
@@ -251,8 +241,7 @@ public class CitizensCommands implements TabExecutor {
                                             this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
                                 break;
                             case "remove":
-                                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.remove")) ||
-                                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.remove")) || sender.hasPermission("npcbook.command.filter.remove")) {
+                                if (this.hasPermission(sender, "npcbook.command.filter.remove", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                                     if (args.length > 2) {
                                         this.api.removeFilter(args[2]);
                                         sender.sendMessage(
@@ -270,8 +259,7 @@ public class CitizensCommands implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
                                     break;
                                 }
-                                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.getbook")) ||
-                                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.getbook")) || sender.hasPermission("npcbook.command.filter.getbook")) {
+                                if (this.hasPermission(sender, "npcbook.command.filter.getbook", useLuckPerms, luckPerms, useVault, vaultPerms)) {
                                     if (args.length > 2) {
                                         if (this.api.hasFilter(args[2])) {
                                             ItemStack book = this.api.getFilter(args[2]);
@@ -296,16 +284,14 @@ public class CitizensCommands implements TabExecutor {
                         this.sendFilterHelp(sender);
                     break;
                 default:
-                    if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.help")) ||
-                            (useVault && vaultPerms.has(sender, "npcbook.command.help")) || sender.hasPermission("npcbook.command.help"))
+                    if (this.hasPermission(sender, "npcbook.command.help", useLuckPerms, luckPerms, useVault, vaultPerms))
                         this.sendHelp(sender);
                     else
                         this.sendAbout(sender);
                     break;
             }
         } else {
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.help")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.help")) || sender.hasPermission("npcbook.command.help"))
+            if (this.hasPermission(sender, "npcbook.command.help", useLuckPerms, luckPerms, useVault, vaultPerms))
                 this.sendHelp(sender);
             else
                 this.sendAbout(sender);
@@ -325,50 +311,43 @@ public class CitizensCommands implements TabExecutor {
         boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is hooked
 
         if (args.length == 1) {
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.set")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.set")) || sender.hasPermission("npcbook.command.set"))
+            if (this.hasPermission(sender, "npcbook.command.set", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("set");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remove")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.remove")) || sender.hasPermission("npcbook.command.remove"))
+            if (this.hasPermission(sender, "npcbook.command.remove", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("remove");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setjoin")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.setjoin")) || sender.hasPermission("npcbook.command.setjoin"))
+            if (this.hasPermission(sender, "npcbook.command.setjoin", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("setjoin");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remjoin")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.remjoin")) || sender.hasPermission("npcbook.command.remjoin"))
+            if (this.hasPermission(sender, "npcbook.command.remjoin", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("remjoin");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.getbook")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.getbook")) || sender.hasPermission("npcbook.command.getbook"))
+            if (this.hasPermission(sender, "npcbook.command.getbook", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("getbook");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.openbook")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.openbook")) || sender.hasPermission("npcbook.command.openbook"))
+            if (this.hasPermission(sender, "npcbook.command.openbook", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("openbook");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.filter")) || sender.hasPermission("npcbook.command.filter"))
+            if (this.hasPermission(sender, "npcbook.command.filter", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("filter");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.setcmd")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.setcmd")) || sender.hasPermission("npcbook.command.setcmd"))
+            if (this.hasPermission(sender, "npcbook.command.setcmd", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("setcmd");
-            if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.remcmd")) ||
-                    (useVault && vaultPerms.has(sender, "npcbook.command.remcmd")) || sender.hasPermission("npcbook.command.remcmd"))
+            if (this.hasPermission(sender, "npcbook.command.remcmd", useLuckPerms, luckPerms, useVault, vaultPerms))
                 commands.add("remcmd");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             if (args[0].equals("filter")) {
-                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.set")) ||
-                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.set")) || sender.hasPermission("npcbook.command.filter.set"))
+                if (this.hasPermission(sender, "npcbook.command.filter.set", useLuckPerms, luckPerms, useVault, vaultPerms))
                     commands.add("set");
-                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.remove")) ||
-                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.remove")) || sender.hasPermission("npcbook.command.filter.remove"))
+                if (this.hasPermission(sender, "npcbook.command.filter.remove", useLuckPerms, luckPerms, useVault, vaultPerms))
                     commands.add("remove");
-                if ((useLuckPerms && this.hasLuckPermission(luckPerms.getUser(sender.getName()), "npcbook.command.filter.getbook")) ||
-                        (useVault && vaultPerms.has(sender, "npcbook.command.filter.getbook")) || sender.hasPermission("npcbook.command.filter.getbook"))
+                if (this.hasPermission(sender, "npcbook.command.filter.getbook", useLuckPerms, luckPerms, useVault, vaultPerms))
                     commands.add("getbook");
             }
             StringUtil.copyPartialMatches(args[1], commands, completions);
         }
         Collections.sort(completions);
         return completions;
+    }
+
+    private boolean hasPermission(CommandSender sender, String permission, boolean useLuckPerms, LuckPermsApi luckPermsApi, boolean useVaultPerms, Permission vaultPermsApi) {
+        return (useLuckPerms && this.hasLuckPermission(luckPermsApi.getUser(sender.getName()), permission)) ||
+                (useVaultPerms && vaultPermsApi.has(sender, permission)) || sender.hasPermission(permission);
     }
 
     private void sendFilterHelp(CommandSender sender) {
