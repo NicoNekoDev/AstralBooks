@@ -11,7 +11,7 @@
 version: 7 #DO NOT CHANGE/REMOVE
 metrics: true
 update_check: true
-auto_update: true
+auto_update: false
 lang:
   header: "&f[&6CitizensBooks&f] &r"
   no_permission: "&cYou don''t have permission!"

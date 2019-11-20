@@ -50,7 +50,7 @@ public class UpdateChecker implements Listener {
             Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("Checking for updates..."));
             //Checking for updates
             if (this.checkForUpdate()) {
-                if (this.plugin.getSettings().getBoolean("auto_update", true)) {
+                if (this.plugin.getSettings().getBoolean("auto_update", false)) {
                     Bukkit.getScheduler().runTask(this.plugin, () ->
                             this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available!"));
                     this.downloadNewVersion();
@@ -142,8 +142,8 @@ public class UpdateChecker implements Listener {
         }
         Bukkit.getScheduler().runTask(this.plugin, () -> {
             this.plugin.getLogger().info("Succesfully downloaded update!");
-            this.plugin.getLogger().info("Shuting down the server!");
-            Bukkit.shutdown();
+            this.plugin.getLogger().info("Please restart the server!!");
+            //Bukkit.shutdown(); Fuck
         });
     }
 }
