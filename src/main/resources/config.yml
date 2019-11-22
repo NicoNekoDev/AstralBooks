@@ -21,7 +21,7 @@ lang:
   remove_book_successfully: "&aYou have removed the book for %npc%&a!"
   remove_join_book_successfully: "&aYou have removed the join book!"
   no_npc_selected: "&cYou need to have an NPC selected!"
-  no_book_in_hand: "&cYou need to have a book in your hand!"
+  no_book_in_hand: "&cYou need to have a written book in your hand!"
   no_book_for_npc: "&cThis NPC doesn''t have a book!"
   no_book_for_filter: "&cThis filter doesn''t have a book!"
   filter_saved: "&aFilter %filter_name% was saved."
@@ -30,7 +30,7 @@ lang:
   citizens_not_enabled: "&cCitizens plugin is not enabled!"
   set_custom_command_successfully: "&aCommand %command% has been set!"
   remove_custom_command_successfully: "&aCommand %command% has been removed!"
-  console_cannot_use_command: "&cYou have to be a player if you want to use this command!"
+  console_cannot_use_command: "&cOnly players can use this command!"
   new_version_available: "&aA new version of CitizensBooks is available!"
   usage:
     set: "&aUsage: &f/npcbook set"
@@ -46,20 +46,20 @@ lang:
       remove: "&aUsage: &f/npcbook filter remove <filter name>"
       getbook: "&aUsage: &f/npcbook filter getbook <filter name>"
   help:
-    about: "&f/npcbook about &c- &9Informations about plugin."
-    set: "&f/npcbook set &c- &9Set book for npc."
-    remove: "&f/npcbook remove &c- &9Remove book for npc."
+    about: "&f/npcbook about &c- &9Informations about the plugin."
+    set: "&f/npcbook set &c- &9Set a book for npc."
+    remove: "&f/npcbook remove &c- &9Remove the book from npc."
     getbook: "&f/npcbook getbook &c- &9Get the book of npc."
-    openbook: "&f/npcbook openbook &c- &9Open a writen book."
-    reload: "&f/npcbook reload &c- &9Reload config file."
-    setcmd: "&f/npcbook setcmd <command> <filter name> &c- &9Set command by the given filter name."
-    remcmd: "&f/npcbook remcmd <command> &c- &9Remove command."
+    openbook: "&f/npcbook openbook &c- &9Opens a writen book."
+    reload: "&f/npcbook reload &c- &9Reload the config file."
+    setcmd: "&f/npcbook setcmd <command> <filter name> &c- &9Sets a custom command by the given filter name."
+    remcmd: "&f/npcbook remcmd <command> &c- &9Remove the custom command."
     setjoin: "&f/npcbook setjoin &c- &9Set the join book."
     remjoin: "&f/npcbook remjoin &c- &9Remove the join book."
     filter:
-       set: "&f/npcbook filter set <filter name> &c- &9Set a filter by the given name."
-       remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter by the given name."
-       getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of filter by the given name."
+       set: "&f/npcbook filter set <filter name> &c- &9Create a filter with the given name."
+       remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter with the given name."
+       getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of the filter with the given name."
 filters: {} 
 save: {} 
 commands:
