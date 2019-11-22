@@ -22,10 +22,12 @@ package ro.nicuch.citizensbooks;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import me.lucko.luckperms.api.LuckPermsApi;
 import me.lucko.luckperms.api.User;
 import me.lucko.luckperms.api.context.ContextManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -69,6 +71,22 @@ public class CitizensCommands implements TabExecutor {
 
         if (args.length > 0) {
             switch (args[0]) {
+                case "forceopen":
+                    if (this.hasPermission(sender, "npcbook.command.forceopen", useLuckPerms, luckPerms, useVault, vaultPerms)) {
+                        if (args.length > 2) {
+                            if (this.api.hasFilter(args[1])) {
+                                Optional<Player> optionalPlayer = Optional.ofNullable(Bukkit.getPlayer(args[2]));
+                                if (optionalPlayer.isPresent()) {
+                                    this.api.openBook(optionalPlayer.get(), this.api.getFilter(args[1]));
+                                } else
+                                    sender.sendMessage(ChatColor.RED + "Player not found!");
+                            } else
+                                sender.sendMessage(ChatColor.RED + "Filter not found!");
+                        } else
+                            sender.sendMessage(ChatColor.RED + "Please use /npcbook forceopen <filter-name> <player>");
+                    } else
+                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                    break;
                 case "about":
                     this.sendAbout(sender);
                     break;
