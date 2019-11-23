@@ -8,7 +8,7 @@
 #                                                                     #
 #######################################################################
 
-version: 7 #DO NOT CHANGE/REMOVE
+version: 8 #DO NOT CHANGE/REMOVE
 metrics: true
 update_check: true
 lang:
@@ -63,9 +63,11 @@ lang:
        set: "&f/npcbook filter set <filter name> &c- &9Create a filter with the given name."
        remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter with the given name."
        getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of the filter with the given name."
-filters: {} 
-save: {} 
+filters:
+  hello_world: '{generation:0,pages:[''{"text":"Hello there, player! :)"}''],author:"nicuch",title:"Hello
+    world!",resolved:1b}'
+save: {}
 commands:
-  helloworld:
-    filter_name: "test1"
-    permission: "perm.helloworld"
+  hello:
+    filter_name: hello_world
+    permission: perm.hello_world
