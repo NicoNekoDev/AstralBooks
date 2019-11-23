@@ -64,7 +64,7 @@ public class CitizensBooksCommand implements TabExecutor {
                             if (this.api.hasFilter(args[1])) {
                                 Optional<Player> optionalPlayer = Optional.ofNullable(Bukkit.getPlayer(args[2]));
                                 if (optionalPlayer.isPresent()) {
-                                    this.api.openBook(optionalPlayer.get(), this.api.getFilter(args[1]));
+                                    this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage("lang.player_not_found", ConfigDefaults.player_not_found));
                             } else
@@ -396,12 +396,12 @@ public class CitizensBooksCommand implements TabExecutor {
     @SuppressWarnings("deprecation")
     private void openBook(Player player, ItemStack book) {
         BookMeta meta = (BookMeta) book.getItemMeta();
-        ItemStack item = new ItemStack(Material.getMaterial("BOOK_AND_QUILL"));
-        if (item.getType() == null)
+        Material material = Material.getMaterial("BOOK_AND_QUILL");
+        if (material == null)
             // 1.13+
-            item.setType(Material.getMaterial("WRITABLE_BOOK"));
-        if (item != null)
-            item.setItemMeta(meta);
+            material = Material.getMaterial("WRITABLE_BOOK");
+        ItemStack item = new ItemStack(material);
+        item.setItemMeta(meta);
         switch (CitizensBooksAPI.version) {
             case "v1_8_R3":
             case "v1_8_R2":
