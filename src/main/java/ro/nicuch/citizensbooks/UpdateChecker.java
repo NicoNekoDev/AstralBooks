@@ -34,6 +34,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
+import java.util.Optional;
 
 public class UpdateChecker implements Listener {
     private final CitizensBooksPlugin plugin;
@@ -94,12 +95,8 @@ public class UpdateChecker implements Listener {
         if (!this.plugin.getSettings().getBoolean("update_check", true))
             return;
         Player player = event.getPlayer();
-        LuckPermsApi luckPerms = this.plugin.getLuckPermissions(); //If LuckPerms not enabled, this will return null
-        boolean useLuckPerms = this.plugin.isLuckPermsEnabled(); //So we check if LuckPerms is enabled
-
-        Permission vaultPerms = this.plugin.getVaultPermissions(); //If vault not enabled or luckperms is used, this will return null
         boolean useVault = this.plugin.isVaultEnabled(); //So we check if Vault is hooked
-        if (this.hasPermission(player, "npcbook.notify", useLuckPerms, luckPerms, useVault, vaultPerms))
+        if (this.plugin.getAPI().hasPermission(player, "npcbook.notify"))
             return;
         if (!this.updateAvailable)
             return;
@@ -107,22 +104,9 @@ public class UpdateChecker implements Listener {
                 .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 
-    private boolean hasPermission(CommandSender sender, String permission, boolean useLuckPerms, LuckPermsApi luckPermsApi, boolean useVaultPerms, Permission vaultPermsApi) {
-        return (useLuckPerms && this.hasLuckPermission(luckPermsApi.getUser(sender.getName()), permission)) ||
-                (useVaultPerms && vaultPermsApi.has(sender, permission)) || sender.hasPermission(permission);
-    }
-
-    private boolean hasLuckPermission(User user, String permission) {
-        ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
-        return user.getCachedData().getPermissionData(contextManager.lookupApplicableContexts(user).orElseGet(contextManager::getStaticContexts)).getPermissionValue(permission).asBoolean();
-    }
-
     private void announceOnlinePlayers() {
         Bukkit.getOnlinePlayers().forEach((Player player) -> {
-            if ((this.plugin.isLuckPermsEnabled()
-                    && this.hasLuckPermission(this.plugin.getLuckPermissions().getUser(player.getUniqueId()), "npcbook.notify")) ||
-                    (this.plugin.isVaultEnabled() && this.plugin.getVaultPermissions().has(player, "npcbook.notify"))
-                    || player.hasPermission("npcbook.notify"))
+            if (this.plugin.getAPI().hasPermission(player, "npcbook.notify"))
                 player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
                         .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
         });

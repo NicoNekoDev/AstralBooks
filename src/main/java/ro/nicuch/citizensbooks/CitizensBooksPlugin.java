@@ -32,12 +32,11 @@ import net.milkbowl.vault.permission.Permission;
 import ro.nicuch.citizensbooks.bstats.Metrics;
 
 public class CitizensBooksPlugin extends JavaPlugin {
-    private Permission permissions;
-    private LuckPermsApi luckPermissions;
-    private boolean placeholder;
+    private Permission vaultPerms;
+    private LuckPermsApi luckPerms;
     private CitizensBooksAPI api;
     private YamlConfiguration settings;
-    private boolean useAuthme;
+    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault;
 
     @Override
     public void onEnable() {
@@ -50,43 +49,44 @@ public class CitizensBooksPlugin extends JavaPlugin {
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("LuckPerms")) {
                 this.getLogger().info("LuckPerms not found!");
-                if (!manager.isPluginEnabled("Vault")) {
+                if (!manager.isPluginEnabled("Vault"))
                     this.getLogger().info("Vault not found!");
-                } else {
+                else {
                     this.getLogger().info("Vault found, try hooking!");
-                    this.permissions = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                    this.useVault = true;
+                    this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
                 }
             } else {
                 this.getLogger().info("LuckPerms found, try hooking!");
-                this.luckPermissions = this.getServer().getServicesManager().getRegistration(LuckPermsApi.class).getProvider();
+                this.useLuckPerms = true;
+                this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPermsApi.class).getProvider();
                 if (manager.isPluginEnabled("Vault"))
-                    this.getLogger().info("Vault plugin found, but we will use LuckPerms!");
+                    this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
             }
-            if (!manager.isPluginEnabled("PlaceholderAPI")) {
+            if (!manager.isPluginEnabled("PlaceholderAPI"))
                 this.getLogger().info("PlaceholderAPI not found!");
-            } else {
+            else {
                 this.getLogger().info("PlaceholderAPI found, try hooking!");
-                this.placeholder = true;
+                this.usePlaceholderAPI = true;
             }
-            TabExecutor te;
             manager.registerEvents(new PlayerActions(this), this);
-            if (!manager.isPluginEnabled("Citizens")) {
+            if (!manager.isPluginEnabled("Citizens"))
                 this.getLogger().info("Citizens not found!");
-                te = new PlayerCommands(this);
-            } else {
+            else {
                 this.getLogger().info("Citizens found, try hooking!");
                 manager.registerEvents(new CitizensActions(this), this);
-                te = new CitizensCommands(this);
+                this.useCitizens = true;
             }
-            if (!manager.isPluginEnabled("Authme")) {
+            if (!manager.isPluginEnabled("Authme"))
                 this.getLogger().info("Authme not found!");
-            } else {
+            else {
                 this.getLogger().info("Authme found, try hooking!");
                 manager.registerEvents(new AuthmeActions(this), this);
-                this.useAuthme = true;
+                this.useAuthMe = true;
             }
-            this.getCommand("npcbook").setExecutor(te);
-            this.getCommand("npcbook").setTabCompleter(te);
+            TabExecutor tabExecutor = new CitizensBooksCommand(this);
+            this.getCommand("npcbook").setExecutor(tabExecutor);
+            this.getCommand("npcbook").setTabCompleter(tabExecutor);
             //Update checker, by default enabled
             if (this.settings.getBoolean("update_check", true))
                 manager.registerEvents(new UpdateChecker(this), this);
@@ -145,27 +145,31 @@ public class CitizensBooksPlugin extends JavaPlugin {
     }
 
     public LuckPermsApi getLuckPermissions() {
-        return this.luckPermissions;
+        return this.luckPerms;
     }
 
     public boolean isLuckPermsEnabled() {
-        return this.luckPermissions != null;
+        return this.useLuckPerms;
     }
 
     public Permission getVaultPermissions() {
-        return this.permissions;
+        return this.vaultPerms;
     }
 
     public boolean isVaultEnabled() {
-        return this.permissions != null;
+        return this.useVault;
     }
 
     public boolean isPlaceHolderEnabled() {
-        return this.placeholder;
+        return this.usePlaceholderAPI;
     }
 
     public boolean isAutmeEnabled() {
-        return this.useAuthme;
+        return this.useAuthMe;
+    }
+
+    public boolean isCitizensEnabled() {
+        return this.useCitizens;
     }
 
     public String getMessage(String path, String def) {

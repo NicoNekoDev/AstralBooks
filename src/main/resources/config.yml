@@ -32,12 +32,15 @@ lang:
   remove_custom_command_successfully: "&aCommand %command% has been removed!"
   console_cannot_use_command: "&cOnly players can use this command!"
   new_version_available: "&aA new version of CitizensBooks is available!"
+  player_not_found: "&cPlayer not found!"
+  filter_not_found: "&cFilter not found!"
   usage:
     set: "&aUsage: &f/npcbook set"
     remove: "&aUsage: &f/npcbook remove"
     getbook: "&aUsage: &f/npcbook getbook"
     openbook: "&aUsage: &f/npcbook openbook"
-    setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name>"
+    forceopen: "&aUsage: &f/npcbook forceopen <filter name> <player>"
+    setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name> [permission]"
     remcmd: "&aUsage: &f/npcbook remcmd <command>"
     setjoin: "&aUsage: &f/npcbook setjoin"
     remjoin: "&aUsage: &f/npcbook remjoin"
@@ -51,6 +54,7 @@ lang:
     remove: "&f/npcbook remove &c- &9Remove the book from npc."
     getbook: "&f/npcbook getbook &c- &9Get the book of npc."
     openbook: "&f/npcbook openbook &c- &9Opens a writen book."
+    forceopen: "&f/npcbook forceopen <filter name> <player> &c- &9Force a player to open a book."
     reload: "&f/npcbook reload &c- &9Reload the config file."
     setcmd: "&f/npcbook setcmd <command> <filter name> &c- &9Sets a custom command by the given filter name."
     remcmd: "&f/npcbook remcmd <command> &c- &9Remove the custom command."
@@ -63,4 +67,6 @@ lang:
 filters: {} 
 save: {} 
 commands:
-  helloworld: "test1"
+  helloworld:
+    filter_name: "test1"
+    permission: "perm.helloworld"

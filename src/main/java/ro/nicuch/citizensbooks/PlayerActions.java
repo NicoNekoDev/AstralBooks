@@ -38,16 +38,19 @@ public class PlayerActions implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         String command = event.getMessage().substring(1).split(" ")[0];
-        if (!this.plugin.getSettings().isString("commands." + command))
+        if (!this.plugin.getSettings().isString("commands." + command + ".filter_name"))
             return;
         event.setCancelled(true);
-        String filterName = this.plugin.getSettings().getString("commands." + command);
+        String filterName = this.plugin.getSettings().getString("commands." + command + ".filter_name");
+        String permission = this.plugin.getSettings().isString("commands." + command + ".permission") ? this.plugin.getSettings().getString("commands." + command + ".permission") : "none";
+        if (!(permission.equalsIgnoreCase("none") || this.api.hasPermission(player, permission)))
+            return;
         if (!this.api.hasFilter(filterName)) {
             player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", ConfigDefaults.no_book_for_filter));
             return;
         }
         ItemStack book = this.api.getFilter(filterName);
-        api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 
     @EventHandler
@@ -57,6 +60,6 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getSettings().isString("join_book"))
             return;
         ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("join_book"));
-        this.api.openBook(event.getPlayer(), book);
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
     }
 }
