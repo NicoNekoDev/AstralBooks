@@ -21,6 +21,7 @@ public class ConfigUpdater {
             plugin.getSettings().set("lang.filter_not_found", ConfigDefaults.filter_not_found);
             plugin.getSettings().set("lang.usage.forceopen", ConfigDefaults.usage_forceopen);
             plugin.getSettings().set("lang.help.forceopen", ConfigDefaults.help_forceopen);
+            plugin.getSettings().set("version", plugin.configVersion); //update the version
             plugin.saveSettings(); //save settings
             return true;
         }
