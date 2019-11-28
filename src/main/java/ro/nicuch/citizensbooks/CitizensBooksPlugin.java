@@ -37,6 +37,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private CitizensBooksAPI api;
     private YamlConfiguration settings;
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault;
+    public final int configVersion = 8;
 
     @Override
     public void onEnable() {
@@ -120,16 +121,19 @@ public class CitizensBooksPlugin extends JavaPlugin {
             }
             this.settings = YamlConfiguration.loadConfiguration(config);
             //Load config.yml first
-            if (this.settings.isInt("version") && this.settings.getInt("version") != 7) {
-                boolean renamed = config.renameTo(new File(
-                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
-                if (renamed) {
-                    this.getLogger().info("A new config.yml was generated!");
-                    this.saveResource("config.yml", true);
-                    //Load again the config
-                    this.settings = YamlConfiguration.loadConfiguration(config);
+            if (this.settings.isInt("version") && this.settings.getInt("version") != this.configVersion) {
+                if (!ConfigUpdater.updateConfig(this, this.settings.getInt("version"))) {
+                    boolean renamed = config.renameTo(new File(
+                            this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
+                    if (renamed) {
+                        this.getLogger().info("A new config.yml was generated!");
+                        this.saveResource("config.yml", true);
+                        //Load again the config
+                        this.settings = YamlConfiguration.loadConfiguration(config);
+                    } else
+                        this.getLogger().info("Failed to generate a new config!");
                 } else
-                    this.getLogger().info("Failed to generate a new config!");
+                    this.getLogger().info("The config has been updated!");
             }
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
