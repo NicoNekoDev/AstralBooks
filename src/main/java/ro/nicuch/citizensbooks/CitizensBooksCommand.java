@@ -62,11 +62,15 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.forceopen")) {
                         if (args.length > 2) {
                             if (this.api.hasFilter(args[1])) {
-                                Optional<Player> optionalPlayer = Optional.ofNullable(Bukkit.getPlayer(args[2]));
-                                if (optionalPlayer.isPresent()) {
-                                    this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
-                                } else
-                                    sender.sendMessage(this.plugin.getMessage("lang.player_not_found", ConfigDefaults.player_not_found));
+                                if ("*".equals(args[2]))
+                                    Bukkit.getOnlinePlayers().forEach(player -> this.api.placeholderHook(player, this.api.getFilter(args[1]), null));
+                                else {
+                                    Optional<Player> optionalPlayer = Optional.ofNullable(Bukkit.getPlayer(args[2]));
+                                    if (optionalPlayer.isPresent()) {
+                                        this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
+                                    } else
+                                        sender.sendMessage(this.plugin.getMessage("lang.player_not_found", ConfigDefaults.player_not_found));
+                                }
                             } else
                                 sender.sendMessage(this.plugin.getMessage("lang.filter_not_found", ConfigDefaults.filter_not_found));
                         } else
