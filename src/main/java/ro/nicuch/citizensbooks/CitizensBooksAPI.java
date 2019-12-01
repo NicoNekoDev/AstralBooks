@@ -89,7 +89,7 @@ public class CitizensBooksAPI {
      */
     public void createFilter(String filterName, ItemStack book) {
         if (book == null)
-            throw new NullPointerException("ItemStack can\'t be null!");
+            throw new NullPointerException("ItemStack can't be null!");
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.plugin.getSettings().set("filters." + filterName, this.bookToString(book));
@@ -172,7 +172,7 @@ public class CitizensBooksAPI {
      */
     public void openBook(Player player, ItemStack book) {
         if (book == null)
-            throw new NullPointerException("ItemStack can\'t be null!");
+            throw new NullPointerException("ItemStack can't be null!");
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         int slot = player.getInventory().getHeldItemSlot();
@@ -236,5 +236,9 @@ public class CitizensBooksAPI {
     protected boolean hasLuckPermission(User user, String permission) {
         ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
         return user.getCachedData().getPermissionData(contextManager.lookupApplicableContexts(user).orElseGet(contextManager::getStaticContexts)).getPermissionValue(permission).asBoolean();
+    }
+
+    protected Player getPlayer(String name) {
+        return Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElseGet(null);
     }
 }

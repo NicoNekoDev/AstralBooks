@@ -65,7 +65,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                 if ("*".equals(args[2]))
                                     Bukkit.getOnlinePlayers().forEach(player -> this.api.placeholderHook(player, this.api.getFilter(args[1]), null));
                                 else {
-                                    Optional<Player> optionalPlayer = Optional.ofNullable(Bukkit.getPlayer(args[2]));
+                                    Optional<Player> optionalPlayer = Optional.ofNullable(this.api.getPlayer(args[2])); //spigot likes to fuck with us
                                     if (optionalPlayer.isPresent()) {
                                         this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
                                     } else
