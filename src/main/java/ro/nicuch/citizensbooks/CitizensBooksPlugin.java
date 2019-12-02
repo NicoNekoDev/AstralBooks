@@ -21,7 +21,7 @@ package ro.nicuch.citizensbooks;
 
 import java.io.File;
 
-import me.lucko.luckperms.api.LuckPermsApi;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.ChatColor;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -33,7 +33,7 @@ import ro.nicuch.citizensbooks.bstats.Metrics;
 
 public class CitizensBooksPlugin extends JavaPlugin {
     private Permission vaultPerms;
-    private LuckPermsApi luckPerms;
+    private LuckPerms luckPerms;
     private CitizensBooksAPI api;
     private YamlConfiguration settings;
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault;
@@ -60,7 +60,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             } else {
                 this.getLogger().info("LuckPerms found, try hooking!");
                 this.useLuckPerms = true;
-                this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPermsApi.class).getProvider();
+                this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
                 if (manager.isPluginEnabled("Vault"))
                     this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
             }
@@ -148,7 +148,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         }
     }
 
-    public LuckPermsApi getLuckPermissions() {
+    public LuckPerms getLuckPermissions() {
         return this.luckPerms;
     }
 

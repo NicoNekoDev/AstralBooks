@@ -19,13 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
-import me.lucko.luckperms.api.LuckPermsApi;
-import me.lucko.luckperms.api.User;
-import me.lucko.luckperms.api.context.ContextManager;
-import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -35,7 +29,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
-import java.util.Optional;
 
 public class UpdateChecker implements Listener {
     private final CitizensBooksPlugin plugin;

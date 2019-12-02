@@ -22,10 +22,11 @@ package ro.nicuch.citizensbooks;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-import me.lucko.luckperms.api.LuckPermsApi;
-import me.lucko.luckperms.api.User;
-import me.lucko.luckperms.api.context.ContextManager;
 import net.citizensnpcs.api.npc.NPC;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.context.ContextManager;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.query.QueryOptions;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -229,15 +230,15 @@ public class CitizensBooksAPI {
     }
 
     protected boolean hasPermission(CommandSender sender, String permission) {
-        Optional<LuckPermsApi> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
+        Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
         Optional<Permission> vaultPerms = this.plugin.isVaultEnabled() ? Optional.of(this.plugin.getVaultPermissions()) : Optional.empty(); //If vault not enabled or luckperms is used, this will return empty
-        return (luckPerms.isPresent() && this.hasLuckPermission(luckPerms.get().getUser(sender.getName()), permission)) ||
+        return (luckPerms.isPresent() && this.hasLuckPermission(luckPerms.get().getUserManager().getUser(sender.getName()), permission)) ||
                 (vaultPerms.isPresent() && vaultPerms.get().has(sender, permission)) || sender.hasPermission(permission);
     }
 
     protected boolean hasLuckPermission(User user, String permission) {
         ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
-        return user.getCachedData().getPermissionData(contextManager.lookupApplicableContexts(user).orElseGet(contextManager::getStaticContexts)).getPermissionValue(permission).asBoolean();
+        return user.getCachedData().getPermissionData(QueryOptions.contextual(contextManager.getContext(user).orElseGet(contextManager::getStaticContext))).checkPermission(permission).asBoolean();
     }
 
     protected Player getPlayer(String name) {
