@@ -171,6 +171,8 @@ public class CitizensBooksAPI {
      * @throws IllegalArgumentException if the book is not really a book
      */
     public void openBook(Player player, ItemStack book) {
+        player.closeInventory();
+        //testing
         if (book == null)
             throw new NullPointerException("ItemStack can't be null!");
         if (book.getType() != Material.WRITTEN_BOOK)
