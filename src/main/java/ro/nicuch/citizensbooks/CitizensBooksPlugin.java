@@ -59,10 +59,19 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 }
             } else {
                 this.getLogger().info("LuckPerms found, try hooking!");
-                this.useLuckPerms = true;
-                this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
-                if (manager.isPluginEnabled("Vault"))
-                    this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
+                if (manager.getPlugin("LuckPerms").getDescription().getVersion().startsWith("5")) {
+                    this.useLuckPerms = true;
+                    this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
+                    if (manager.isPluginEnabled("Vault"))
+                        this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
+                } else {
+                    this.getLogger().info("Your LuckPerms version is oudated! :(");
+                    if (manager.isPluginEnabled("Vault")) {
+                        this.getLogger().info("Vault found instead! Try hooking!");
+                        this.useVault = true;
+                        this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                    }
+                }
             }
             if (!manager.isPluginEnabled("PlaceholderAPI"))
                 this.getLogger().info("PlaceholderAPI not found!");
