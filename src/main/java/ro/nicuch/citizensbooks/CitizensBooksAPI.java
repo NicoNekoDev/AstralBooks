@@ -148,6 +148,7 @@ public class CitizensBooksAPI {
                 case "v1_14_R1":
                 case "v1_14_R2":
                 case "v1_14_R3":
+                case "v1_15_R1":
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
