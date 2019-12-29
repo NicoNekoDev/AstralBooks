@@ -2,7 +2,7 @@ name: ${project.artifactId}
 version: ${project.version}
 author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
-softdepend: [PlaceholderAPI, Citizens, LuckPerms, Vault]
+softdepend: [PlaceholderAPI, Citizens, LuckPerms, Vault, Authme]
 website: https://www.spigotmc.org/resources/citizensbooks.37465/
 api-version: 1.13
 commands:

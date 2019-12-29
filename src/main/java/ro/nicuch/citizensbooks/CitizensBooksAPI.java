@@ -56,8 +56,38 @@ public class CitizensBooksAPI {
     private static final Class<?> eh = getNMSClass("EnumHand");
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
-        this.plugin = plugin;
-        this.plugin.getLogger().info("Your server is running version " + version + "!");
+        (this.plugin = plugin).getLogger().info("Your server is running version " + version + "!");
+        this.checkVersionCompability(false);
+    }
+
+    private boolean checkVersionCompability(boolean throwable) {
+        switch (version) {
+            case "1_8_R1":
+            case "1_8_R2":
+            case "1_8_R3":
+            case "1_9_R1":
+            case "1_9_R2":
+            case "1_10_R1":
+            case "1_11_R1":
+            case "1_12_R1":
+            case "v1_13_R1":
+            case "v1_13_R2":
+            case "v1_14_R1":
+            case "v1_14_R2":
+            case "v1_14_R3":
+            case "v1_15_R1":
+                return true;
+            default:
+                if (throwable) {
+                    this.plugin.getLogger().warning("Well, this version of CitizensBooks is incompatible with your server version " + version + "... ");
+                    if (UpdateChecker.updateAvailable())
+                        this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it! It might fix the error!");
+                    else
+                        this.plugin.getLogger().warning("Please don't report this error! We try hard to update it as fast as possible!");
+                } else
+                    this.plugin.getLogger().warning("Your server version is incompatbile, but this plugin still tries to work.");
+                return false;
+        }
     }
 
     /**
@@ -136,6 +166,18 @@ public class CitizensBooksAPI {
             if (pc == null || ppocp == null || pds == null)
                 throw new NullPointerException("Craftbukkit classes not found!");
             switch (version) {
+                case "1_8_R1":
+                case "1_8_R2":
+                case "1_8_R3":
+                case "1_9_R1":
+                case "1_9_R2":
+                case "1_10_R1":
+                case "1_11_R1":
+                case "1_12_R1":
+                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
+                            ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
+                                    .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+                    break;
                 case "v1_13_R1":
                 case "v1_13_R2":
                     Class<?> mk = getNMSClass("MinecraftKey");
@@ -149,18 +191,16 @@ public class CitizensBooksAPI {
                 case "v1_14_R2":
                 case "v1_14_R3":
                 case "v1_15_R1":
+                default:
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
                                             .invoke(eh, "MAIN_HAND")));
-                    break;
-                default:
-                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
-                            ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
-                                    .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
+
             }
         } catch (Exception ex) {
-            this.plugin.printError(ex);
+            if (this.checkVersionCompability(true))
+                this.plugin.printError(ex);
         }
     }
 

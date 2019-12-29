@@ -33,8 +33,8 @@ import java.net.URL;
 public class UpdateChecker implements Listener {
     private final CitizensBooksPlugin plugin;
     private final int resourceId = 37465;
-    private String latestVersion;
-    private boolean updateAvailable;
+    private static String latestVersion;
+    private static boolean updateAvailable;
 
     public UpdateChecker(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -46,7 +46,7 @@ public class UpdateChecker implements Listener {
             //Checking for updates
             if (this.checkForUpdate()) {
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info("An update for CitizensBooks (v" + this.latestVersion + ") is available at:");
+                    this.plugin.getLogger().info("An update for CitizensBooks (v" + latestVersion + ") is available at:");
                     this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
                 });
             } else
@@ -70,14 +70,18 @@ public class UpdateChecker implements Listener {
         String version = getSpigotVersion();
         if (version != null) {
             if (this.plugin.getDescription().getVersion().compareTo(version) < 0) {
-                this.latestVersion = version;
-                this.updateAvailable = true;
+                latestVersion = version;
+                updateAvailable = true;
                 Bukkit.getScheduler().runTask(this.plugin, () -> Bukkit.getOnlinePlayers().stream().filter(player -> this.plugin.getAPI().hasPermission(player, "npcbook.notify")).forEach(player -> player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
-                        .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
+                        .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
                 return true;
             }
         }
         return false;
+    }
+
+    public static boolean updateAvailable() {
+        return updateAvailable;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -87,9 +91,9 @@ public class UpdateChecker implements Listener {
         Player player = event.getPlayer();
         if (this.plugin.getAPI().hasPermission(player, "npcbook.notify"))
             return;
-        if (!this.updateAvailable)
+        if (!updateAvailable)
             return;
         player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
-                .replace("%latest_version%", this.latestVersion == null ? "" : this.latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
+                .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }
