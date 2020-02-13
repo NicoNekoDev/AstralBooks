@@ -21,7 +21,7 @@ package ro.nicuch.citizensbooks;
 
 public class ConfigDefaults {
     public static final String header = "&f[&6CitizensBooks&f] &r";
-    public static final String no_permission = "&cYou don\'t have permission!";
+    public static final String no_permission = "&cYou don't have permission!";
     public static final String config_reloaded = "&aConfig reloaded.";
     public static final String set_book_successfully = "&aYou have set the book for %npc%&a!";
     public static final String remove_book_successfully = "&aYou have removed the book for %npc%&a!";

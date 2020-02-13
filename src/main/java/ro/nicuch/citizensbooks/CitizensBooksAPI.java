@@ -286,6 +286,10 @@ public class CitizensBooksAPI {
     }
 
     protected Player getPlayer(String name) {
-        return Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElseGet(null);
+        try {
+            return Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElseGet(null);
+        } catch (NullPointerException ex) { // Method .findFirst() and .findAny() throws directly NPE if there is no element... I just wonder why is not just returning an Optional.empty()
+            return null; // I'm pretty sure this will NOT throw more NPEs in the future...
+        }
     }
 }
