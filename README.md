@@ -20,7 +20,7 @@ mvn clean package
 <repositories>
   <repository>
     <id>pikacraft-repo</id>
-    <url>http://repo.pikacraft.ro/</url>
+    <url>https://repo.pikacraft.ro/</url>
   </repository>
 </repositories>
 
