@@ -26,6 +26,7 @@ permissions:
       npcbook.notify: true
       npcbook.command.setjoin: true
       npcbook.command.remjoin: true
+      npcbook.nojoinbook: true
   npcbook.command.*:
     children:
       npcbook.command.help: true
@@ -74,3 +75,5 @@ permissions:
     default: false
   npcbook.notify:
     default: op
+  npcbook.nojoinbook:
+    default: false
