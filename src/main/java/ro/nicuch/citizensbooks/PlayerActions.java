@@ -64,6 +64,7 @@ public class PlayerActions implements Listener {
             if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
                 return;
         this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
+        this.plugin.saveSettings();
         ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("join_book"));
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
