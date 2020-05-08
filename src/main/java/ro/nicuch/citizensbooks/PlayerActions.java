@@ -59,6 +59,8 @@ public class PlayerActions implements Listener {
             return;
         if (!this.plugin.getSettings().isString("join_book"))
             return;
+        if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
+            return;
         Player player = event.getPlayer();
         if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
             if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
