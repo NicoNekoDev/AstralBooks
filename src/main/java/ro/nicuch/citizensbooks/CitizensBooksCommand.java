@@ -131,6 +131,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         if (this.hasBookInHand((Player) sender)) {
                             this.plugin.getSettings().set("join_book",
                                     this.api.bookToString(this.getBookFromHand((Player) sender)));
+                            this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
                             this.plugin.saveSettings(); //Allways saved
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.set_join_book_successfully", ConfigDefaults.set_join_book_successfully));
@@ -163,6 +164,7 @@ public class CitizensBooksCommand implements TabExecutor {
                 case "remjoin":
                     if (this.api.hasPermission(sender, "npcbook.command.remjoin")) {
                         this.plugin.getSettings().set("join_book", null);
+                        this.plugin.getSettings().set("join_book_last_change", 0);
                         this.plugin.saveSettings(); //Allways saved
                         sender.sendMessage(this.plugin
                                 .getMessage("lang.remove_join_book_successfully", ConfigDefaults.remove_join_book_successfully));

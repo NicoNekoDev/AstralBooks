@@ -62,14 +62,14 @@ public class CitizensBooksAPI {
 
     private boolean checkVersionCompability(boolean throwable) {
         switch (version) {
-            case "1_8_R1":
-            case "1_8_R2":
-            case "1_8_R3":
-            case "1_9_R1":
-            case "1_9_R2":
-            case "1_10_R1":
-            case "1_11_R1":
-            case "1_12_R1":
+            case "v1_8_R1":
+            case "v1_8_R2":
+            case "v1_8_R3":
+            case "v1_9_R1":
+            case "v1_9_R2":
+            case "v1_10_R1":
+            case "v1_11_R1":
+            case "v1_12_R1":
             case "v1_13_R1":
             case "v1_13_R2":
             case "v1_14_R1":

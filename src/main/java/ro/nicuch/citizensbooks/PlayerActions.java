@@ -55,11 +55,16 @@ public class PlayerActions implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        if (this.plugin.isAutmeEnabled())
+        if (this.plugin.isAuthmeEnabled())
             return;
         if (!this.plugin.getSettings().isString("join_book"))
             return;
+        Player player = event.getPlayer();
+        if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
+            if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
+                return;
+        this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
         ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("join_book"));
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 }

@@ -177,7 +177,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.usePlaceholderAPI;
     }
 
-    public boolean isAutmeEnabled() {
+    public boolean isAuthmeEnabled() {
         return this.useAuthMe;
     }
 
