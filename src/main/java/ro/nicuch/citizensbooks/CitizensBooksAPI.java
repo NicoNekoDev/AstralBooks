@@ -84,8 +84,11 @@ public class CitizensBooksAPI {
                         this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it! It might fix the error!");
                     else
                         this.plugin.getLogger().warning("Please don't report this error! We try hard to update it as fast as possible!");
-                } else
+                } else {
                     this.plugin.getLogger().warning("Your server version is incompatbile, but this plugin still tries to work.");
+                    if (UpdateChecker.updateAvailable())
+                        this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it!!");
+                }
                 return false;
         }
     }
@@ -166,14 +169,14 @@ public class CitizensBooksAPI {
             if (pc == null || ppocp == null || pds == null)
                 throw new NullPointerException("Craftbukkit classes not found!");
             switch (version) {
-                case "1_8_R1":
-                case "1_8_R2":
-                case "1_8_R3":
-                case "1_9_R1":
-                case "1_9_R2":
-                case "1_10_R1":
-                case "1_11_R1":
-                case "1_12_R1":
+                case "v1_8_R1":
+                case "v1_8_R2":
+                case "v1_8_R3":
+                case "v1_9_R1":
+                case "v1_9_R2":
+                case "v1_10_R1":
+                case "v1_11_R1":
+                case "v1_12_R1":
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
                                     .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));

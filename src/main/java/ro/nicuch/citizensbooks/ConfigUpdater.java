@@ -1,8 +1,5 @@
 package ro.nicuch.citizensbooks;
 
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.ItemStack;
-
 import java.util.HashMap;
 import java.util.Map;
 

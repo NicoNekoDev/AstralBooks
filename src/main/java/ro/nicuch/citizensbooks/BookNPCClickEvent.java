@@ -53,7 +53,7 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
         this.npc = npc;
         this.clickType = clickType;
         if ((this.book = book) == null)
-            throw new NullPointerException("ItemStack can\'t be null!");
+            throw new NullPointerException("ItemStack can't be null!");
         this.plugin = (CitizensBooksPlugin) Bukkit.getPluginManager().getPlugin("CitizensBooks");
     }
 
@@ -103,7 +103,7 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
      */
     public void setBook(ItemStack book) {
         if (book == null)
-            throw new NullPointerException("ItemStack can\'t be null!");
+            throw new NullPointerException("ItemStack can't be null!");
         if (book.getType() != Material.WRITTEN_BOOK)
             throw new IllegalArgumentException("The filter can only be a written book!");
         this.book = book;
