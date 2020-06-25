@@ -19,9 +19,9 @@
 
 package ro.nicuch.citizensbooks;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Optional;
-
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.context.ContextManager;
@@ -36,9 +36,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import me.clip.placeholderapi.PlaceholderAPI;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 public class CitizensBooksAPI {
     private final CitizensBooksPlugin plugin;
@@ -76,6 +75,7 @@ public class CitizensBooksAPI {
             case "v1_14_R2":
             case "v1_14_R3":
             case "v1_15_R1":
+            case "v1_16_R1":
                 return true;
             default:
                 if (throwable) {
@@ -194,6 +194,7 @@ public class CitizensBooksAPI {
                 case "v1_14_R2":
                 case "v1_14_R3":
                 case "v1_15_R1":
+                case "v1_16_R1":
                 default:
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
