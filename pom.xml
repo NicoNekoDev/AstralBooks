@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ro.nicuch</groupId>
     <artifactId>CitizensBooks</artifactId>
-    <version>2.6.0</version>
+    <version>2.6.1</version>
     <packaging>jar</packaging>
 
     <distributionManagement>
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>net.citizensnpcs</groupId>
             <artifactId>citizensapi</artifactId>
-            <version>2.0.26-SNAPSHOT</version>
+            <version>2.0.27-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -75,13 +75,13 @@
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
-            <version>2.10.5</version>
+            <version>2.10.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
+            <version>1.16.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

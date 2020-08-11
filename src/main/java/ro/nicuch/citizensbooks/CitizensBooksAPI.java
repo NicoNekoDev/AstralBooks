@@ -76,6 +76,7 @@ public class CitizensBooksAPI {
             case "v1_14_R3":
             case "v1_15_R1":
             case "v1_16_R1":
+            case "v1_16_R2":
                 return true;
             default:
                 if (throwable) {
@@ -195,6 +196,7 @@ public class CitizensBooksAPI {
                 case "v1_14_R3":
                 case "v1_15_R1":
                 case "v1_16_R1":
+                case "v1_16_R2":
                 default:
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
