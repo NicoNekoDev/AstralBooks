@@ -65,7 +65,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                 if ("*".equals(args[2]))
                                     Bukkit.getOnlinePlayers().forEach(player -> this.api.openBook(player, this.api.placeholderHook(player, this.api.getFilter(args[1]), null)));
                                 else {
-                                    Optional<Player> optionalPlayer = Optional.ofNullable(this.api.getPlayer(args[2])); //spigot likes to fuck with us
+                                    Optional<Player> optionalPlayer = this.api.getPlayer(sender, args[2]);
                                     if (optionalPlayer.isPresent()) {
                                         this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
                                     } else
@@ -383,6 +383,7 @@ public class CitizensBooksCommand implements TabExecutor {
         return item.getType() == Material.WRITTEN_BOOK;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isPlayer(CommandSender sender) {
         return (sender instanceof Player);
     }

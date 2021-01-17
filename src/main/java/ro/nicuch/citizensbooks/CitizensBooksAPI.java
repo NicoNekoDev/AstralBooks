@@ -77,6 +77,8 @@ public class CitizensBooksAPI {
             case "v1_15_R1":
             case "v1_16_R1":
             case "v1_16_R2":
+            case "v1_16_R3":
+            case "v1_16_R4":
                 return true;
             default:
                 if (throwable) {
@@ -149,9 +151,10 @@ public class CitizensBooksAPI {
         return null;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static Class<?> getOBCClass(String obcClassString) {
         /*IntelliJ thinks that this method is useless as if is only used once but
-         *if I try to remove the try-catch block, is gonna give me errors no warnings.*/
+         *if I try to remove the try-catch block, is gonna give me errors, not warnings.*/
         try {
             return Class.forName("org.bukkit.craftbukkit." + version + "." + obcClassString);
         } catch (ClassNotFoundException ignore) {
@@ -186,6 +189,8 @@ public class CitizensBooksAPI {
                 case "v1_13_R2":
                     Class<?> mk = getNMSClass("MinecraftKey");
                     //Used for 1.13 and above
+                    if (mk == null)
+                        throw new Exception("Plugin outdated!");
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(mk, pds)
                                     .newInstance(mk.getMethod("a", String.class).invoke(mk, "minecraft:book_open"), pds.getConstructor(ByteBuf.class)
@@ -197,7 +202,13 @@ public class CitizensBooksAPI {
                 case "v1_15_R1":
                 case "v1_16_R1":
                 case "v1_16_R2":
+                case "v1_16_R3":
+                case "v1_16_R4":
                 default:
+                    if (ppoob == null)
+                        throw new Exception("Plugin outdated!");
+                    if (eh == null)
+                        throw new Exception("Plugin outdated!");
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
@@ -277,25 +288,34 @@ public class CitizensBooksAPI {
     }
 
     protected boolean hasPermission(CommandSender sender, String permission) {
-        if (sender instanceof Player) {
-            Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
-            Optional<Permission> vaultPerms = this.plugin.isVaultEnabled() ? Optional.of(this.plugin.getVaultPermissions()) : Optional.empty(); //If vault not enabled or luckperms is used, this will return empty
-            return (luckPerms.isPresent() && this.hasLuckPermission(luckPerms.get().getUserManager().getUser(sender.getName()), permission)) ||
-                    (vaultPerms.isPresent() && vaultPerms.get().has(sender, permission)) || sender.hasPermission(permission);
+        try {
+            if (sender instanceof Player) {
+                Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
+                Optional<Permission> vaultPerms = this.plugin.isVaultEnabled() ? Optional.of(this.plugin.getVaultPermissions()) : Optional.empty(); //If vault not enabled or luckperms is used, this will return empty
+
+                return (luckPerms.isPresent() && this.hasLuckPermission(luckPerms.get().getUserManager().getUser(sender.getName()), permission)) ||
+                        (vaultPerms.isPresent() && vaultPerms.get().has(sender, permission)) || sender.hasPermission(permission);
+            }
+            return true;
+        } catch (NullPointerException ex) {
+            return false;
         }
-        return true;
     }
 
     protected boolean hasLuckPermission(User user, String permission) {
+        if (user == null)
+            throw new NullPointerException();
         ContextManager contextManager = this.plugin.getLuckPermissions().getContextManager();
         return user.getCachedData().getPermissionData(QueryOptions.contextual(contextManager.getContext(user).orElseGet(contextManager::getStaticContext))).checkPermission(permission).asBoolean();
     }
 
-    protected Player getPlayer(String name) {
-        try {
-            return Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElseGet(null);
-        } catch (NullPointerException ex) { // Method .findFirst() and .findAny() throws directly NPE if there is no element... I just wonder why is not just returning an Optional.empty()
-            return null; // I'm pretty sure this will NOT throw more NPEs in the future...
-        }
+    @SuppressWarnings("deprecation")
+    protected Optional<Player> getPlayer(CommandSender sender, String name) {
+        Player player = Bukkit.getPlayer(name);
+        if (player == null)
+            return Optional.empty();
+        if (sender.getName().equals(player.getName()))
+            return Optional.empty();
+        return Optional.of(player);
     }
 }
