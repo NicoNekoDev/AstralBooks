@@ -40,7 +40,7 @@ public class CitizensActions implements Listener {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isString("save." + npcId + ".right_side"))
             return;
-        ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("save." + npcId + ".right_side"));
+        ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString("save." + npcId + ".right_side"));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.RIGHT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -57,7 +57,7 @@ public class CitizensActions implements Listener {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isString("save." + npcId + ".left_side"))
             return;
-        ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString("save." + npcId + ".left_side"));
+        ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString("save." + npcId + ".left_side"));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.LEFT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())

@@ -28,6 +28,7 @@ import net.luckperms.api.context.ContextManager;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import net.milkbowl.vault.permission.Permission;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -103,7 +104,11 @@ public class CitizensBooksAPI {
      * @return the book
      */
     public ItemStack getFilter(String filterName) {
-        return this.stringToBook(this.plugin.getSettings().getString("filters." + filterName, ""));
+        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        return this.deserializeBook(this.plugin.getSettings().getString("filters." + filterName, ""));
     }
 
     /**
@@ -113,6 +118,10 @@ public class CitizensBooksAPI {
      * @return if the filter has the book
      */
     public boolean hasFilter(String filterName) {
+        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         return this.plugin.getSettings().isString("filters." + filterName);
     }
 
@@ -125,11 +134,15 @@ public class CitizensBooksAPI {
      * @throws IllegalArgumentException if the book is not really a book
      */
     public void createFilter(String filterName, ItemStack book) {
-        if (book == null)
-            throw new NullPointerException("ItemStack can't be null!");
-        if (book.getType() != Material.WRITTEN_BOOK)
-            throw new IllegalArgumentException("The filter can only be a written book!");
-        this.plugin.getSettings().set("filters." + filterName, this.bookToString(book));
+        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        this.plugin.getSettings().set("filters." + filterName, this.serializeBook(book));
         this.plugin.saveSettings();
     }
 
@@ -232,10 +245,10 @@ public class CitizensBooksAPI {
     public void openBook(Player player, ItemStack book) {
         player.closeInventory();
         //testing
-        if (book == null)
-            throw new NullPointerException("ItemStack can't be null!");
-        if (book.getType() != Material.WRITTEN_BOOK)
-            throw new IllegalArgumentException("The filter can only be a written book!");
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         int slot = player.getInventory().getHeldItemSlot();
         ItemStack old = player.getInventory().getItem(slot);
         PlayerInventory pi = player.getInventory();
@@ -245,12 +258,16 @@ public class CitizensBooksAPI {
     }
 
     protected ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         if (!this.plugin.isPlaceHolderEnabled())
             return book;
         if (npc == null)
-            return this.stringToBook(PlaceholderAPI.setPlaceholders(player, this.bookToString(book)));
+            return this.deserializeBook(PlaceholderAPI.setPlaceholders(player, this.serializeBook(book)));
         Location loc = npc.getStoredLocation();
-        return this.stringToBook(PlaceholderAPI.setPlaceholders(player, this.bookToString(book))
+        return this.deserializeBook(PlaceholderAPI.setPlaceholders(player, this.serializeBook(book))
                 .replace("%npc_name%", npc.getName())
                 .replace("%npc_id%", npc.getId() + "")
                 .replace("%npc_loc_x%", loc.getX() + "")
@@ -259,7 +276,11 @@ public class CitizensBooksAPI {
                 .replace("%npc_loc_world%", loc.getWorld().getName()));
     }
 
-    protected String bookToString(ItemStack book) {
+    public String serializeBook(ItemStack book) {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         try {
             if (cisobc == null)
                 throw new NullPointerException("Craftbukkit classes not found!");
@@ -272,8 +293,12 @@ public class CitizensBooksAPI {
         return "";
     }
 
-    protected ItemStack stringToBook(String nbt) {
+    public ItemStack deserializeBook(String nbt) {
+        Validate.notNull(nbt, "NBT of the book is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         ItemStack def = new ItemStack(Material.WRITTEN_BOOK);
+        if (nbt.isEmpty())
+            return def; // We return an empty book
         try {
             if (msonp == null || cisobc == null)
                 throw new NullPointerException("Craftbukkit classes not found!");

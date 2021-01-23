@@ -105,7 +105,7 @@ public class CitizensBooksCommand implements TabExecutor {
                             if (this.hasBookInHand((Player) sender)) {
                                 if (npc.isPresent()) {
                                     this.plugin.getSettings().set(bookPathBasedByHand,
-                                            this.api.bookToString(this.getBookFromHand((Player) sender)));
+                                            this.api.serializeBook(this.getBookFromHand((Player) sender)));
                                     this.plugin.saveSettings(); //Allways saved
                                     sender.sendMessage(this.plugin
                                             .getMessage("lang.set_book_successfully", ConfigDefaults.set_book_successfully)
@@ -130,7 +130,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.setjoin")) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.plugin.getSettings().set("join_book",
-                                    this.api.bookToString(this.getBookFromHand((Player) sender)));
+                                    this.api.serializeBook(this.getBookFromHand((Player) sender)));
                             this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
                             this.plugin.saveSettings(); //Allways saved
                             sender.sendMessage(this.plugin
@@ -180,7 +180,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         if (this.plugin.isCitizensEnabled()) {
                             if (npc.isPresent()) {
                                 if (this.plugin.getSettings().isString(bookPathBasedByHand)) {
-                                    ItemStack book = this.api.stringToBook(this.plugin.getSettings().getString(bookPathBasedByHand));
+                                    ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString(bookPathBasedByHand));
                                     ((Player) sender).getInventory().addItem(book);
                                     sender.sendMessage(this.plugin.getMessage("lang.book_recived", ConfigDefaults.book_recived));
                                 } else
