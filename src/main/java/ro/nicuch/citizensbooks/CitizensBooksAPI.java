@@ -106,7 +106,7 @@ public class CitizensBooksAPI {
     public ItemStack getFilter(String filterName) {
         Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+        Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         return this.deserializeBook(this.plugin.getSettings().getString("filters." + filterName, ""));
     }
@@ -136,7 +136,7 @@ public class CitizensBooksAPI {
     public void createFilter(String filterName, ItemStack book) {
         Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+        Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
