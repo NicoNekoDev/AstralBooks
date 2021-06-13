@@ -19,25 +19,24 @@
 
 package ro.nicuch.citizensbooks;
 
-import java.io.File;
-
 import net.luckperms.api.LuckPerms;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import net.milkbowl.vault.permission.Permission;
 import ro.nicuch.citizensbooks.bstats.Metrics;
+
+import java.io.File;
 
 public class CitizensBooksPlugin extends JavaPlugin {
     private Permission vaultPerms;
     private LuckPerms luckPerms;
-    private CitizensBooksAPI api;
+    private final CitizensBooksAPI api = new CitizensBooksAPI(this);
     private YamlConfiguration settings;
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault;
-    public final int configVersion = 8;
+    public final int configVersion = 9;
 
     @Override
     public void onEnable() {
@@ -46,7 +45,6 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.reloadSettings();
             //bStats Metrics, by default enabled
             new Metrics(this);
-            this.api = new CitizensBooksAPI(this);
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("LuckPerms")) {
                 this.getLogger().info("LuckPerms not found!");

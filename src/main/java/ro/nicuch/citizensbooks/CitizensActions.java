@@ -21,6 +21,7 @@ package ro.nicuch.citizensbooks;
 
 import net.citizensnpcs.api.event.NPCCloneEvent;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -38,9 +39,9 @@ public class CitizensActions implements Listener {
     @EventHandler
     public void rightClick(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getSettings().isString("save." + npcId + ".right_side"))
+        if (!this.plugin.getSettings().isItemStack("save." + npcId + ".right_side"))
             return;
-        ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString("save." + npcId + ".right_side"));
+        ItemStack book = this.plugin.getSettings().getItemStack("save." + npcId + ".right_side", new ItemStack(Material.WRITTEN_BOOK));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.RIGHT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -55,9 +56,9 @@ public class CitizensActions implements Listener {
     @EventHandler
     public void leftCLick(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getSettings().isString("save." + npcId + ".left_side"))
+        if (!this.plugin.getSettings().isItemStack("save." + npcId + ".left_side"))
             return;
-        ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString("save." + npcId + ".left_side"));
+        ItemStack book = this.plugin.getSettings().getItemStack("save." + npcId + ".left_side", new ItemStack(Material.WRITTEN_BOOK));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.LEFT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -73,12 +74,12 @@ public class CitizensActions implements Listener {
     public void clone(NPCCloneEvent event) {
         int npcId = event.getNPC().getId();
         int cloneId = event.getClone().getId();
-        String left_book = null;
-        String right_book = null;
-        if (this.plugin.getSettings().isString("save." + npcId + ".left_side"))
-            left_book = this.plugin.getSettings().getString("save." + npcId + ".left_side");
-        if (this.plugin.getSettings().isString("save." + npcId + ".right_side"))
-            right_book = this.plugin.getSettings().getString("save." + npcId + ".right_side");
+        ItemStack left_book = null;
+        ItemStack right_book = null;
+        if (this.plugin.getSettings().isItemStack("save." + npcId + ".left_side"))
+            left_book = this.plugin.getSettings().getItemStack("save." + npcId + ".left_side");
+        if (this.plugin.getSettings().isItemStack("save." + npcId + ".right_side"))
+            right_book = this.plugin.getSettings().getItemStack("save." + npcId + ".right_side");
         if (left_book != null) this.plugin.getSettings().set("save." + cloneId + ".left_side",
                 left_book);
         if (right_book != null) this.plugin.getSettings().set("save." + cloneId + ".right_side",

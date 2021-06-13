@@ -8,7 +8,7 @@
 #                                                                     #
 #---------------------------------------------------------------------#
 
-version: 8 #DO NOT CHANGE/REMOVE
+version: 9 #DO NOT CHANGE/REMOVE
 metrics: true
 update_check: true
 lang:
@@ -64,8 +64,17 @@ lang:
        remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter with the given name."
        getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of the filter with the given name."
 filters:
-  hello_world: '{generation:0,pages:[''{"text":"Hello there, player! :)"}''],author:"nicuch",title:"Hello
-    world!",resolved:1b}'
+  hello_world:
+    ==: org.bukkit.inventory.ItemStack
+    v: 1
+    type: WRITTEN_BOOK
+    meta:
+      ==: ItemMeta
+      meta-type: BOOK_SIGNED
+      title: hello book
+      author: NicoNekoMC
+      pages:
+        - '{"text":"Hello there, player!"}'
 save: {}
 commands:
   hello:

@@ -19,11 +19,8 @@
 
 package ro.nicuch.citizensbooks;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -35,8 +32,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.StringUtil;
 
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class CitizensBooksCommand implements TabExecutor {
     private final CitizensBooksPlugin plugin;
@@ -62,10 +61,10 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.forceopen")) {
                         if (args.length > 2) {
                             if (this.api.hasFilter(args[1])) {
-                                if ("*".equals(args[2]))
+                                if ("*".equals(args[2]) || "@a".equals(args[2]))
                                     Bukkit.getOnlinePlayers().forEach(player -> this.api.openBook(player, this.api.placeholderHook(player, this.api.getFilter(args[1]), null)));
                                 else {
-                                    Optional<Player> optionalPlayer = this.api.getPlayer(sender, args[2]);
+                                    Optional<Player> optionalPlayer = this.api.getPlayer(args[2]);
                                     if (optionalPlayer.isPresent()) {
                                         this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
                                     } else
@@ -87,8 +86,8 @@ public class CitizensBooksCommand implements TabExecutor {
                          * this.plugin.saveSettings();
                          *
                          * No need to be saved anymore!
-                         * If config is edited, when reloaded is
-                         * overriten the file, so the edit is lost
+                         * If config file is edited, the config is
+                         * overwritten, so the edit is lost
                          */
                         this.plugin.reloadSettings();
                         sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", ConfigDefaults.config_reloaded));
@@ -104,8 +103,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         if (this.plugin.isCitizensEnabled()) {
                             if (this.hasBookInHand((Player) sender)) {
                                 if (npc.isPresent()) {
-                                    this.plugin.getSettings().set(bookPathBasedByHand,
-                                            this.api.serializeBook(this.getBookFromHand((Player) sender)));
+                                    this.plugin.getSettings().set(bookPathBasedByHand, this.getBookFromHand((Player) sender));
                                     this.plugin.saveSettings(); //Allways saved
                                     sender.sendMessage(this.plugin
                                             .getMessage("lang.set_book_successfully", ConfigDefaults.set_book_successfully)
@@ -129,10 +127,9 @@ public class CitizensBooksCommand implements TabExecutor {
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.setjoin")) {
                         if (this.hasBookInHand((Player) sender)) {
-                            this.plugin.getSettings().set("join_book",
-                                    this.api.serializeBook(this.getBookFromHand((Player) sender)));
+                            this.plugin.getSettings().set("join_book", this.getBookFromHand((Player) sender));
                             this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
-                            this.plugin.saveSettings(); //Allways saved
+                            this.plugin.saveSettings(); //Always saved
                             sender.sendMessage(this.plugin
                                     .getMessage("lang.set_join_book_successfully", ConfigDefaults.set_join_book_successfully));
                         } else
@@ -145,8 +142,8 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.remove")) {
                         if (this.plugin.isCitizensEnabled()) {
                             if (npc.isPresent()) {
-                                /* if (this.plugin.getSettings().isString("save." + npcId)) {} */
-                                // Useless check, we just remove the data whatever exist or not
+                                /* if (this.plugin.getSettings().isItemStack("save." + npcId)) {} */
+                                // Useless check, we just remove the data if exist or not
                                 this.plugin.getSettings().set(bookPathBasedByHand, null);
                                 this.plugin.saveSettings(); // Save is not mandatory, because the value may exist
                                 sender.sendMessage(this.plugin
@@ -165,7 +162,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.remjoin")) {
                         this.plugin.getSettings().set("join_book", null);
                         this.plugin.getSettings().set("join_book_last_change", 0);
-                        this.plugin.saveSettings(); //Allways saved
+                        this.plugin.saveSettings(); //Always saved
                         sender.sendMessage(this.plugin
                                 .getMessage("lang.remove_join_book_successfully", ConfigDefaults.remove_join_book_successfully));
                     } else
@@ -179,8 +176,8 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.getbook")) {
                         if (this.plugin.isCitizensEnabled()) {
                             if (npc.isPresent()) {
-                                if (this.plugin.getSettings().isString(bookPathBasedByHand)) {
-                                    ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString(bookPathBasedByHand));
+                                if (this.plugin.getSettings().isItemStack(bookPathBasedByHand)) {
+                                    ItemStack book = this.plugin.getSettings().getItemStack(bookPathBasedByHand, new ItemStack(Material.WRITTEN_BOOK));
                                     ((Player) sender).getInventory().addItem(book);
                                     sender.sendMessage(this.plugin.getMessage("lang.book_recived", ConfigDefaults.book_recived));
                                 } else
@@ -351,15 +348,47 @@ public class CitizensBooksCommand implements TabExecutor {
                 commands.add("forceopen");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
-            if (args[0].equals("filter")) {
-                if (this.api.hasPermission(sender, "npcbook.command.filter.set"))
-                    commands.add("set");
-                if (this.api.hasPermission(sender, "npcbook.command.filter.remove"))
-                    commands.add("remove");
-                if (this.api.hasPermission(sender, "npcbook.command.filter.getbook"))
-                    commands.add("getbook");
+            switch (args[0]) {
+                case "filter":
+                    if (this.api.hasPermission(sender, "npcbook.command.filter.set"))
+                        commands.add("set");
+                    if (this.api.hasPermission(sender, "npcbook.command.filter.remove"))
+                        commands.add("remove");
+                    if (this.api.hasPermission(sender, "npcbook.command.filter.getbook"))
+                        commands.add("getbook");
+                    break;
+                case "forceopen":
+                    if (this.api.hasPermission(sender, "npcbook.command.forceopen"))
+                        commands.addAll(this.api.getFilters());
+                    break;
+                case "remcmd":
+                    if (this.api.hasPermission(sender, "npcbook.command.remcmd"))
+                        commands.addAll(this.plugin.getSettings().getConfigurationSection("commands").getKeys(false));
+                    break;
             }
             StringUtil.copyPartialMatches(args[1], commands, completions);
+        } else if (args.length == 3) {
+            switch (args[0]) {
+                case "filter":
+                    if (args[1].equals("remove") || args[1].equals("getbook")) {
+                        if (this.api.hasPermission(sender, "npcbook.command.filter.remove")
+                                || this.api.hasPermission(sender, "npcbook.command.filter.getbook")) {
+                            commands.addAll(this.api.getFilters());
+                        }
+                    }
+                    break;
+                case "forceopen":
+                    if (this.api.hasPermission(sender, "npcbook.command.forceopen")) {
+                        commands.add("@a");
+                        commands.addAll(this.api.getPlayers());
+                    }
+                    break;
+                case "setcmd":
+                    if (this.api.hasPermission(sender, "npcbook.command.setcmd"))
+                        commands.addAll(this.api.getFilters());
+                    break;
+            }
+            StringUtil.copyPartialMatches(args[2], commands, completions);
         }
         Collections.sort(completions);
         return completions;
@@ -367,17 +396,10 @@ public class CitizensBooksCommand implements TabExecutor {
 
     @SuppressWarnings("deprecation")
     private boolean hasBookInHand(Player player) {
-        ItemStack item;
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                item = player.getItemInHand();
-                break;
-            default:
-                item = player.getInventory().getItemInMainHand();
-                break;
-        }
+        ItemStack item = switch (CitizensBooksAPI.version) {
+            case "v1_8_R3", "v1_8_R2", "v1_8_R1" -> player.getItemInHand();
+            default -> player.getInventory().getItemInMainHand();
+        };
         if (item == null)
             return false;
         return item.getType() == Material.WRITTEN_BOOK;
@@ -390,14 +412,10 @@ public class CitizensBooksCommand implements TabExecutor {
 
     @SuppressWarnings("deprecation")
     private ItemStack getBookFromHand(Player player) {
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                return player.getItemInHand();
-            default:
-                return player.getInventory().getItemInMainHand();
-        }
+        return switch (CitizensBooksAPI.version) {
+            case "v1_8_R3", "v1_8_R2", "v1_8_R1" -> player.getItemInHand();
+            default -> player.getInventory().getItemInMainHand();
+        };
     }
 
     @SuppressWarnings("deprecation")
@@ -410,9 +428,7 @@ public class CitizensBooksCommand implements TabExecutor {
         ItemStack item = new ItemStack(material);
         item.setItemMeta(meta);
         switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
+            case "v1_8_R3", "v1_8_R2", "v1_8_R1":
                 player.setItemInHand(item);
             default:
                 player.getInventory().setItemInMainHand(item);

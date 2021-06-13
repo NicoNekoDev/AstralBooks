@@ -90,10 +90,11 @@ public class Metrics {
 
             // Inform the server owners about bStats
             config.options().header(
-                    "bStats collects some data for plugin authors like how many servers are using their plugins.\n" +
-                            "To honor their work, you should not disable it.\n" +
-                            "This has nearly no effect on the server performance!\n" +
-                            "Check out https://bStats.org/ to learn more :)"
+                    """
+                            bStats collects some data for plugin authors like how many servers are using their plugins.
+                            To honor their work, you should not disable it.
+                            This has nearly no effect on the server performance!
+                            Check out https://bStats.org/ to learn more :)"""
             ).copyDefaults(true);
             try {
                 config.save(configFile);
@@ -156,7 +157,7 @@ public class Metrics {
      *
      * @return The plugin specific data.
      */
-	public JSONObject getPluginData() {
+    public JSONObject getPluginData() {
         JSONObject data = new JSONObject();
 
         if (this.plugin.getSettings().getBoolean("metrics", true)) { //Checking if my plugin will send data

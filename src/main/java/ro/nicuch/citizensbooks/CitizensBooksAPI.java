@@ -36,9 +36,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CitizensBooksAPI {
     private final CitizensBooksPlugin plugin;
@@ -57,31 +61,19 @@ public class CitizensBooksAPI {
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         (this.plugin = plugin).getLogger().info("Your server is running version " + version + "!");
-        this.checkVersionCompability(false);
+        this.checkVersionCompatibility(false);
     }
 
-    private boolean checkVersionCompability(boolean throwable) {
-        switch (version) {
-            case "v1_8_R1":
-            case "v1_8_R2":
-            case "v1_8_R3":
-            case "v1_9_R1":
-            case "v1_9_R2":
-            case "v1_10_R1":
-            case "v1_11_R1":
-            case "v1_12_R1":
-            case "v1_13_R1":
-            case "v1_13_R2":
-            case "v1_14_R1":
-            case "v1_14_R2":
-            case "v1_14_R3":
-            case "v1_15_R1":
-            case "v1_16_R1":
-            case "v1_16_R2":
-            case "v1_16_R3":
-            case "v1_16_R4":
-                return true;
-            default:
+    private boolean checkVersionCompatibility(boolean throwable) {
+        return switch (version) {
+            case "v1_8_R1", "v1_8_R2", "v1_8_R3",
+                    "v1_9_R1", "v1_9_R2", "v1_10_R1",
+                    "v1_11_R1", "v1_12_R1", "v1_13_R1",
+                    "v1_13_R2", "v1_14_R1", "v1_14_R2",
+                    "v1_14_R3", "v1_15_R1", "v1_16_R1",
+                    "v1_16_R2", "v1_16_R3", "v1_16_R4",
+                    "v1_17_R1" -> true;
+            default -> {
                 if (throwable) {
                     this.plugin.getLogger().warning("Well, this version of CitizensBooks is incompatible with your server version " + version + "... ");
                     if (UpdateChecker.updateAvailable())
@@ -93,8 +85,9 @@ public class CitizensBooksAPI {
                     if (UpdateChecker.updateAvailable())
                         this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it!!");
                 }
-                return false;
-        }
+                yield false;
+            }
+        };
     }
 
     /**
@@ -108,7 +101,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        return this.deserializeBook(this.plugin.getSettings().getString("filters." + filterName, ""));
+        return this.plugin.getSettings().getItemStack("filters." + filterName, new ItemStack(Material.WRITTEN_BOOK));
     }
 
     /**
@@ -122,7 +115,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        return this.plugin.getSettings().isString("filters." + filterName);
+        return this.plugin.getSettings().isItemStack("filters." + filterName);
     }
 
     /**
@@ -142,8 +135,12 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        this.plugin.getSettings().set("filters." + filterName, this.serializeBook(book));
+        this.plugin.getSettings().set("filters." + filterName, book);
         this.plugin.saveSettings();
+    }
+
+    public Set<String> getFilters() {
+        return this.plugin.getSettings().getConfigurationSection("filters").getKeys(false);
     }
 
     /**
@@ -183,53 +180,54 @@ public class CitizensBooksAPI {
 
     protected void rightClick(Player player) {
         try {
-            if (pc == null || ppocp == null || pds == null)
-                throw new NullPointerException("Craftbukkit classes not found!");
             switch (version) {
-                case "v1_8_R1":
-                case "v1_8_R2":
-                case "v1_8_R3":
-                case "v1_9_R1":
-                case "v1_9_R2":
-                case "v1_10_R1":
-                case "v1_11_R1":
-                case "v1_12_R1":
+                case "v1_8_R1", "v1_8_R2", "v1_8_R3",
+                        "v1_9_R1", "v1_9_R2", "v1_10_R1",
+                        "v1_11_R1", "v1_12_R1" -> {
+                    if (ppocp == null)
+                        throw new NullPointerException("PPOCP not found");
+                    if (pds == null)
+                        throw new NullPointerException("PDS not found!");
+                    if (pc == null)
+                        throw new NullPointerException("PC not found!");
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
                                     .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
-                    break;
-                case "v1_13_R1":
-                case "v1_13_R2":
+                }
+                case "v1_13_R1", "v1_13_R2" -> {
                     Class<?> mk = getNMSClass("MinecraftKey");
                     //Used for 1.13 and above
                     if (mk == null)
                         throw new Exception("Plugin outdated!");
+                    if (ppocp == null)
+                        throw new NullPointerException("PPOCP not found");
+                    if (pds == null)
+                        throw new NullPointerException("PDS not found!");
+                    if (pc == null)
+                        throw new NullPointerException("PC not found!");
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppocp.getConstructor(mk, pds)
                                     .newInstance(mk.getMethod("a", String.class).invoke(mk, "minecraft:book_open"), pds.getConstructor(ByteBuf.class)
                                             .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
-                    break;
-                case "v1_14_R1":
-                case "v1_14_R2":
-                case "v1_14_R3":
-                case "v1_15_R1":
-                case "v1_16_R1":
-                case "v1_16_R2":
-                case "v1_16_R3":
-                case "v1_16_R4":
-                default:
+                }
+                case "v1_17_R1" -> {
+                    // none
+                }
+                default -> {
                     if (ppoob == null)
                         throw new Exception("Plugin outdated!");
                     if (eh == null)
                         throw new Exception("Plugin outdated!");
+                    if (pc == null)
+                        throw new NullPointerException("PC not found!");
                     pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
                             ppoob.getConstructor(eh).newInstance(
                                     eh.getDeclaredMethod("valueOf", String.class)
                                             .invoke(eh, "MAIN_HAND")));
-
+                }
             }
         } catch (Exception ex) {
-            if (this.checkVersionCompability(true))
+            if (this.checkVersionCompatibility(true))
                 this.plugin.printError(ex);
         }
     }
@@ -249,12 +247,21 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        int slot = player.getInventory().getHeldItemSlot();
-        ItemStack old = player.getInventory().getItem(slot);
-        PlayerInventory pi = player.getInventory();
-        pi.setItem(slot, book);
-        this.rightClick(player);
-        pi.setItem(slot, old);
+        if ("v1_17_R1".equals(version)) {
+            try {
+                player.getClass().getMethod("openBook", ItemStack.class).invoke(player, book);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        } else {
+            int slot = player.getInventory().getHeldItemSlot();
+            ItemStack old = player.getInventory().getItem(slot);
+            PlayerInventory pi = player.getInventory();
+            pi.setItem(slot, book);
+            this.rightClick(player);
+            pi.setItem(slot, old);
+        }
+
     }
 
     protected ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
@@ -264,57 +271,59 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         if (!this.plugin.isPlaceHolderEnabled())
             return book;
-        if (npc == null)
-            return this.deserializeBook(PlaceholderAPI.setPlaceholders(player, this.serializeBook(book)));
-        Location loc = npc.getStoredLocation();
-        return this.deserializeBook(PlaceholderAPI.setPlaceholders(player, this.serializeBook(book))
-                .replace("%npc_name%", npc.getName())
-                .replace("%npc_id%", npc.getId() + "")
-                .replace("%npc_loc_x%", loc.getX() + "")
-                .replace("%npc_loc_y%", loc.getY() + "")
-                .replace("%npc_loc_z%", loc.getZ() + "")
-                .replace("%npc_loc_world%", loc.getWorld().getName()));
-    }
-
-    public String serializeBook(ItemStack book) {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        try {
-            if (cisobc == null)
-                throw new NullPointerException("Craftbukkit classes not found!");
-            Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, book);
-            Object nbtTag = nms.getClass().getMethod("getTag").invoke(nms);
-            return (String) nbtTag.getClass().getMethod("toString").invoke(nbtTag);
-        } catch (Exception ex) {
-            this.plugin.printError(ex);
+        if (book.hasItemMeta()) {
+            BookMeta bookMeta = (BookMeta) book.getItemMeta();
+            if (bookMeta.hasTitle()) {
+                if (npc == null) {
+                    bookMeta.setTitle(PlaceholderAPI.setPlaceholders(player, bookMeta.getTitle()));
+                } else {
+                    Location loc = npc.getStoredLocation();
+                    bookMeta.setTitle(PlaceholderAPI.setPlaceholders(player, bookMeta.getTitle())
+                            .replace("%npc_name%", npc.getName())
+                            .replace("%npc_id%", npc.getId() + "")
+                            .replace("%npc_loc_x%", loc.getX() + "")
+                            .replace("%npc_loc_y%", loc.getY() + "")
+                            .replace("%npc_loc_z%", loc.getZ() + "")
+                            .replace("%npc_loc_world%", loc.getWorld().getName()));
+                }
+            }
+            if (bookMeta.hasAuthor()) {
+                if (npc == null) {
+                    bookMeta.setAuthor(PlaceholderAPI.setPlaceholders(player, bookMeta.getAuthor()));
+                } else {
+                    Location loc = npc.getStoredLocation();
+                    bookMeta.setAuthor(PlaceholderAPI.setPlaceholders(player, bookMeta.getAuthor())
+                            .replace("%npc_name%", npc.getName())
+                            .replace("%npc_id%", npc.getId() + "")
+                            .replace("%npc_loc_x%", loc.getX() + "")
+                            .replace("%npc_loc_y%", loc.getY() + "")
+                            .replace("%npc_loc_z%", loc.getZ() + "")
+                            .replace("%npc_loc_world%", loc.getWorld().getName()));
+                }
+            }
+            if (bookMeta.hasPages()) {
+                if (npc == null) {
+                    bookMeta.setPages(PlaceholderAPI.setPlaceholders(player, bookMeta.getPages()));
+                } else {
+                    Location loc = npc.getStoredLocation();
+                    bookMeta.setPages(PlaceholderAPI.setPlaceholders(player, bookMeta.getPages()).stream().map(str -> str
+                            .replace("%npc_name%", npc.getName())
+                            .replace("%npc_id%", npc.getId() + "")
+                            .replace("%npc_loc_x%", loc.getX() + "")
+                            .replace("%npc_loc_y%", loc.getY() + "")
+                            .replace("%npc_loc_z%", loc.getZ() + "")
+                            .replace("%npc_loc_world%", loc.getWorld().getName())).collect(Collectors.toList()));
+                }
+            }
+            book.setItemMeta(bookMeta);
         }
-        return "";
-    }
-
-    public ItemStack deserializeBook(String nbt) {
-        Validate.notNull(nbt, "NBT of the book is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        ItemStack def = new ItemStack(Material.WRITTEN_BOOK);
-        if (nbt.isEmpty())
-            return def; // We return an empty book
-        try {
-            if (msonp == null || cisobc == null)
-                throw new NullPointerException("Craftbukkit classes not found!");
-            Object tag = msonp.getDeclaredMethod("parse", String.class).invoke(msonp, nbt);
-            Object nms = cisobc.getDeclaredMethod("asNMSCopy", ItemStack.class).invoke(cisobc, def);
-            nms.getClass().getMethod("setTag", nbtTag).invoke(nms, tag);
-            return (ItemStack) cisobc.getDeclaredMethod("asBukkitCopy", nmsIs).invoke(cisobc, nms);
-        } catch (Exception ex) {
-            this.plugin.printError(ex);
-        }
-        return def;
+        return book;
     }
 
     protected boolean hasPermission(CommandSender sender, String permission) {
         try {
-            if (sender instanceof Player) {
+            if (sender instanceof Player player) {
+                if (player.isOp()) return true;
                 Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
                 Optional<Permission> vaultPerms = this.plugin.isVaultEnabled() ? Optional.of(this.plugin.getVaultPermissions()) : Optional.empty(); //If vault not enabled or luckperms is used, this will return empty
 
@@ -335,12 +344,14 @@ public class CitizensBooksAPI {
     }
 
     @SuppressWarnings("deprecation")
-    protected Optional<Player> getPlayer(CommandSender sender, String name) {
+    protected Optional<Player> getPlayer(String name) {
         Player player = Bukkit.getPlayer(name);
         if (player == null)
             return Optional.empty();
-        if (sender.getName().equals(player.getName()))
-            return Optional.empty();
         return Optional.of(player);
+    }
+
+    protected List<String> getPlayers() {
+        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
     }
 }

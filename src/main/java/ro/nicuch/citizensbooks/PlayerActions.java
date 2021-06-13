@@ -57,7 +57,7 @@ public class PlayerActions implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (this.plugin.isAuthmeEnabled())
             return;
-        if (!this.plugin.getSettings().isString("join_book"))
+        if (!this.plugin.getSettings().isItemStack("join_book"))
             return;
         if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
             return;
@@ -67,7 +67,7 @@ public class PlayerActions implements Listener {
                 return;
         this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
         this.plugin.saveSettings();
-        ItemStack book = this.api.deserializeBook(this.plugin.getSettings().getString("join_book"));
+        ItemStack book = this.plugin.getSettings().getItemStack("join_book");
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 }
