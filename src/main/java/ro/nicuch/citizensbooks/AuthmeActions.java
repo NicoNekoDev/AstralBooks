@@ -16,7 +16,7 @@ public class AuthmeActions implements Listener {
 
     @EventHandler
     public void onLogin(LoginEvent event) {
-        if (!this.plugin.getSettings().isSet("join_book"))
+        if (!this.plugin.getSettings().isItemStack("join_book"))
             return;
         if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
             return;
