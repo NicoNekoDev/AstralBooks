@@ -16,7 +16,7 @@ public class AuthmeActions implements Listener {
 
     @EventHandler
     public void onLogin(LoginEvent event) {
-        if (!this.plugin.getSettings().isItemStack("join_book"))
+        if (!this.plugin.getSettings().isSet("join_book"))
             return;
         if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
             return;
@@ -27,6 +27,8 @@ public class AuthmeActions implements Listener {
         this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
         this.plugin.saveSettings();
         ItemStack book = this.plugin.getSettings().getItemStack("join_book");
+        if (book == null)
+            return;
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 }

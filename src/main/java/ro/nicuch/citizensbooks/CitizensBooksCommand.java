@@ -396,10 +396,17 @@ public class CitizensBooksCommand implements TabExecutor {
 
     @SuppressWarnings("deprecation")
     private boolean hasBookInHand(Player player) {
-        ItemStack item = switch (CitizensBooksAPI.version) {
-            case "v1_8_R3", "v1_8_R2", "v1_8_R1" -> player.getItemInHand();
-            default -> player.getInventory().getItemInMainHand();
-        };
+        ItemStack item;
+        switch (CitizensBooksAPI.version) {
+            case "v1_8_R3":
+            case "v1_8_R2":
+            case "v1_8_R1":
+                item = player.getItemInHand();
+                break;
+            default:
+                item = player.getInventory().getItemInMainHand();
+                break;
+        }
         if (item == null)
             return false;
         return item.getType() == Material.WRITTEN_BOOK;
@@ -412,10 +419,18 @@ public class CitizensBooksCommand implements TabExecutor {
 
     @SuppressWarnings("deprecation")
     private ItemStack getBookFromHand(Player player) {
-        return switch (CitizensBooksAPI.version) {
-            case "v1_8_R3", "v1_8_R2", "v1_8_R1" -> player.getItemInHand();
-            default -> player.getInventory().getItemInMainHand();
-        };
+        ItemStack item;
+        switch (CitizensBooksAPI.version) {
+            case "v1_8_R3":
+            case "v1_8_R2":
+            case "v1_8_R1":
+                item = player.getItemInHand();
+                break;
+            default:
+                item = player.getInventory().getItemInMainHand();
+                break;
+        }
+        return item;
     }
 
     @SuppressWarnings("deprecation")
@@ -428,10 +443,14 @@ public class CitizensBooksCommand implements TabExecutor {
         ItemStack item = new ItemStack(material);
         item.setItemMeta(meta);
         switch (CitizensBooksAPI.version) {
-            case "v1_8_R3", "v1_8_R2", "v1_8_R1":
+            case "v1_8_R3":
+            case "v1_8_R2":
+            case "v1_8_R1":
                 player.setItemInHand(item);
+                break;
             default:
                 player.getInventory().setItemInMainHand(item);
+                break;
         }
     }
 

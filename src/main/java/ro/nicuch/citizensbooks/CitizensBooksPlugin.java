@@ -110,11 +110,6 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.api;
     }
 
-    @Override
-    public void onDisable() {
-        this.saveSettings();
-    }
-
     public YamlConfiguration getSettings() {
         return this.settings;
     }
