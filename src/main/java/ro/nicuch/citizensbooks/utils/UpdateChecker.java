@@ -49,8 +49,10 @@ public class UpdateChecker implements Listener {
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
                     this.plugin.getLogger().info("An update for CitizensBooks (v" + latestVersion + ") is available at:");
                     this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
-                    Bukkit.getScheduler().runTask(this.plugin, () -> Bukkit.getOnlinePlayers().stream().filter(player -> this.plugin.getAPI().hasPermission(player, "npcbook.notify") || player.isOp()).forEach(player -> player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
-                            .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
+                    Bukkit.getScheduler().runTask(
+                            this.plugin, () -> Bukkit.getOnlinePlayers().stream()
+                                    .filter(player -> this.plugin.getAPI().hasPermission(player, "npcbook.notify") || player.isOp()).forEach(player -> player.sendMessage(this.plugin.getMessage(Message.NEW_VERSION_AVAILABLE)
+                                            .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
                 });
             } else
                 Bukkit.getScheduler().runTask(this.plugin, () ->
@@ -94,7 +96,7 @@ public class UpdateChecker implements Listener {
             return;
         if (!updateAvailable)
             return;
-        player.sendMessage(this.plugin.getMessage("new_version_available", ConfigDefaults.new_version_available)
+        player.sendMessage(this.plugin.getMessage(Message.NEW_VERSION_AVAILABLE)
                 .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }

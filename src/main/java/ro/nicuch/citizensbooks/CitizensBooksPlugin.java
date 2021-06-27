@@ -30,7 +30,7 @@ import ro.nicuch.citizensbooks.bstats.Metrics;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
-import ro.nicuch.citizensbooks.utils.ConfigDefaults;
+import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.ConfigUpdater;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
@@ -194,14 +194,14 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.useNBTAPI;
     }
 
-    public String getMessage(String path, String def) {
+    public String getMessage(Message msg) {
         return ChatColor.translateAlternateColorCodes('&',
-                this.settings.getString("lang.header", ConfigDefaults.header))
-                + ChatColor.translateAlternateColorCodes('&', this.settings.getString(path, def));
+                this.settings.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
+                + ChatColor.translateAlternateColorCodes('&', this.settings.getString(msg.getPath(), msg.getDefault()));
     }
 
-    public String getMessageNoHeader(String path, String def) {
-        return ChatColor.translateAlternateColorCodes('&', this.settings.getString(path, def));
+    public String getMessageNoHeader(Message msg) {
+        return ChatColor.translateAlternateColorCodes('&', this.settings.getString(msg.getPath(), msg.getPath()));
     }
 
     /*

@@ -32,7 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.StringUtil;
-import ro.nicuch.citizensbooks.utils.ConfigDefaults;
+import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
 import java.util.ArrayList;
@@ -60,12 +60,26 @@ public class CitizensBooksCommand implements TabExecutor {
 
         if (args.length > 0) {
             switch (args[0]) {
+                case "help":
+                    if (this.api.hasPermission(sender, "npcbook.command")) {
+                        if (args.length > 1) {
+                            try {
+                                int page = Integer.parseInt(args[1]);
+                                this.sendHelp(sender, page);
+                            } catch (NumberFormatException ex) {
+                                sender.sendMessage(this.plugin.getMessage(Message.USAGE_HELP));
+                            }
+                        } else
+                            this.sendHelp(sender, 0);
+                    } else
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                    break;
                 case "actionitem":
                 case "ai":
                     if (this.api.hasPermission(sender, "npcbook.command.actionitem")) {
                         if (this.plugin.isNBTAPIEnabled()) {
                             if (!this.isPlayer(sender)) {
-                                sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                                sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                 break;
                             }
                             Player player = (Player) sender;
@@ -87,15 +101,15 @@ public class CitizensBooksCommand implements TabExecutor {
                                                             nbtItem.setString(References.NBTAPI_ITEM_RIGHT_KEY, args[2]);
                                                         }
                                                         this.replaceItemInHand(player, nbtItem.getItem());
-                                                        sender.sendMessage(this.plugin.getMessage("lang.filter_applied_to_item", ConfigDefaults.filter_applied_to_item).replace("%filter_name%", args[2]));
+                                                        sender.sendMessage(this.plugin.getMessage(Message.FILTER_APPLIED_TO_ITEM).replace("%filter_name%", args[2]));
                                                     } else
-                                                        sender.sendMessage(this.plugin.getMessage("lang.no_item_in_hand", ConfigDefaults.no_item_in_hand));
+                                                        sender.sendMessage(this.plugin.getMessage(Message.NO_ITEM_IN_HAND));
                                                 } else
-                                                    sender.sendMessage(this.plugin.getMessage("lang.filter_not_found", ConfigDefaults.filter_not_found));
+                                                    sender.sendMessage(this.plugin.getMessage(Message.FILTER_NOT_FOUND));
                                             } else
-                                                sender.sendMessage(this.plugin.getMessage("lang.usage.actionitem.set", ConfigDefaults.usage_actionitem_set));
+                                                sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET));
                                         } else
-                                            sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                                            sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                         break;
                                     case "remove":
                                         if (this.api.hasPermission(sender, "npcbook.command.actionitem.remove")) {
@@ -113,11 +127,11 @@ public class CitizensBooksCommand implements TabExecutor {
                                                         nbtItem.removeKey(References.NBTAPI_ITEM_RIGHT_KEY);
                                                 }
                                                 this.replaceItemInHand(player, nbtItem.getItem());
-                                                sender.sendMessage(this.plugin.getMessage("lang.filter_removed_from_item", ConfigDefaults.filter_removed_from_item));
+                                                sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
                                             } else
-                                                sender.sendMessage(this.plugin.getMessage("lang.no_item_in_hand", ConfigDefaults.no_item_in_hand));
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_ITEM_IN_HAND));
                                         } else
-                                            sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                                            sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                         break;
                                     default:
                                         this.sendActionItemHelp(sender);
@@ -126,9 +140,9 @@ public class CitizensBooksCommand implements TabExecutor {
                             } else
                                 this.sendActionItemHelp(sender);
                         } else
-                            sender.sendMessage(this.plugin.getMessage("lang.nbtapi_not_enabled", ConfigDefaults.nbtapi_not_enabled));
+                            sender.sendMessage(this.plugin.getMessage(Message.NBTAPI_NOT_ENABLED));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "forceopen":
                     if (this.api.hasPermission(sender, "npcbook.command.forceopen")) {
@@ -141,14 +155,14 @@ public class CitizensBooksCommand implements TabExecutor {
                                     if (optionalPlayer.isPresent()) {
                                         this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(args[1]), null));
                                     } else
-                                        sender.sendMessage(this.plugin.getMessage("lang.player_not_found", ConfigDefaults.player_not_found));
+                                        sender.sendMessage(this.plugin.getMessage(Message.PLAYER_NOT_FOUND));
                                 }
                             } else
-                                sender.sendMessage(this.plugin.getMessage("lang.filter_not_found", ConfigDefaults.filter_not_found));
+                                sender.sendMessage(this.plugin.getMessage(Message.FILTER_NOT_FOUND));
                         } else
-                            sender.sendMessage(this.plugin.getMessage("lang.usage.forceopen", ConfigDefaults.usage_forceopen));
+                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "about":
                     this.sendAbout(sender);
@@ -163,13 +177,13 @@ public class CitizensBooksCommand implements TabExecutor {
                          * overwritten, so the edit is lost
                          */
                         this.plugin.reloadSettings();
-                        sender.sendMessage(this.plugin.getMessage("lang.config_reloaded", ConfigDefaults.config_reloaded));
+                        sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "set":
                     if (!this.isPlayer(sender)) {
-                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.set")) {
@@ -178,24 +192,19 @@ public class CitizensBooksCommand implements TabExecutor {
                                 if (npc.isPresent()) {
                                     this.plugin.getSettings().set(bookPathBasedByHand, this.getItemFromHand((Player) sender));
                                     this.plugin.saveSettings(); //Allways saved
-                                    sender.sendMessage(this.plugin
-                                            .getMessage("lang.set_book_successfully", ConfigDefaults.set_book_successfully)
-                                            .replace("%npc%", npc.get().getFullName()));
+                                    sender.sendMessage(this.plugin.getMessage(Message.SET_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
                                 } else
-                                    sender.sendMessage(
-                                            this.plugin.getMessage("lang.no_npc_selected", ConfigDefaults.no_npc_selected));
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_NPC_SELECTED));
                             } else
-                                sender.sendMessage(
-                                        this.plugin.getMessage("lang.no_book_in_hand", ConfigDefaults.no_book_in_hand));
+                                sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                         } else
-                            sender.sendMessage(
-                                    this.plugin.getMessage("lang.citizens_not_enabled", ConfigDefaults.citizens_not_enabled));
+                            sender.sendMessage(this.plugin.getMessage(Message.CITIZENS_NOT_ENABLED));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "setjoin":
                     if (!this.isPlayer(sender)) {
-                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.setjoin")) {
@@ -203,13 +212,11 @@ public class CitizensBooksCommand implements TabExecutor {
                             this.plugin.getSettings().set("join_book", this.getItemFromHand((Player) sender));
                             this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
                             this.plugin.saveSettings(); //Always saved
-                            sender.sendMessage(this.plugin
-                                    .getMessage("lang.set_join_book_successfully", ConfigDefaults.set_join_book_successfully));
+                            sender.sendMessage(this.plugin.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
                         } else
-                            sender.sendMessage(
-                                    this.plugin.getMessage("lang.no_book_in_hand", ConfigDefaults.no_book_in_hand));
+                            sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "remove":
                     if (this.api.hasPermission(sender, "npcbook.command.remove")) {
@@ -219,31 +226,26 @@ public class CitizensBooksCommand implements TabExecutor {
                                 // Useless check, we just remove the data if exist or not
                                 this.plugin.getSettings().set(bookPathBasedByHand, null);
                                 this.plugin.saveSettings(); // Save is not mandatory, because the value may exist
-                                sender.sendMessage(this.plugin
-                                        .getMessage("lang.remove_book_successfully", ConfigDefaults.remove_book_successfully)
-                                        .replace("%npc%", npc.get().getFullName()));
+                                sender.sendMessage(this.plugin.getMessage(Message.REMOVED_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
                             } else
-                                sender.sendMessage(
-                                        this.plugin.getMessage("lang.no_npc_selected", ConfigDefaults.no_npc_selected));
+                                sender.sendMessage(this.plugin.getMessage(Message.NO_NPC_SELECTED));
                         } else
-                            sender.sendMessage(
-                                    this.plugin.getMessage("lang.citizens_not_enabled", ConfigDefaults.citizens_not_enabled));
+                            sender.sendMessage(this.plugin.getMessage(Message.CITIZENS_NOT_ENABLED));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "remjoin":
                     if (this.api.hasPermission(sender, "npcbook.command.remjoin")) {
                         this.plugin.getSettings().set("join_book", null);
                         this.plugin.getSettings().set("join_book_last_change", 0);
                         this.plugin.saveSettings(); //Always saved
-                        sender.sendMessage(this.plugin
-                                .getMessage("lang.remove_join_book_successfully", ConfigDefaults.remove_join_book_successfully));
+                        sender.sendMessage(this.plugin.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "getbook":
                     if (!this.isPlayer(sender)) {
-                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.getbook")) {
@@ -252,33 +254,30 @@ public class CitizensBooksCommand implements TabExecutor {
                                 if (this.plugin.getSettings().isItemStack(bookPathBasedByHand)) {
                                     ItemStack book = this.plugin.getSettings().getItemStack(bookPathBasedByHand, new ItemStack(Material.WRITTEN_BOOK));
                                     ((Player) sender).getInventory().addItem(book);
-                                    sender.sendMessage(this.plugin.getMessage("lang.book_recived", ConfigDefaults.book_recived));
+                                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
                                 } else
-                                    sender.sendMessage(
-                                            this.plugin.getMessage("lang.no_book_for_npc", ConfigDefaults.no_book_for_npc)
-                                                    .replace("%npc%", npc.get().getFullName()));
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_NPC).replace("%npc%", npc.get().getFullName()));
                             } else
                                 sender.sendMessage(
-                                        this.plugin.getMessage("lang.no_npc_selected", ConfigDefaults.no_npc_selected));
+                                        this.plugin.getMessage(Message.NO_NPC_SELECTED));
                         } else
                             sender.sendMessage(
-                                    this.plugin.getMessage("lang.citizens_not_enabled", ConfigDefaults.citizens_not_enabled));
+                                    this.plugin.getMessage(Message.CITIZENS_NOT_ENABLED));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "openbook":
                     if (!this.isPlayer(sender)) {
-                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.getbook")) {
                         if (this.hasBookInHand((Player) sender)) {
                             this.openBook((Player) sender, this.getItemFromHand((Player) sender));
                         } else
-                            sender.sendMessage(
-                                    this.plugin.getMessage("lang.no_book_in_hand", ConfigDefaults.no_book_in_hand));
+                            sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "setcmd":
                     if (this.api.hasPermission(sender, "npcbook.command.setcmd")) {
@@ -286,28 +285,22 @@ public class CitizensBooksCommand implements TabExecutor {
                             this.plugin.getSettings().set("commands." + args[1] + ".filter_name", args[2]);
                             this.plugin.getSettings().set("commands." + args[1] + ".permission", args.length > 3 ? args[3] : "none"); //Optional permission
                             this.plugin.saveSettings();
-                            sender.sendMessage(this.plugin
-                                    .getMessage("lang.set_custom_command_successfully",
-                                            ConfigDefaults.set_custom_command_successfully)
-                                    .replace("%command%", args[1]).replace("%filter_name%", args[2]));
+                            sender.sendMessage(this.plugin.getMessage(Message.SET_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command%", args[1]).replace("%filter_name%", args[2]));
                         } else
-                            sender.sendMessage(this.plugin.getMessage("lang.usage.setcmd", ConfigDefaults.usage_setcmd));
+                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_SETCMD));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "remcmd":
                     if (this.api.hasPermission(sender, "npcbook.command.remcmd")) {
                         if (args.length > 1) {
                             this.plugin.getSettings().set("commands." + args[1], null);
                             this.plugin.saveSettings();
-                            sender.sendMessage(this.plugin
-                                    .getMessage("lang.remove_custom_command_successfully",
-                                            ConfigDefaults.remove_custom_command_successfully)
-                                    .replace("%command%", args[1]));
+                            sender.sendMessage(this.plugin.getMessage(Message.REMOVED_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command%", args[1]));
                         } else
-                            sender.sendMessage(this.plugin.getMessage("lang.usage.remcmd", ConfigDefaults.usage_remcmd));
+                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_REMCMD));
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 case "filter":
                     if (this.api.hasPermission(sender, "npcbook.command.filter")) {
@@ -315,34 +308,34 @@ public class CitizensBooksCommand implements TabExecutor {
                             switch (args[1]) {
                                 case "set":
                                     if (!this.isPlayer(sender)) {
-                                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                         break;
                                     }
                                     if (this.api.hasPermission(sender, "npcbook.command.filter.set")) {
                                         if (args.length > 2) {
                                             if (this.hasBookInHand((Player) sender)) {
                                                 this.api.createFilter(args[2], this.getItemFromHand((Player) sender));
-                                                sender.sendMessage(this.plugin.getMessage("lang.filter_saved", ConfigDefaults.filter_saved).replace("%filter_name%", args[2]));
+                                                sender.sendMessage(this.plugin.getMessage(Message.FILTER_SAVED).replace("%filter_name%", args[2]));
                                             } else
-                                                sender.sendMessage(this.plugin.getMessage("lang.no_book_in_hand", ConfigDefaults.no_book_in_hand));
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                                         } else
-                                            sender.sendMessage(this.plugin.getMessage("lang.usage.filter.set", ConfigDefaults.usage_filter_set));
+                                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_SET));
                                     } else
-                                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 case "remove":
                                     if (this.api.hasPermission(sender, "npcbook.command.filter.remove")) {
                                         if (args.length > 2) {
                                             this.api.removeFilter(args[2]);
-                                            sender.sendMessage(this.plugin.getMessage("lang.filter_removed", ConfigDefaults.filter_removed).replace("%filter_name%", args[2]));
+                                            sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED).replace("%filter_name%", args[2]));
                                         } else
-                                            sender.sendMessage(this.plugin.getMessage("lang.usage.filter.remove", ConfigDefaults.usage_filter_remove));
+                                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_REMOVE));
                                     } else
-                                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 case "getbook":
                                     if (!this.isPlayer(sender)) {
-                                        sender.sendMessage(this.plugin.getMessage("console_cannot_use_command", ConfigDefaults.console_cannot_use_command));
+                                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                         break;
                                     }
                                     if (this.api.hasPermission(sender, "npcbook.command.filter.getbook")) {
@@ -351,13 +344,13 @@ public class CitizensBooksCommand implements TabExecutor {
                                                 ItemStack book = this.api.getFilter(args[2]);
                                                 ((Player) sender).getInventory().addItem(book);
                                                 sender.sendMessage(
-                                                        this.plugin.getMessage("lang.book_recived", ConfigDefaults.book_recived));
+                                                        this.plugin.getMessage(Message.BOOK_RECIVED));
                                             } else
-                                                sender.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", ConfigDefaults.no_book_for_filter));
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_FILTER));
                                         } else
-                                            sender.sendMessage(this.plugin.getMessage("lang.usage.filter.getbook", ConfigDefaults.usage_filter_getbook));
+                                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_GETBOOK));
                                     } else
-                                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 default:
                                     this.sendFilterHelp(sender);
@@ -366,18 +359,18 @@ public class CitizensBooksCommand implements TabExecutor {
                         } else
                             this.sendFilterHelp(sender);
                     } else
-                        sender.sendMessage(this.plugin.getMessage("lang.no_permission", ConfigDefaults.no_permission));
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                     break;
                 default:
                     if (this.api.hasPermission(sender, "npcbook.command.help"))
-                        this.sendHelp(sender);
+                        this.sendHelp(sender, 0);
                     else
                         this.sendAbout(sender);
                     break;
             }
         } else {
             if (this.api.hasPermission(sender, "npcbook.command.help"))
-                this.sendHelp(sender);
+                this.sendHelp(sender, 0);
             else
                 this.sendAbout(sender);
         }
@@ -390,6 +383,8 @@ public class CitizensBooksCommand implements TabExecutor {
         List<String> commands = new ArrayList<>();
 
         if (args.length == 1) {
+            if (this.api.hasPermission(sender, "npcbook.command"))
+                commands.add("help");
             if (this.api.hasPermission(sender, "npcbook.command.set"))
                 commands.add("set");
             if (this.api.hasPermission(sender, "npcbook.command.remove"))
@@ -450,6 +445,9 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.getbook"))
                         commands.addAll(List.of("right", "left"));
                     break;
+                case "help":
+                    if (this.api.hasPermission(sender, "npcbook.command"))
+                        commands.addAll(List.of("1", "2", "3"));
                 default:
                     break;
             }
@@ -602,61 +600,63 @@ public class CitizensBooksCommand implements TabExecutor {
     }
 
     private void sendAbout(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
         sender.sendMessage("");
         sender.sendMessage(ChatColor.RED + "<+ CitizensBooks +>");
         sender.sendMessage(ChatColor.GOLD + "Version: " + ChatColor.RED + this.plugin.getDescription().getVersion());
         sender.sendMessage(ChatColor.GOLD + "Auhtor: " + ChatColor.RED + "NicoNekoDev");
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }
 
-    private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.info", ConfigDefaults.help_info));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.arguments", ConfigDefaults.help_arguments));
+    private void sendHelp(CommandSender sender, int page) {
+        if (page < 1 || page > 3) page = 1;
         sender.sendMessage("");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.about", ConfigDefaults.help_about));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.set", ConfigDefaults.help_set));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.remove", ConfigDefaults.help_remove));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.setjoin", ConfigDefaults.help_setjoin));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.remjoin", ConfigDefaults.help_remjoin));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.reload", ConfigDefaults.help_reload));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.forceopen", ConfigDefaults.help_forceopen));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.getbook", ConfigDefaults.help_getbook));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.openbook", ConfigDefaults.help_openbook));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.setcmd", ConfigDefaults.help_setcmd));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.remcmd", ConfigDefaults.help_remcmd));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.filter.set", ConfigDefaults.help_filter_set));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.filter.remove", ConfigDefaults.help_filter_remove));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.actionitem.set", ConfigDefaults.help_actionitem_set));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.actionitem.remove", ConfigDefaults.help_actionitem_remove));
-        sender.sendMessage(
-                this.plugin.getMessageNoHeader("lang.help.filter.getbook", ConfigDefaults.help_filter_getbook));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INFO).replace("%page%", page + ""));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
+        if (page == 2) {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_GETBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_OPENBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
+        } else if (page == 3) {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
+        } else {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_HELP).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SET).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMOVE).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETJOIN).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
+        }
+        sender.sendMessage("");
     }
 
     private void sendFilterHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.info", ConfigDefaults.help_info));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.arguments", ConfigDefaults.help_arguments));
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.filter.set", ConfigDefaults.help_filter_set));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.filter.remove", ConfigDefaults.help_filter_remove));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.filter.getbook", ConfigDefaults.help_filter_getbook));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }
 
     private void sendActionItemHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.info", ConfigDefaults.help_info));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.arguments", ConfigDefaults.help_arguments));
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.actionitem.set", ConfigDefaults.help_actionitem_set));
-        sender.sendMessage(this.plugin.getMessageNoHeader("lang.help.actionitem.remove", ConfigDefaults.help_actionitem_remove));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------+");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }
 }

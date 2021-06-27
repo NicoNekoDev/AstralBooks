@@ -16,10 +16,10 @@ public class ConfigUpdater {
                 plugin.getSettings().set("commands." + key + ".filter_name", value);
                 plugin.getSettings().set("commands." + key + ".permission", "none"); //default permission is to none
             });
-            plugin.getSettings().set("lang.player_not_found", ConfigDefaults.player_not_found);
-            plugin.getSettings().set("lang.filter_not_found", ConfigDefaults.filter_not_found);
-            plugin.getSettings().set("lang.usage.forceopen", ConfigDefaults.usage_forceopen);
-            plugin.getSettings().set("lang.help.forceopen", ConfigDefaults.help_forceopen);
+            plugin.getSettings().set("lang.player_not_found", Message.PLAYER_NOT_FOUND.getDefault());
+            plugin.getSettings().set("lang.filter_not_found", Message.FILTER_NOT_FOUND.getDefault());
+            plugin.getSettings().set("lang.usage.forceopen", Message.USAGE_FORCEOPEN.getDefault());
+            plugin.getSettings().set("lang.help.forceopen", Message.HELP_FORCEOPEN.getDefault());
             plugin.getSettings().set("version", plugin.configVersion); //update the version
             plugin.saveSettings(); //save settings
             return true;

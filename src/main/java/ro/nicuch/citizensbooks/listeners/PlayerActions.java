@@ -30,7 +30,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
-import ro.nicuch.citizensbooks.utils.ConfigDefaults;
+import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
 public class PlayerActions implements Listener {
@@ -53,7 +53,7 @@ public class PlayerActions implements Listener {
         if (!(permission.equalsIgnoreCase("none") || this.api.hasPermission(player, permission)))
             return;
         if (!this.api.hasFilter(filterName)) {
-            player.sendMessage(this.plugin.getMessage("lang.no_book_for_filter", ConfigDefaults.no_book_for_filter));
+            player.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_FILTER));
             return;
         }
         ItemStack book = this.api.getFilter(filterName);
