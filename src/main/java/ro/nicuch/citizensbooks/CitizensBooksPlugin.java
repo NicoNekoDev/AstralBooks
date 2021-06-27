@@ -31,7 +31,6 @@ import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
 import ro.nicuch.citizensbooks.utils.Message;
-import ro.nicuch.citizensbooks.utils.ConfigUpdater;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.File;
@@ -136,18 +135,15 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.settings = YamlConfiguration.loadConfiguration(config);
             //Load config.yml first
             if (this.settings.isInt("version") && this.settings.getInt("version") != this.configVersion) {
-                if (!ConfigUpdater.updateConfig(this, this.settings.getInt("version"))) {
-                    boolean renamed = config.renameTo(new File(
-                            this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
-                    if (renamed) {
-                        this.getLogger().info("A new config.yml was generated!");
-                        this.saveResource("config.yml", true);
-                        //Load again the config
-                        this.settings = YamlConfiguration.loadConfiguration(config);
-                    } else
-                        this.getLogger().info("Failed to generate a new config!");
+                boolean renamed = config.renameTo(new File(
+                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
+                if (renamed) {
+                    this.getLogger().info("A new config.yml was generated!");
+                    this.saveResource("config.yml", true);
+                    //Load again the config
+                    this.settings = YamlConfiguration.loadConfiguration(config);
                 } else
-                    this.getLogger().info("The config has been updated!");
+                    this.getLogger().info("Failed to generate a new config!");
             }
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
