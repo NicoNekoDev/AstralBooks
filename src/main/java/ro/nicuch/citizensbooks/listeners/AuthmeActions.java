@@ -1,10 +1,12 @@
-package ro.nicuch.citizensbooks;
+package ro.nicuch.citizensbooks.listeners;
 
 import fr.xephi.authme.events.LoginEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import ro.nicuch.citizensbooks.CitizensBooksAPI;
+import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 public class AuthmeActions implements Listener {
     private final CitizensBooksPlugin plugin;

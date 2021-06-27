@@ -17,7 +17,7 @@
 
 */
 
-package ro.nicuch.citizensbooks;
+package ro.nicuch.citizensbooks.events;
 
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -27,6 +27,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
+import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 /**
  * When the player right click an NPC before the book is opened.

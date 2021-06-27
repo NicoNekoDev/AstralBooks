@@ -37,6 +37,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -281,7 +282,7 @@ public class CitizensBooksAPI {
 
     }
 
-    protected ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
+    public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
         Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
@@ -337,7 +338,7 @@ public class CitizensBooksAPI {
         return book;
     }
 
-    protected boolean hasPermission(CommandSender sender, String permission) {
+    public boolean hasPermission(CommandSender sender, String permission) {
         try {
             if (sender.isOp()) return true;
             Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPermissions()) : Optional.empty(); //If LuckPerms not enabled, this will return empty

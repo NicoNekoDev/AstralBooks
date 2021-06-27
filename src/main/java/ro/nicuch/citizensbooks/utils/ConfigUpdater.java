@@ -1,4 +1,6 @@
-package ro.nicuch.citizensbooks;
+package ro.nicuch.citizensbooks.utils;
+
+import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 import java.util.HashMap;
 import java.util.Map;

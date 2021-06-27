@@ -21,22 +21,26 @@ lang:
   remove_join_book_successfully: "&aYou have removed the join book!"
   no_npc_selected: "&cYou need to have an NPC selected!"
   no_book_in_hand: "&cYou need to have a written book in your hand!"
+  no_item_in_hand: "&cYou need to have an item in your hand!"
   no_book_for_npc: "&cThis NPC doesn''t have a book!"
   no_book_for_filter: "&cThis filter doesn''t have a book!"
   filter_saved: "&aFilter %filter_name% was saved."
   filter_removed: "&aFilter %filter_name% was removed."
   book_recived: "&aYou recived the book in your inventory!"
-  citizens_not_enabled: "&cCitizens plugin is not enabled!"
+  citizens_not_enabled: "&cCitizens plugin is not enabled! This command requires Citizens to be installed!"
+  nbtapi_not_enabled: "&cNBTAPI plugin is not enabled! This command requires NBTAPI to be installed!"
   set_custom_command_successfully: "&aCommand %command% has been set!"
   remove_custom_command_successfully: "&aCommand %command% has been removed!"
   console_cannot_use_command: "&cOnly players can use this command!"
   new_version_available: "&aA new version of CitizensBooks is available!"
   player_not_found: "&cPlayer not found!"
   filter_not_found: "&cFilter not found!"
+  filter_applied_to_item: "&aFilter %filter_name% has been applied to your holding item."
+  filter_removed_from_item: "&aThe filter has been removed from your holding item."
   usage:
-    set: "&aUsage: &f/npcbook set"
-    remove: "&aUsage: &f/npcbook remove"
-    getbook: "&aUsage: &f/npcbook getbook"
+    set: "&aUsage: &f/npcbook set [right/left]"
+    remove: "&aUsage: &f/npcbook remove [right/left]"
+    getbook: "&aUsage: &f/npcbook getbook [right/left]"
     openbook: "&aUsage: &f/npcbook openbook"
     forceopen: "&aUsage: &f/npcbook forceopen <filter name> <player>"
     setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name> [permission]"
@@ -47,11 +51,16 @@ lang:
       set: "&aUsage: &f/npcbook filter set <filter name>"
       remove: "&aUsage: &f/npcbook filter remove <filter name>"
       getbook: "&aUsage: &f/npcbook filter getbook <filter name>"
+    actionitem:
+      set: "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"
+      remove: "&aUsage: &f/npcbook actionitem remove [right/left]"
   help:
+    info: "&f/npcbook about &c- &9Commands and Usage"
+    arguments: "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"
     about: "&f/npcbook about &c- &9Informations about the plugin."
-    set: "&f/npcbook set &c- &9Set a book for npc."
-    remove: "&f/npcbook remove &c- &9Remove the book from npc."
-    getbook: "&f/npcbook getbook &c- &9Get the book of npc."
+    set: "&f/npcbook set [right/left] &c- &9Set a book for npc."
+    remove: "&f/npcbook remove [right/left] &c- &9Remove the book from npc."
+    getbook: "&f/npcbook getbook [right/left] &c- &9Get the book of npc."
     openbook: "&f/npcbook openbook &c- &9Opens a writen book."
     forceopen: "&f/npcbook forceopen <filter name> <player> &c- &9Force a player to open a book."
     reload: "&f/npcbook reload &c- &9Reload the config file."
@@ -60,9 +69,12 @@ lang:
     setjoin: "&f/npcbook setjoin &c- &9Set the join book."
     remjoin: "&f/npcbook remjoin &c- &9Remove the join book."
     filter:
-       set: "&f/npcbook filter set <filter name> &c- &9Create a filter with the given name."
-       remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter with the given name."
-       getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of the filter with the given name."
+      set: "&f/npcbook filter set <filter name> &c- &9Create a filter with the given name."
+      remove: "&f/npcbook filter remove <filter name> &c- &9Remove a filter with the given name."
+      getbook: "&f/npcbook filter getbook <filter name> &c- &9Get the book of the filter with the given name."
+    actionitem:
+      set: "&f/npcbook actionitem set <filter name> [right/left] &c- &9Put a filter on the item you hold."
+      remove: "&f/npcbook actionitem remove [right/left] &c- &9Remove the filter from the item you hold."
 filters:
   hello_world:
     ==: org.bukkit.inventory.ItemStack
@@ -75,10 +87,10 @@ filters:
       author: NicoNekoMC
       pages:
         - '{"text":"Hello there, player!"}'
-save: {}
+save: { }
 commands:
   hello:
     filter_name: hello_world
     permission: perm.hello_world
 join_book_last_change: 0 #DO NOT MANUALLY EDIT THIS
-join_book_last_seen_by_players: {}
+join_book_last_seen_by_players: { }

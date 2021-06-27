@@ -27,6 +27,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import ro.nicuch.citizensbooks.bstats.Metrics;
+import ro.nicuch.citizensbooks.listeners.AuthmeActions;
+import ro.nicuch.citizensbooks.listeners.CitizensActions;
+import ro.nicuch.citizensbooks.listeners.PlayerActions;
+import ro.nicuch.citizensbooks.utils.ConfigDefaults;
+import ro.nicuch.citizensbooks.utils.ConfigUpdater;
+import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.File;
 
@@ -35,7 +41,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private LuckPerms luckPerms;
     private final CitizensBooksAPI api = new CitizensBooksAPI(this);
     private YamlConfiguration settings;
-    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault;
+    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI;
     public final int configVersion = 9;
 
     @Override
@@ -91,6 +97,12 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("Authme found, try hooking!");
                 manager.registerEvents(new AuthmeActions(this), this);
                 this.useAuthMe = true;
+            }
+            if (!manager.isPluginEnabled("NBTAPI"))
+                this.getLogger().info("NBTAPI not found!");
+            else {
+                this.getLogger().info("NBTAPI found, try hooking!");
+                this.useNBTAPI = true;
             }
             TabExecutor tabExecutor = new CitizensBooksCommand(this);
             this.getCommand("npcbook").setExecutor(tabExecutor);
@@ -176,6 +188,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public boolean isCitizensEnabled() {
         return this.useCitizens;
+    }
+
+    public boolean isNBTAPIEnabled() {
+        return this.useNBTAPI;
     }
 
     public String getMessage(String path, String def) {
