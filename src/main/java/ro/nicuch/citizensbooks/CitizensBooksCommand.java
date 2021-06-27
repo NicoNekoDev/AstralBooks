@@ -86,6 +86,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                                         } else {
                                                             nbtItem.setString(References.NBTAPI_ITEM_RIGHT_KEY, args[2]);
                                                         }
+                                                        this.replaceItemInHand(player, nbtItem.getItem());
                                                         sender.sendMessage(this.plugin.getMessage("lang.filter_applied_to_item", ConfigDefaults.filter_applied_to_item).replace("%filter_name%", args[2]));
                                                     } else
                                                         sender.sendMessage(this.plugin.getMessage("lang.no_item_in_hand", ConfigDefaults.no_item_in_hand));
@@ -111,6 +112,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                                     if (nbtItem.hasKey(References.NBTAPI_ITEM_RIGHT_KEY))
                                                         nbtItem.removeKey(References.NBTAPI_ITEM_RIGHT_KEY);
                                                 }
+                                                this.replaceItemInHand(player, nbtItem.getItem());
                                                 sender.sendMessage(this.plugin.getMessage("lang.filter_removed_from_item", ConfigDefaults.filter_removed_from_item));
                                             } else
                                                 sender.sendMessage(this.plugin.getMessage("lang.no_item_in_hand", ConfigDefaults.no_item_in_hand));
@@ -505,6 +507,20 @@ public class CitizensBooksCommand implements TabExecutor {
         }
         Collections.sort(completions);
         return completions;
+    }
+
+    @SuppressWarnings("deprecation")
+    private void replaceItemInHand(Player player, ItemStack item) {
+        switch (CitizensBooksAPI.version) {
+            case "v1_8_R3":
+            case "v1_8_R2":
+            case "v1_8_R1":
+                player.setItemInHand(item);
+                break;
+            default:
+                player.getInventory().setItemInMainHand(item);
+                break;
+        }
     }
 
     @SuppressWarnings("deprecation")

@@ -23,6 +23,7 @@ import net.citizensnpcs.api.event.NPCCloneEvent;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
@@ -39,7 +40,7 @@ public class CitizensActions implements Listener {
         api = (this.plugin = plugin).getAPI();
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void rightClick(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isItemStack("save." + npcId + ".right_side"))
@@ -54,9 +55,10 @@ public class CitizensActions implements Listener {
             this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book, event.getNPC()));
         else
             this.api.openBook(event.getClicker(), book);
+        event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void leftCLick(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
         if (!this.plugin.getSettings().isItemStack("save." + npcId + ".left_side"))
@@ -71,6 +73,7 @@ public class CitizensActions implements Listener {
             this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book, event.getNPC()));
         else
             this.api.openBook(event.getClicker(), book);
+        event.setCancelled(true);
     }
 
     @EventHandler

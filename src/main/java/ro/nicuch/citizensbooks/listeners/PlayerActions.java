@@ -80,8 +80,8 @@ public class PlayerActions implements Listener {
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onClick(PlayerInteractEvent event) {
+    @EventHandler(priority = EventPriority.LOW)
+    public void onClickWithItem(PlayerInteractEvent event) {
         if (!this.plugin.isNBTAPIEnabled())
             return;
         if (!event.hasItem())
@@ -92,22 +92,21 @@ public class PlayerActions implements Listener {
         switch (event.getAction()) {
             case LEFT_CLICK_AIR:
             case LEFT_CLICK_BLOCK:
-                if (nbtItem.hasKey(References.NBTAPI_ITEM_LEFT_KEY))
-                    filterName = nbtItem.getString(References.NBTAPI_ITEM_LEFT_KEY);
+                filterName = nbtItem.getString(References.NBTAPI_ITEM_LEFT_KEY);
                 break;
             case RIGHT_CLICK_AIR:
             case RIGHT_CLICK_BLOCK:
-                if (nbtItem.hasKey(References.NBTAPI_ITEM_RIGHT_KEY))
-                    filterName = nbtItem.getString(References.NBTAPI_ITEM_RIGHT_KEY);
+                filterName = nbtItem.getString(References.NBTAPI_ITEM_RIGHT_KEY);
                 break;
             default:
                 break;
         }
-        if (filterName == null)
+        if (filterName == null || filterName.isEmpty())
             return;
         if (!this.api.hasFilter(filterName))
             return;
         ItemStack book = this.api.getFilter(filterName);
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
+        event.setCancelled(true);
     }
 }

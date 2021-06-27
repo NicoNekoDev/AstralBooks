@@ -55,7 +55,7 @@ lang:
       set: "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"
       remove: "&aUsage: &f/npcbook actionitem remove [right/left]"
   help:
-    info: "&f/npcbook about &c- &9Commands and Usage"
+    info: "&9Commands and Usage"
     arguments: "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"
     about: "&f/npcbook about &c- &9Informations about the plugin."
     set: "&f/npcbook set [right/left] &c- &9Set a book for npc."

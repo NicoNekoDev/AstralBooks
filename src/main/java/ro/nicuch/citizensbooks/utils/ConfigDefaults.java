@@ -62,7 +62,7 @@ public class ConfigDefaults {
     public static final String usage_actionitem_set = "&aUsage: &f/npcbook actionitem set <filter name> [right/left]";
     public static final String usage_actionitem_remove = "&aUsage: &f/npcbook actionitem remove [right/left]";
 
-    public static final String help_info = "&f/npcbook about &c- &9Commands and Usage";
+    public static final String help_info = "&9Commands and Usage";
     public static final String help_arguments = "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)";
     public static final String help_about = "&f/npcbook about &c- &9Informations about plugin";
     public static final String help_set = "&f/npcbook set [right/left] &c- &9Set book for npc.";
