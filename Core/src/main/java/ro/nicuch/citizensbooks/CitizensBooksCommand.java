@@ -507,51 +507,19 @@ public class CitizensBooksCommand implements TabExecutor {
         return completions;
     }
 
-    @SuppressWarnings("deprecation")
     private void replaceItemInHand(Player player, ItemStack item) {
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                player.setItemInHand(item);
-                break;
-            default:
-                player.getInventory().setItemInMainHand(item);
-                break;
-        }
+        this.api.getDistribution().setItemInHand(player, item);
     }
 
-    @SuppressWarnings("deprecation")
     private boolean hasBookInHand(Player player) {
-        ItemStack item;
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                item = player.getItemInHand();
-                break;
-            default:
-                item = player.getInventory().getItemInMainHand();
-                break;
-        }
+        ItemStack item = this.api.getDistribution().getItemInHand(player);
         if (item == null)
             return false;
         return item.getType() == Material.WRITTEN_BOOK;
     }
 
-    @SuppressWarnings("deprecation")
     private boolean hasItemInHand(Player player) {
-        ItemStack item;
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                item = player.getItemInHand();
-                break;
-            default:
-                item = player.getInventory().getItemInMainHand();
-                break;
-        }
+        ItemStack item = this.api.getDistribution().getItemInHand(player);
         if (item == null)
             return false;
         return item.getType() != Material.AIR;
@@ -562,23 +530,10 @@ public class CitizensBooksCommand implements TabExecutor {
         return (sender instanceof Player);
     }
 
-    @SuppressWarnings("deprecation")
     private ItemStack getItemFromHand(Player player) {
-        ItemStack item;
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                item = player.getItemInHand();
-                break;
-            default:
-                item = player.getInventory().getItemInMainHand();
-                break;
-        }
-        return item;
+        return this.api.getDistribution().getItemInHand(player);
     }
 
-    @SuppressWarnings("deprecation")
     private void openBook(Player player, ItemStack book) {
         BookMeta meta = (BookMeta) book.getItemMeta();
         Material material = Material.getMaterial("BOOK_AND_QUILL");
@@ -587,16 +542,7 @@ public class CitizensBooksCommand implements TabExecutor {
             material = Material.getMaterial("WRITABLE_BOOK");
         ItemStack item = new ItemStack(material);
         item.setItemMeta(meta);
-        switch (CitizensBooksAPI.version) {
-            case "v1_8_R3":
-            case "v1_8_R2":
-            case "v1_8_R1":
-                player.setItemInHand(item);
-                break;
-            default:
-                player.getInventory().setItemInMainHand(item);
-                break;
-        }
+        this.replaceItemInHand(player, item);
     }
 
     private void sendAbout(CommandSender sender) {
