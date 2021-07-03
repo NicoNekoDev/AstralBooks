@@ -100,7 +100,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                                         } else {
                                                             nbtItem.setString(References.NBTAPI_ITEM_RIGHT_KEY, args[2]);
                                                         }
-                                                        this.replaceItemInHand(player, nbtItem.getItem());
+                                                        this.api.getDistribution().setItemInHand(player, item);
                                                         sender.sendMessage(this.plugin.getMessage(Message.FILTER_APPLIED_TO_ITEM).replace("%filter_name%", args[2]));
                                                     } else
                                                         sender.sendMessage(this.plugin.getMessage(Message.NO_ITEM_IN_HAND));
@@ -126,7 +126,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                                     if (nbtItem.hasKey(References.NBTAPI_ITEM_RIGHT_KEY))
                                                         nbtItem.removeKey(References.NBTAPI_ITEM_RIGHT_KEY);
                                                 }
-                                                this.replaceItemInHand(player, nbtItem.getItem());
+                                                this.api.getDistribution().setItemInHand(player, item);
                                                 sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
                                             } else
                                                 sender.sendMessage(this.plugin.getMessage(Message.NO_ITEM_IN_HAND));
@@ -507,10 +507,6 @@ public class CitizensBooksCommand implements TabExecutor {
         return completions;
     }
 
-    private void replaceItemInHand(Player player, ItemStack item) {
-        this.api.getDistribution().setItemInHand(player, item);
-    }
-
     private boolean hasBookInHand(Player player) {
         ItemStack item = this.api.getDistribution().getItemInHand(player);
         if (item == null)
@@ -542,7 +538,7 @@ public class CitizensBooksCommand implements TabExecutor {
             material = Material.getMaterial("WRITABLE_BOOK");
         ItemStack item = new ItemStack(material);
         item.setItemMeta(meta);
-        this.replaceItemInHand(player, item);
+        this.api.getDistribution().setItemInHand(player, item);
     }
 
     private void sendAbout(CommandSender sender) {

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>CitizensBooks-Core</artifactId>
+    <artifactId>CitizensBooks</artifactId>
     <version>2.6.5</version>
     <packaging>jar</packaging>
 
@@ -112,7 +112,6 @@
 
     <build>
         <directory>../target</directory>
-        <finalName>CitizensBooks-${project.version}</finalName>
         <resources>
             <resource>
                 <targetPath>.</targetPath>

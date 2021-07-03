@@ -127,9 +127,9 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public void reloadSettings() {
         try {
-            File config = new File(this.getDataFolder() + File.separator + "src/main/resources/config.yml");
+            File config = new File(this.getDataFolder() + File.separator + "config.yml");
             if (!config.exists()) {
-                this.saveResource("src/main/resources/config.yml", false);
+                this.saveResource("config.yml", false);
                 this.getLogger().info("A new config.yml was created!");
             }
             this.settings = YamlConfiguration.loadConfiguration(config);
@@ -139,7 +139,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                         this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
                 if (renamed) {
                     this.getLogger().info("A new config.yml was generated!");
-                    this.saveResource("src/main/resources/config.yml", true);
+                    this.saveResource("config.yml", true);
                     //Load again the config
                     this.settings = YamlConfiguration.loadConfiguration(config);
                 } else
@@ -152,7 +152,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public void saveSettings() {
         try {
-            this.settings.save(new File(this.getDataFolder() + File.separator + "src/main/resources/config.yml"));
+            this.settings.save(new File(this.getDataFolder() + File.separator + "config.yml"));
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }
