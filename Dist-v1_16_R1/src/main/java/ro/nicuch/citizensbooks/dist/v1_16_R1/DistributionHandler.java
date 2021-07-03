@@ -1,9 +1,9 @@
-package ro.nicuch.citizensbooks.dist.v1_17_R1;
+package ro.nicuch.citizensbooks.dist.v1_16_R1;
 
 import com.google.gson.JsonObject;
-import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
-import net.minecraft.world.InteractionHand;
-import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import net.minecraft.server.v1_16_R1.EnumHand;
+import net.minecraft.server.v1_16_R1.PacketPlayOutOpenBook;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import ro.nicuch.citizensbooks.dist.Distribution;
@@ -11,7 +11,7 @@ import ro.nicuch.citizensbooks.dist.Distribution;
 public class DistributionHandler implements Distribution {
 
     public void sendRightClick(Player player) {
-        ((CraftPlayer) player).getHandle().connection.send(new ClientboundOpenBookPacket(InteractionHand.MAIN_HAND));
+        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutOpenBook(EnumHand.MAIN_HAND));
     }
 
     @Override

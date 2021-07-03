@@ -53,6 +53,14 @@
         </dependency>
         <dependency>
             <groupId>ro.nicuch</groupId>
+            <artifactId>CitizensBooks-v1_16_R1</artifactId>
+            <version>distribution-v1_16_R1</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-Distribution</artifactId>
             <version>distribution</version>
             <scope>compile</scope>
