@@ -7,7 +7,6 @@ import net.minecraft.server.v1_16_R1.PacketPlayOutOpenBook;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftMetaBook;
-import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -48,7 +47,7 @@ public class DistributionHandler implements Distribution {
             List<IChatBaseComponent> pages = bookMeta.hasPages() ? (List<IChatBaseComponent>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
             for (IChatBaseComponent page : pages) {
-                jsonPages.add(this.parser.parse(CraftChatMessage.toJSON(page)).getAsJsonObject());
+                jsonPages.add(this.parser.parse(IChatBaseComponent.ChatSerializer.a(page)).getAsJsonObject());
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
@@ -77,7 +76,7 @@ public class DistributionHandler implements Distribution {
             List<IChatBaseComponent> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
                 JsonObject page = jsonPage.getAsJsonObject();
-                pages.add(this.fromJSON(page.toString()));
+                pages.add(IChatBaseComponent.ChatSerializer.a(page.toString()));
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
@@ -85,10 +84,5 @@ public class DistributionHandler implements Distribution {
             ex.printStackTrace();
         }
         return newBook;
-    }
-
-    // copied from craftbukkit
-    private IChatBaseComponent fromJSON(String jsonMessage) throws JsonParseException {
-        return IChatBaseComponent.ChatSerializer.a(jsonMessage);
     }
 }

@@ -65,6 +65,9 @@ public class CitizensBooksAPI {
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.filtersDirectory = new File(this.plugin.getDataFolder() + File.separator + "filters");
+    }
+
+    public boolean loadDistribution() {
         // Copyright (c) mbax - Thank you for the great 'modular project' tutorial!
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
         String version = packageName.substring(packageName.lastIndexOf('.') + 1);
@@ -75,6 +78,7 @@ public class CitizensBooksAPI {
             if (Distribution.class.isAssignableFrom(clazz)) {
                 this.plugin.getLogger().info("Loading support for version " + version);
                 this.distribution = (Distribution) clazz.getConstructor().newInstance();
+                return true;
             }
         } catch (final Exception ex) {
             ex.printStackTrace();
@@ -83,7 +87,9 @@ public class CitizensBooksAPI {
                 this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it! It might fix the error!");
             else
                 this.plugin.getLogger().warning("Please don't report this error! We try hard to update it as fast as possible!");
+            return false;
         }
+        return false;
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
