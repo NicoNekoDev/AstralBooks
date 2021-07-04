@@ -4,18 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>CitizensBooks</artifactId>
-    <version>2.6.5</version>
+    <artifactId>CitizensBooks-Core</artifactId>
+    <version>core</version>
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>16</java.version>
     </properties>
 
     <parent>
-        <artifactId>CitizensBooks-Parent</artifactId>
+        <artifactId>CitizensBooks</artifactId>
         <groupId>ro.nicuch</groupId>
-        <version>parent</version>
+        <version>2.6.5</version>
     </parent>
 
     <repositories>
@@ -231,7 +231,7 @@
     </dependencies>
 
     <build>
-        <directory>../target</directory>
+        <finalName>CitizensBooks-${project.parent.version}</finalName>
         <resources>
             <resource>
                 <targetPath>.</targetPath>

@@ -2,12 +2,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>ro.nicuch</groupId>
-    <artifactId>CitizensBooks-Parent</artifactId>
-    <version>parent</version>
+    <artifactId>CitizensBooks</artifactId>
+    <version>2.6.5</version>
     <packaging>pom</packaging>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>16</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

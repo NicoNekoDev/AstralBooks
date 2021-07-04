@@ -13,9 +13,9 @@
     </properties>
 
     <parent>
-        <artifactId>CitizensBooks-Parent</artifactId>
+        <artifactId>CitizensBooks</artifactId>
         <groupId>ro.nicuch</groupId>
-        <version>parent</version>
+        <version>2.6.5</version>
     </parent>
 
     <repositories>
