@@ -46,7 +46,7 @@ public class DistributionHandler implements Distribution {
             List<String> pages = bookMeta.hasPages() ? (List<String>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
             for (String page : pages) {
-                jsonPages.add(this.parser.parse(page).getAsJsonObject());
+                jsonPages.add(this.parser.parse(page));
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
@@ -74,8 +74,7 @@ public class DistributionHandler implements Distribution {
             bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
             List<String> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
-                JsonObject page = jsonPage.getAsJsonObject();
-                pages.add(page.toString());
+                pages.add(jsonPage.toString());
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);

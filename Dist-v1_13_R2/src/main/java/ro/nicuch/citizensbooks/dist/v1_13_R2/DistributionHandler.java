@@ -51,7 +51,7 @@ public class DistributionHandler implements Distribution {
             List<IChatBaseComponent> pages = bookMeta.hasPages() ? (List<IChatBaseComponent>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
             for (IChatBaseComponent page : pages) {
-                jsonPages.add(this.parser.parse(IChatBaseComponent.ChatSerializer.a(page)).getAsJsonObject());
+                jsonPages.add(this.parser.parse(IChatBaseComponent.ChatSerializer.a(page)));
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
@@ -79,8 +79,7 @@ public class DistributionHandler implements Distribution {
             bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
             List<IChatBaseComponent> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
-                JsonObject page = jsonPage.getAsJsonObject();
-                pages.add(IChatBaseComponent.ChatSerializer.a(page.toString()));
+                pages.add(IChatBaseComponent.ChatSerializer.a(jsonPage.toString()));
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
