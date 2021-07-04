@@ -19,6 +19,10 @@
 
 package ro.nicuch.citizensbooks;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -36,20 +40,31 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import ro.nicuch.citizensbooks.dist.Distribution;
+import ro.nicuch.citizensbooks.utils.BookLink;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CitizensBooksAPI {
     private final CitizensBooksPlugin plugin;
     private Distribution distribution = null;
+    private final Map<String, BookLink> filters = new HashMap<>();
+    private final File filtersDirectory;
+
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
-
+        this.filtersDirectory = new File(this.plugin.getDataFolder() + File.separator + "filters");
         // Copyright (c) mbax - Thank you for the great 'modular project' tutorial!
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
         String version = packageName.substring(packageName.lastIndexOf('.') + 1);
@@ -62,12 +77,45 @@ public class CitizensBooksAPI {
                 this.distribution = (Distribution) clazz.getConstructor().newInstance();
             }
         } catch (final Exception ex) {
+            ex.printStackTrace();
             this.plugin.getLogger().warning("Well, this version of CitizensBooks is incompatible with your server version " + version + "... ");
             if (UpdateChecker.updateAvailable())
                 this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it! It might fix the error!");
             else
                 this.plugin.getLogger().warning("Please don't report this error! We try hard to update it as fast as possible!");
         }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public void reloadFilters() {
+        this.filters.clear();
+        if (!this.filtersDirectory.exists())
+            this.filtersDirectory.mkdirs();
+        FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+                // TODO add exception handling
+                File jsonFile = path.toFile();
+                if (!jsonFile.getName().toLowerCase().endsWith(".json")) return FileVisitResult.CONTINUE;
+                try (FileReader fileReader = new FileReader(jsonFile)) {
+                    JsonObject jsonObject = CitizensBooksAPI.this.gson.fromJson(fileReader, JsonObject.class);
+                    JsonPrimitive jsonFilterName = jsonObject.getAsJsonPrimitive("filter_name");
+                    if (!jsonFilterName.isString()) return FileVisitResult.CONTINUE;
+                    String filterName = jsonFilterName.getAsString();
+                    if (!isValidName(filterName)) return FileVisitResult.CONTINUE;
+                    JsonObject jsonBookContent = jsonObject.getAsJsonObject("book_content");
+                    ItemStack book = CitizensBooksAPI.this.distribution.convertJsonToBook(jsonBookContent);
+                    CitizensBooksAPI.this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
+                } catch (Exception ex) {
+                    return FileVisitResult.CONTINUE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        };
+    }
+
+    public boolean isValidName(String filterName) {
+        return true; // TODO add regex check
     }
 
     public Distribution getDistribution() {
@@ -85,7 +133,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        return this.plugin.getSettings().getItemStack("filters." + filterName, new ItemStack(Material.WRITTEN_BOOK));
+        return this.filters.getOrDefault(filterName, new BookLink(new ItemStack(Material.WRITTEN_BOOK), null)).getBook();
     }
 
     /**
@@ -99,7 +147,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        return this.plugin.getSettings().isItemStack("filters." + filterName);
+        return this.filters.containsKey(filterName);
     }
 
     /**
@@ -119,12 +167,22 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        this.plugin.getSettings().set("filters." + filterName, book);
-        this.plugin.saveSettings();
+        File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
+        try (FileWriter fileWriter = new FileWriter(jsonFile)) {
+            JsonPrimitive jsonFilterName = new JsonPrimitive(filterName);
+            JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
+            JsonObject jsonFileObject = new JsonObject();
+            jsonFileObject.add("filter_name", jsonFilterName);
+            jsonFileObject.add("book_content", jsonBookContent);
+            this.gson.toJson(jsonFileObject, fileWriter);
+            this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public Set<String> getFilters() {
-        return this.plugin.getSettings().getConfigurationSection("filters").getKeys(false);
+        return this.filters.keySet();
     }
 
     /**
@@ -132,9 +190,14 @@ public class CitizensBooksAPI {
      *
      * @param filterName filter name/id
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void removeFilter(String filterName) {
-        this.plugin.getSettings().set("filters." + filterName, null);
-        this.plugin.saveSettings();
+        if (this.filters.containsKey(filterName)) {
+            BookLink link = this.filters.remove(filterName);
+            File jsonFile = link.getLink().toFile();
+            if (jsonFile.exists())
+                jsonFile.delete();
+        }
     }
 
     protected void rightClick(Player player) {

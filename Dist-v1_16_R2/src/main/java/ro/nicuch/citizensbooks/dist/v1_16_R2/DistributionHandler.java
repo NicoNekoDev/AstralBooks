@@ -1,13 +1,13 @@
-package ro.nicuch.citizensbooks.dist.v1_16_R1;
+package ro.nicuch.citizensbooks.dist.v1_16_R2;
 
 import com.google.gson.*;
-import net.minecraft.server.v1_16_R1.EnumHand;
-import net.minecraft.server.v1_16_R1.IChatBaseComponent;
-import net.minecraft.server.v1_16_R1.PacketPlayOutOpenBook;
+import net.minecraft.server.v1_16_R2.EnumHand;
+import net.minecraft.server.v1_16_R2.IChatBaseComponent;
+import net.minecraft.server.v1_16_R2.PacketPlayOutOpenBook;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftMetaBook;
-import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R2.inventory.CraftMetaBook;
+import org.bukkit.craftbukkit.v1_16_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;

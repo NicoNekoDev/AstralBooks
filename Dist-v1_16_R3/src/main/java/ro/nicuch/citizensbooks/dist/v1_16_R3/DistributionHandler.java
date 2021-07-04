@@ -1,13 +1,11 @@
-package ro.nicuch.citizensbooks.dist.v1_16_R1;
+package ro.nicuch.citizensbooks.dist.v1_16_R3;
 
 import com.google.gson.*;
-import net.minecraft.server.v1_16_R1.EnumHand;
-import net.minecraft.server.v1_16_R1.IChatBaseComponent;
-import net.minecraft.server.v1_16_R1.PacketPlayOutOpenBook;
+import net.minecraft.server.v1_16_R3.EnumHand;
+import net.minecraft.server.v1_16_R3.PacketPlayOutOpenBook;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftMetaBook;
-import org.bukkit.craftbukkit.v1_16_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftMetaBook;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -45,10 +43,10 @@ public class DistributionHandler implements Distribution {
     public JsonObject convertBookToJson(ItemStack book) {
         try {
             BookMeta bookMeta = (BookMeta) book.getItemMeta();
-            List<IChatBaseComponent> pages = bookMeta.hasPages() ? (List<IChatBaseComponent>) this.pagesField.get(bookMeta) : new ArrayList<>();
+            List<String> pages = bookMeta.hasPages() ? (List<String>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
-            for (IChatBaseComponent page : pages) {
-                jsonPages.add(this.parser.parse(CraftChatMessage.toJSON(page)).getAsJsonObject());
+            for (String page : pages) {
+                jsonPages.add(this.parser.parse(page).getAsJsonObject());
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
@@ -74,10 +72,10 @@ public class DistributionHandler implements Distribution {
             JsonArray jsonPages = jsonBook.getAsJsonArray("pages");
             bookMeta.setAuthor(jsonAuthor.isString() ? jsonAuthor.getAsString() : "Server");
             bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
-            List<IChatBaseComponent> pages = new ArrayList<>();
+            List<String> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
                 JsonObject page = jsonPage.getAsJsonObject();
-                pages.add(this.fromJSON(page.toString()));
+                pages.add(page.toString());
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
@@ -85,10 +83,5 @@ public class DistributionHandler implements Distribution {
             ex.printStackTrace();
         }
         return newBook;
-    }
-
-    // copied from craftbukkit
-    private IChatBaseComponent fromJSON(String jsonMessage) throws JsonParseException {
-        return IChatBaseComponent.ChatSerializer.a(jsonMessage);
     }
 }

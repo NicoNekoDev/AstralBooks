@@ -61,6 +61,22 @@
         </dependency>
         <dependency>
             <groupId>ro.nicuch</groupId>
+            <artifactId>CitizensBooks-v1_16_R2</artifactId>
+            <version>distribution-v1_16_R2</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
+            <artifactId>CitizensBooks-v1_16_R3</artifactId>
+            <version>distribution-v1_16_R3</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-Distribution</artifactId>
             <version>distribution</version>
             <scope>compile</scope>

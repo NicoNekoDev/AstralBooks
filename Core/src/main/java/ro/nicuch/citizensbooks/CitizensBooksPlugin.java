@@ -48,6 +48,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         try {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
+            this.api.reloadFilters();
             //bStats Metrics, by default enabled
             new Metrics(this);
             PluginManager manager = this.getServer().getPluginManager();

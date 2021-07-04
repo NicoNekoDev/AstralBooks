@@ -13,9 +13,11 @@
 
     <modules>
         <module>Core</module>
+        <module>Dist-v1_16_R1</module>
+		<module>Dist-v1_16_R2</module>
+		<module>Dist-v1_16_R3</module>
         <module>Dist-v1_17_R1</module>
         <module>Distribution</module>
-        <module>Dist-v1_16_R1</module>
     </modules>
 
     <build>
