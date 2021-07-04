@@ -37,6 +37,8 @@ lang:
   filter_not_found: "&cFilter not found!"
   filter_applied_to_item: "&aFilter &b%filter_name% &ahas been applied to your holding item."
   filter_removed_from_item: "&aThe filter has been removed from your holding item."
+  filter_name_invalid: "&cThe filter name should only contain letters, numbers, dashes and underscores!"
+  command_name_invalid: "&cThe command name should only contain letters, numbers, dashes and underscores!"
   usage:
     help: "&aUsage: &f/npcbook help [page]"
     set: "&aUsage: &f/npcbook set [right/left]"

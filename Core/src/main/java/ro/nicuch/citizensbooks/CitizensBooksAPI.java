@@ -46,12 +46,11 @@ import ro.nicuch.citizensbooks.utils.UpdateChecker;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.io.IOException;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CitizensBooksAPI {
@@ -59,6 +58,7 @@ public class CitizensBooksAPI {
     private Distribution distribution = null;
     private final Map<String, BookLink> filters = new HashMap<>();
     private final File filtersDirectory;
+    private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -112,10 +112,19 @@ public class CitizensBooksAPI {
                 return FileVisitResult.CONTINUE;
             }
         };
+        try {
+            Files.walkFileTree(this.filtersDirectory.toPath(), fileVisitor);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean isValidName(String filterName) {
-        return true; // TODO add regex check
+        if (filterName == null)
+            return false;
+        if (filterName.isEmpty())
+            return false;
+        return this.filterNamePattern.matcher(filterName).matches();
     }
 
     public Distribution getDistribution() {
@@ -133,6 +142,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         return this.filters.getOrDefault(filterName, new BookLink(new ItemStack(Material.WRITTEN_BOOK), null)).getBook();
     }
 
@@ -147,6 +157,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         return this.filters.containsKey(filterName);
     }
 
@@ -167,6 +178,7 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
             JsonPrimitive jsonFilterName = new JsonPrimitive(filterName);
@@ -202,64 +214,6 @@ public class CitizensBooksAPI {
 
     protected void rightClick(Player player) {
         this.distribution.sendRightClick(player);
-        /*
-        try {
-            switch (version) {
-                case "v1_8_R1":
-                case "v1_8_R2":
-                case "v1_8_R3":
-                case "v1_9_R1":
-                case "v1_9_R2":
-                case "v1_10_R1":
-                case "v1_11_R1":
-                case "v1_12_R1":
-                    if (ppocp == null)
-                        throw new NullPointerException("PPOCP not found");
-                    if (pds == null)
-                        throw new NullPointerException("PDS not found!");
-                    if (pc == null)
-                        throw new NullPointerException("PC not found!");
-                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
-                            ppocp.getConstructor(String.class, pds).newInstance("MC|BOpen", pds.getConstructor(ByteBuf.class)
-                                    .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
-                    break;
-                case "v1_13_R1":
-                case "v1_13_R2":
-                    Class<?> mk = getNMSClass("MinecraftKey");
-                    //Used for 1.13 and above
-                    if (mk == null)
-                        throw new Exception("Plugin outdated!");
-                    if (ppocp == null)
-                        throw new NullPointerException("PPOCP not found");
-                    if (pds == null)
-                        throw new NullPointerException("PDS not found!");
-                    if (pc == null)
-                        throw new NullPointerException("PC not found!");
-                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
-                            ppocp.getConstructor(mk, pds)
-                                    .newInstance(mk.getMethod("a", String.class).invoke(mk, "minecraft:book_open"), pds.getConstructor(ByteBuf.class)
-                                            .newInstance(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1))));
-                    break;
-                case "v1_17_R1":
-                    break;
-                default:
-                    if (ppoob == null)
-                        throw new Exception("Plugin outdated!");
-                    if (eh == null)
-                        throw new Exception("Plugin outdated!");
-                    if (pc == null)
-                        throw new NullPointerException("PC not found!");
-                    pc.getMethod("sendPacket", p).invoke(this.getConnection(player),
-                            ppoob.getConstructor(eh).newInstance(
-                                    eh.getDeclaredMethod("valueOf", String.class)
-                                            .invoke(eh, "MAIN_HAND")));
-                    break;
-            }
-        } catch (Exception ex) {
-            if (this.checkVersionCompatibility(true))
-                this.plugin.printError(ex);
-        }
-         */
     }
 
     /**
