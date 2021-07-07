@@ -26,8 +26,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -40,12 +40,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class CitizensBooksCommand implements TabExecutor {
+public class CitizensBooksCommand implements CommandExecutor {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
 
     public CitizensBooksCommand(CitizensBooksPlugin plugin) {
-        api = (this.plugin = plugin).getAPI();
+        this.api = (this.plugin = plugin).getAPI();
     }
 
     @Override
@@ -410,7 +410,7 @@ public class CitizensBooksCommand implements TabExecutor {
         return true;
     }
 
-    @Override
+    //@Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         List<String> commands = new ArrayList<>();

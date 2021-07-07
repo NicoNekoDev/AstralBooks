@@ -1,0 +1,52 @@
+npcbook {
+  help {
+    page brigadier:integer;
+  }
+  actionitem {
+    set {
+      filter brigadier:string single_word {
+        right;
+        left;
+      }
+    }
+    remove {
+      right;
+      left;
+    }
+  }
+  forceopen {
+    filter brigadier:string single_word {
+      player brigadier:string single_word;
+      @a;
+    }
+  }
+  about;
+  reload;
+  set;
+  setjoin;
+  remove;
+  remjoin;
+  getbook;
+  openbook;
+  setcmd {
+    command brigadier:string single_word {
+      filter brigadier:string single_word {
+        permission brigadier:string single_word;
+      }
+    }
+  }
+  remcmd {
+    command brigadier:string single_word;
+  }
+  filter {
+    set {
+      name brigadier:string single_word;
+    }
+    remove {
+      name brigadier:string single_word;
+    }
+    getbook {
+      name brigadier:string single_word;
+    }
+  }
+}

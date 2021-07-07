@@ -19,10 +19,13 @@
 
 package ro.nicuch.citizensbooks;
 
+import me.lucko.commodore.Commodore;
+import me.lucko.commodore.CommodoreProvider;
+import me.lucko.commodore.file.CommodoreFileFormat;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
-import org.bukkit.command.TabExecutor;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -34,6 +37,8 @@ import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class CitizensBooksPlugin extends JavaPlugin {
     private Permission vaultPerms;
@@ -105,9 +110,16 @@ public class CitizensBooksPlugin extends JavaPlugin {
                     this.getLogger().info("NBTAPI found, try hooking!");
                     this.useNBTAPI = true;
                 }
-                TabExecutor tabExecutor = new CitizensBooksCommand(this);
-                this.getCommand("npcbook").setExecutor(tabExecutor);
-                this.getCommand("npcbook").setTabCompleter(tabExecutor);
+                PluginCommand npcBookCommand = this.getCommand("npcbook");
+                CitizensBooksCommand npcBookExecutor = new CitizensBooksCommand(this);
+                npcBookCommand.setExecutor(npcBookExecutor);
+                //npcBookCommand.setTabCompleter(npcBookExecutor);
+                if (CommodoreProvider.isSupported()) {
+                    this.getLogger().info("Loading Brigardier support...");
+                    Commodore commodore = CommodoreProvider.getCommodore(this);
+                    this.registerCompletions(commodore, npcBookCommand);
+                } else
+                    this.getLogger().info("Brigardier is not supported on this version!");
                 //Update checker, by default enabled
                 if (this.settings.getBoolean("update_check", true))
                     manager.registerEvents(new UpdateChecker(this), this);
@@ -130,6 +142,18 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public YamlConfiguration getSettings() {
         return this.settings;
+    }
+
+    private void registerCompletions(Commodore commodore, PluginCommand command) {
+        try (InputStream is = this.getResource("command.commodore")) {
+            if (is == null)
+                throw new FileNotFoundException();
+            commodore.register(command, CommodoreFileFormat.parse(is), player -> this.api.hasPermission(player, "npcbook.command.commodore"));
+            this.getLogger().info("Brigardier loaded!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            this.getLogger().info("Could not load Brigardier!");
+        }
     }
 
     public void reloadSettings() {
