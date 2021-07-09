@@ -20,6 +20,7 @@
 package ro.nicuch.citizensbooks.listeners;
 
 import de.tr7zw.nbtapi.NBTItem;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,18 +28,30 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
+import ro.nicuch.citizensbooks.utils.DelayHashMap;
+import ro.nicuch.citizensbooks.utils.DelayMap;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
+    private final BukkitTask cleanupTask;
+    private final DelayMap<Player, BukkitTask> delayedPlayers = new DelayHashMap<>();
 
     public PlayerActions(CitizensBooksPlugin plugin) {
-        api = (this.plugin = plugin).getAPI();
+        this.plugin = plugin;
+        this.api = this.plugin.getAPI();
+        this.cleanupTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.delayedPlayers::cleanup, 1L, 1L);
+    }
+
+    public void onDisable() {
+        this.cleanupTask.cancel();
     }
 
     @EventHandler
@@ -77,7 +90,16 @@ public class PlayerActions implements Listener {
         ItemStack book = this.plugin.getSettings().getItemStack("join_book");
         if (book == null)
             return;
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
+        this.delayedPlayers.put(player,
+                Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null)),
+                        this.plugin.getSettings().getInt("join_book_delay", 0))); // 0 ticks by default
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        BukkitTask task = this.delayedPlayers.remove(event.getPlayer());
+        if (task == null) return;
+        task.cancel();
     }
 
     @EventHandler(priority = EventPriority.LOW)

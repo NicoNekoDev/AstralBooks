@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -76,7 +78,7 @@ public class CitizensBooksAPI {
         try {
             final Class<?> clazz = Class.forName("ro.nicuch.citizensbooks.dist." + version + ".DistributionHandler");
             if (Distribution.class.isAssignableFrom(clazz)) {
-                this.plugin.getLogger().info("Loading support for version " + version);
+                this.plugin.getLogger().info("Loading support for version " + version + "...");
                 this.distribution = (Distribution) clazz.getConstructor().newInstance();
                 return true;
             }
@@ -93,26 +95,35 @@ public class CitizensBooksAPI {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void reloadFilters() {
+    public void reloadFilters(Logger logger) {
+        logger.info("Loading filters...");
         this.filters.clear();
         if (!this.filtersDirectory.exists())
             this.filtersDirectory.mkdirs();
+        AtomicInteger successfulFile = new AtomicInteger();
         FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-                // TODO add exception handling
                 File jsonFile = path.toFile();
-                if (!jsonFile.getName().toLowerCase().endsWith(".json")) return FileVisitResult.CONTINUE;
+                if (!jsonFile.getName().toLowerCase().endsWith(".json")) return FileVisitResult.CONTINUE; // don't log non json files
                 try (FileReader fileReader = new FileReader(jsonFile)) {
                     JsonObject jsonObject = CitizensBooksAPI.this.gson.fromJson(fileReader, JsonObject.class);
                     JsonPrimitive jsonFilterName = jsonObject.getAsJsonPrimitive("filter_name");
-                    if (!jsonFilterName.isString()) return FileVisitResult.CONTINUE;
+                    if (!jsonFilterName.isString())  {
+                        logger.warning("Failed to load " + jsonFile.getName() + " because it doesn't have a filter name!");
+                        return FileVisitResult.CONTINUE;
+                    }
                     String filterName = jsonFilterName.getAsString();
-                    if (!isValidName(filterName)) return FileVisitResult.CONTINUE;
+                    if (!isValidName(filterName)) {
+                        logger.warning("Failed to load " + jsonFile.getName() + " because it doesn't have a valid filter name!");
+                        return FileVisitResult.CONTINUE;
+                    }
                     JsonObject jsonBookContent = jsonObject.getAsJsonObject("book_content");
                     ItemStack book = CitizensBooksAPI.this.distribution.convertJsonToBook(jsonBookContent);
                     CitizensBooksAPI.this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
+                    successfulFile.incrementAndGet();
                 } catch (Exception ex) {
+                    logger.warning("Failed to load " + jsonFile.getName());
                     return FileVisitResult.CONTINUE;
                 }
                 return FileVisitResult.CONTINUE;
@@ -123,6 +134,11 @@ public class CitizensBooksAPI {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        int successful = successfulFile.get();
+        if (successful == 0)
+            logger.info("No filter was loaded!");
+        else
+            logger.info("Loaded " + successfulFile.get() + " filters!");
     }
 
     public boolean isValidName(String filterName) {

@@ -79,22 +79,12 @@ lang:
     actionitem:
       set: "&f/npcbook actionitem set <filter name> [right/left] $ &9Put a filter on the item you hold."
       remove: "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold."
-filters:
-  hello_world:
-    ==: org.bukkit.inventory.ItemStack
-    v: 1
-    type: WRITTEN_BOOK
-    meta:
-      ==: ItemMeta
-      meta-type: BOOK_SIGNED
-      title: hello book
-      author: NicoNekoMC
-      pages:
-        - '{"text":"Hello there, player!"}'
 save: { }
 commands:
   hello:
     filter_name: hello_world
     permission: perm.hello_world
 join_book_last_change: 0 #DO NOT MANUALLY EDIT THIS
+join_book_always_show: false
+join_book_delay: 0 # in ticks (20 ticks = 1 second) - if AuthMe is enabled, this will be ignored!
 join_book_last_seen_by_players: { }
