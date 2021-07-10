@@ -86,5 +86,6 @@ commands:
     permission: perm.hello_world
 join_book_last_change: 0 #DO NOT MANUALLY EDIT THIS
 join_book_always_show: false
+join_book_enable_delay: false
 join_book_delay: 0 # in ticks (20 ticks = 1 second) - if AuthMe is enabled, this will be ignored!
 join_book_last_seen_by_players: { }

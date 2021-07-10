@@ -47,6 +47,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private YamlConfiguration settings;
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI;
     public final int configVersion = 9;
+    private PlayerActions playerActionsListener;
 
     @Override
     public void onEnable() {
@@ -89,7 +90,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                     this.getLogger().info("PlaceholderAPI found, try hooking!");
                     this.usePlaceholderAPI = true;
                 }
-                manager.registerEvents(new PlayerActions(this), this);
+                manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
                 if (!manager.isPluginEnabled("Citizens"))
                     this.getLogger().info("Citizens not found!");
                 else {
@@ -176,6 +177,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 } else
                     this.getLogger().info("Failed to generate a new config!");
             }
+            this.playerActionsListener.onReload();
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }

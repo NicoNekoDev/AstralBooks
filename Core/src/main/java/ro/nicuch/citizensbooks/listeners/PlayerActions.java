@@ -38,20 +38,28 @@ import ro.nicuch.citizensbooks.utils.DelayMap;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
+import java.util.UUID;
+
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
-    private final BukkitTask cleanupTask;
-    private final DelayMap<Player, BukkitTask> delayedPlayers = new DelayHashMap<>();
+    private BukkitTask cleanupTask = null;
+    private final DelayMap<UUID, BukkitTask> delayedPlayers = new DelayHashMap<>();
 
     public PlayerActions(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.api = this.plugin.getAPI();
-        this.cleanupTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.delayedPlayers::cleanup, 1L, 1L);
+
     }
 
     public void onDisable() {
-        this.cleanupTask.cancel();
+        if (this.cleanupTask != null)
+            this.cleanupTask.cancel();
+    }
+
+    public void onReload() {
+        if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
+            this.cleanupTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.delayedPlayers::cleanup, 1L, 1L);
     }
 
     @EventHandler
@@ -82,24 +90,35 @@ public class PlayerActions implements Listener {
         if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
             return;
         Player player = event.getPlayer();
-        if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
-            if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
-                return;
-        this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
-        this.plugin.saveSettings();
+        if (!this.plugin.getSettings().getBoolean("join_book_always_show", false)) {
+            if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
+                if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
+                    return;
+            this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
+            this.plugin.saveSettings();
+        }
         ItemStack book = this.plugin.getSettings().getItemStack("join_book");
         if (book == null)
             return;
-        this.delayedPlayers.put(player,
-                Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null)),
-                        this.plugin.getSettings().getInt("join_book_delay", 0))); // 0 ticks by default
+        if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false)) {
+            int delay = this.plugin.getSettings().getInt("join_book_delay", 0);
+            if (delay <= 0)
+                this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
+            else
+                this.delayedPlayers.put(player.getUniqueId(),
+                        Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null)), delay)); // 0 ticks by default
+        } else
+            this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        BukkitTask task = this.delayedPlayers.remove(event.getPlayer());
-        if (task == null) return;
-        task.cancel();
+        if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
+            if (this.delayedPlayers.containsKey(event.getPlayer().getUniqueId())) {
+                BukkitTask task = this.delayedPlayers.remove(event.getPlayer().getUniqueId());
+                if (task == null) return;
+                task.cancel();
+            }
     }
 
     @EventHandler(priority = EventPriority.LOW)
