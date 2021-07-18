@@ -4,15 +4,24 @@ import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public interface Distribution {
+public abstract class Distribution {
+    final String version;
 
-    void sendRightClick(Player player);
+    public Distribution(final String version) {
+        this.version = version;
+    }
 
-    void setItemInHand(Player player, ItemStack item);
+    public final String getVersion() {
+        return this.version;
+    }
 
-    ItemStack getItemInHand(Player player);
+    public abstract void sendRightClick(Player player);
 
-    JsonObject convertBookToJson(ItemStack book);
+    public abstract void setItemInHand(Player player, ItemStack item);
 
-    ItemStack convertJsonToBook(JsonObject jsonBook);
+    public abstract ItemStack getItemInHand(Player player);
+
+    public abstract JsonObject convertBookToJson(ItemStack book);
+
+    public abstract ItemStack convertJsonToBook(JsonObject jsonBook);
 }

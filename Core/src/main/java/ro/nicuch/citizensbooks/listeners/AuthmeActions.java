@@ -1,5 +1,6 @@
 package ro.nicuch.citizensbooks.listeners;
 
+import com.google.gson.JsonParseException;
 import fr.xephi.authme.events.LoginEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,12 +9,29 @@ import org.bukkit.inventory.ItemStack;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
+import java.io.File;
+
 public class AuthmeActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
+    private ItemStack joinBook;
 
     public AuthmeActions(CitizensBooksPlugin plugin) {
-        api = (this.plugin = plugin).getAPI();
+        this.plugin = plugin;
+        this.api = this.plugin.getAPI();
+        this.onReload();
+    }
+
+    public void onReload() {
+        File joinBookFile = new File(this.plugin.getDataFolder() + File.separator + "join_book.json");
+        if (joinBookFile.exists()) {
+            try {
+                this.joinBook = this.api.getBookFromJsonFile(joinBookFile);
+            } catch (JsonParseException ex) {
+                this.joinBook = null;
+                this.plugin.getLogger().warning("Failed to load join book!");
+            }
+        }
     }
 
     @EventHandler
@@ -28,9 +46,8 @@ public class AuthmeActions implements Listener {
                 return;
         this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
         this.plugin.saveSettings();
-        ItemStack book = this.plugin.getSettings().getItemStack("join_book");
-        if (book == null)
+        if (this.joinBook == null)
             return;
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null));
     }
 }

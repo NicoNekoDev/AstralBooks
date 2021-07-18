@@ -16,11 +16,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DistributionHandler implements Distribution {
+public class DistributionHandler extends Distribution {
     private final Field pagesField;
     private final JsonParser parser = new JsonParser();
 
     public DistributionHandler() throws NoSuchFieldException {
+        super("1_15_R1");
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }

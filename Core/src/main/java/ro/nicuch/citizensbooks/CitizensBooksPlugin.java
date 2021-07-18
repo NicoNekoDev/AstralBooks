@@ -177,7 +177,8 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 } else
                     this.getLogger().info("Failed to generate a new config!");
             }
-            this.playerActionsListener.onReload();
+            if (this.playerActionsListener != null)
+                this.playerActionsListener.onReload();
         } catch (Exception ex) {
             this.printError(ex); //Saving files can cause IOException
         }

@@ -17,11 +17,12 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DistributionHandler implements Distribution {
+public class DistributionHandler extends Distribution {
     private final Field pagesField;
     private final JsonParser parser = new JsonParser();
 
     public DistributionHandler() throws NoSuchFieldException, ClassNotFoundException {
+        super("1_8_R1");
         this.pagesField = Class.forName("org.bukkit.craftbukkit.v1_8_R1.inventory.CraftMetaBook").getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }

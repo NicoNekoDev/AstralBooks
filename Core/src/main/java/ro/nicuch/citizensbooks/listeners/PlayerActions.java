@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks.listeners;
 
+import com.google.gson.JsonParseException;
 import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -38,18 +39,20 @@ import ro.nicuch.citizensbooks.utils.DelayMap;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
+import java.io.File;
 import java.util.UUID;
 
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
-    private BukkitTask cleanupTask = null;
+    private BukkitTask cleanupTask;
     private final DelayMap<UUID, BukkitTask> delayedPlayers = new DelayHashMap<>();
+    private ItemStack joinBook;
 
     public PlayerActions(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.api = this.plugin.getAPI();
-
+        this.onReload();
     }
 
     public void onDisable() {
@@ -60,6 +63,15 @@ public class PlayerActions implements Listener {
     public void onReload() {
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
             this.cleanupTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.delayedPlayers::cleanup, 1L, 1L);
+        File joinBookFile = new File(this.plugin.getDataFolder() + File.separator + "join_book.json");
+        if (joinBookFile.exists()) {
+            try {
+                this.joinBook = this.api.getBookFromJsonFile(joinBookFile);
+            } catch (JsonParseException ex) {
+                this.joinBook = null;
+                this.plugin.getLogger().warning("Failed to load join book!");
+            }
+        }
     }
 
     @EventHandler
@@ -97,28 +109,24 @@ public class PlayerActions implements Listener {
             this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
             this.plugin.saveSettings();
         }
-        ItemStack book = this.plugin.getSettings().getItemStack("join_book");
-        if (book == null)
+        if (this.joinBook == null)
             return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false)) {
             int delay = this.plugin.getSettings().getInt("join_book_delay", 0);
             if (delay <= 0)
-                this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
+                this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null));
             else
                 this.delayedPlayers.put(player.getUniqueId(),
-                        Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null)), delay)); // 0 ticks by default
+                        Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null)), delay)); // 0 ticks by default
         } else
-            this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
+            this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
-            if (this.delayedPlayers.containsKey(event.getPlayer().getUniqueId())) {
-                BukkitTask task = this.delayedPlayers.remove(event.getPlayer().getUniqueId());
-                if (task == null) return;
-                task.cancel();
-            }
+            if (this.delayedPlayers.containsKey(event.getPlayer().getUniqueId()))
+                this.delayedPlayers.remove(event.getPlayer().getUniqueId()).cancel();
     }
 
     @EventHandler(priority = EventPriority.LOW)

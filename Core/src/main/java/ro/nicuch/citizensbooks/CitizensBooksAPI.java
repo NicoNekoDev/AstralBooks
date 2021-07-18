@@ -19,10 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -69,6 +66,24 @@ public class CitizensBooksAPI {
         this.filtersDirectory = new File(this.plugin.getDataFolder() + File.separator + "filters");
     }
 
+    public ItemStack getBookFromJsonFile(File jsonFile) throws JsonParseException {
+        try (FileReader fileReader = new FileReader(jsonFile)) {
+            JsonObject jsonBookContent = CitizensBooksAPI.this.gson.fromJson(fileReader, JsonObject.class);
+            return this.distribution.convertJsonToBook(jsonBookContent);
+        } catch (Exception ex) {
+            throw new JsonParseException("Failed to parse the json file " + jsonFile.getName());
+        }
+    }
+
+    public void putBookInJsonFile(File jsonFile, ItemStack book) throws JsonParseException {
+        try (FileWriter fileWriter = new FileWriter(jsonFile)) {
+            JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
+            this.gson.toJson(jsonBookContent, fileWriter);
+        } catch (Exception ex) {
+            throw new JsonParseException("Failed to put the book the json file " + jsonFile.getName());
+        }
+    }
+
     public boolean loadDistribution() {
         // Copyright (c) mbax - Thank you for the great 'modular project' tutorial!
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -105,11 +120,12 @@ public class CitizensBooksAPI {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
                 File jsonFile = path.toFile();
-                if (!jsonFile.getName().toLowerCase().endsWith(".json")) return FileVisitResult.CONTINUE; // don't log non json files
+                if (!jsonFile.getName().toLowerCase().endsWith(".json"))
+                    return FileVisitResult.CONTINUE; // don't log non json files
                 try (FileReader fileReader = new FileReader(jsonFile)) {
                     JsonObject jsonObject = CitizensBooksAPI.this.gson.fromJson(fileReader, JsonObject.class);
                     JsonPrimitive jsonFilterName = jsonObject.getAsJsonPrimitive("filter_name");
-                    if (!jsonFilterName.isString())  {
+                    if (!jsonFilterName.isString()) {
                         logger.warning("Failed to load " + jsonFile.getName() + " because it doesn't have a filter name!");
                         return FileVisitResult.CONTINUE;
                     }
@@ -203,10 +219,10 @@ public class CitizensBooksAPI {
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
-            JsonPrimitive jsonFilterName = new JsonPrimitive(filterName);
             JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
             JsonObject jsonFileObject = new JsonObject();
-            jsonFileObject.add("filter_name", jsonFilterName);
+            jsonFileObject.add("filter_name", new JsonPrimitive(filterName));
+            jsonFileObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
             jsonFileObject.add("book_content", jsonBookContent);
             this.gson.toJson(jsonFileObject, fileWriter);
             this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
