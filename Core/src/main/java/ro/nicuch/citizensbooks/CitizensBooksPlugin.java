@@ -137,6 +137,12 @@ public class CitizensBooksPlugin extends JavaPlugin {
         }
     }
 
+    @Override
+    public void onDisable() {
+        if (this.playerActionsListener != null)
+            this.playerActionsListener.onDisable();
+    }
+
     public CitizensBooksAPI getAPI() {
         return this.api;
     }

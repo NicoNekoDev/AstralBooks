@@ -185,7 +185,7 @@ public class CitizensBooksCommand implements TabExecutor {
                          * overwritten, so the edit is lost
                          */
                         this.plugin.reloadSettings();
-                        this.api.reloadFilters(); // reload filters too
+                        this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
                         sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
@@ -218,7 +218,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     }
                     if (this.api.hasPermission(sender, "npcbook.command.setjoin")) {
                         if (this.hasBookInHand((Player) sender)) {
-                            this.plugin.getSettings().set("join_book", this.getItemFromHand((Player) sender));
+                            this.api.setJoinBook(this.getItemFromHand((Player) sender));
                             this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
                             this.plugin.saveSettings(); //Always saved
                             sender.sendMessage(this.plugin.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
@@ -245,7 +245,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     break;
                 case "remjoin":
                     if (this.api.hasPermission(sender, "npcbook.command.remjoin")) {
-                        this.plugin.getSettings().set("join_book", null);
+                        this.api.removeJoinBook();
                         this.plugin.getSettings().set("join_book_last_change", 0);
                         this.plugin.saveSettings(); //Always saved
                         sender.sendMessage(this.plugin.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));

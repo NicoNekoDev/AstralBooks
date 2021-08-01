@@ -19,7 +19,6 @@
 
 package ro.nicuch.citizensbooks.listeners;
 
-import com.google.gson.JsonParseException;
 import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,22 +31,22 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
-import ro.nicuch.citizensbooks.utils.DelayHashMap;
-import ro.nicuch.citizensbooks.utils.DelayMap;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
-import java.io.File;
-import java.util.UUID;
+import java.util.Objects;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
-    private BukkitTask cleanupTask;
-    private final DelayMap<UUID, BukkitTask> delayedPlayers = new DelayHashMap<>();
-    private ItemStack joinBook;
+    private BukkitTask pullTask;
+    private final DelayQueue<DelayedPlayer> delayedPlayers = new DelayQueue<>();
 
     public PlayerActions(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -56,22 +55,30 @@ public class PlayerActions implements Listener {
     }
 
     public void onDisable() {
-        if (this.cleanupTask != null)
-            this.cleanupTask.cancel();
+        if (this.pullTask != null)
+            this.pullTask.cancel();
     }
 
     public void onReload() {
-        if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
-            this.cleanupTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.delayedPlayers::cleanup, 1L, 1L);
-        File joinBookFile = new File(this.plugin.getDataFolder() + File.separator + "join_book.json");
-        if (joinBookFile.exists()) {
-            try {
-                this.joinBook = this.api.getBookFromJsonFile(joinBookFile);
-            } catch (JsonParseException ex) {
-                this.joinBook = null;
-                this.plugin.getLogger().warning("Failed to load join book!");
+        if (this.pullTask != null)
+            this.pullTask.cancel();
+        if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
+            return;
+        this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            DelayedPlayer delayedPlayer = this.delayedPlayers.poll();
+            while (delayedPlayer != null) {
+                Player player = delayedPlayer.getPlayer();
+                this.api.openBook(player, this.api.placeholderHook(player, this.api.getJoinBook(), null));
+                if (!this.plugin.getSettings().getBoolean("join_book_always_show", false)) {
+                    if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
+                        if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
+                            return;
+                    this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
+                    this.plugin.saveSettings();
+                }
+                delayedPlayer = this.delayedPlayers.poll();
             }
-        }
+        }, 1L, 1L);
     }
 
     @EventHandler
@@ -97,36 +104,28 @@ public class PlayerActions implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (this.plugin.isAuthmeEnabled())
             return;
-        if (!this.plugin.getSettings().isItemStack("join_book"))
+        if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
             return;
-        if (this.api.hasPermission(event.getPlayer(), "npcbook.nojoinbook"))
+        if (this.api.getJoinBook() == null)
             return;
         Player player = event.getPlayer();
-        if (!this.plugin.getSettings().getBoolean("join_book_always_show", false)) {
-            if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
-                if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
-                    return;
-            this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
-            this.plugin.saveSettings();
-        }
-        if (this.joinBook == null)
-            return;
+         if (this.api.hasPermission(player, "npcbook.nojoinbook"))
+             return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false)) {
             int delay = this.plugin.getSettings().getInt("join_book_delay", 0);
             if (delay <= 0)
-                this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null));
-            else
-                this.delayedPlayers.put(player.getUniqueId(),
-                        Bukkit.getScheduler().runTaskLater(this.plugin, () -> this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null)), delay)); // 0 ticks by default
+                delay = 0;
+            this.delayedPlayers.offer(new DelayedPlayer(player, delay * 50L)); // delay (ticks) * 50 (milliseconds)
         } else
-            this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.joinBook, null));
+            this.delayedPlayers.offer(new DelayedPlayer(player, 0));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
+            return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
-            if (this.delayedPlayers.containsKey(event.getPlayer().getUniqueId()))
-                this.delayedPlayers.remove(event.getPlayer().getUniqueId()).cancel();
+            this.delayedPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -155,7 +154,49 @@ public class PlayerActions implements Listener {
         if (!this.api.hasFilter(filterName))
             return;
         ItemStack book = this.api.getFilter(filterName);
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book, null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
         event.setCancelled(true);
+    }
+
+    private static class DelayedPlayer implements Delayed {
+        private final long startTime = System.currentTimeMillis();
+        private final long maxLifeTimeMillis;
+        private final Player player;
+
+        public DelayedPlayer(Player player, long maxLifeTimeMillis) {
+            this.maxLifeTimeMillis = maxLifeTimeMillis;
+            this.player = player;
+        }
+
+        public Player getPlayer() {
+            return this.player;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DelayedPlayer that = (DelayedPlayer) o;
+            return Objects.equals(this.player.getUniqueId(), that.player.getUniqueId());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.player.getUniqueId());
+        }
+
+        @Override
+        public long getDelay(TimeUnit unit) {
+            return unit.convert(getDelayMillis(), TimeUnit.MILLISECONDS);
+        }
+
+        private long getDelayMillis() {
+            return (this.startTime + this.maxLifeTimeMillis) - System.currentTimeMillis();
+        }
+
+        @Override
+        public int compareTo(@NotNull Delayed that) {
+            return Long.compare(this.getDelayMillis(), ((DelayedPlayer) that).getDelayMillis());
+        }
     }
 }

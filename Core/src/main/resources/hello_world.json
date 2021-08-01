@@ -1,0 +1,31 @@
+{
+  "filter_name": "hello_world",
+  "mc_version": "1_17_R1",
+  "book_content": {
+    "author": "Server",
+    "title": "Hello",
+    "pages": [
+      {
+        "extra": [
+          {
+            "color": "#F80305",
+            "text": "Hello, "
+          },
+          {
+            "color": "#F80305",
+            "clickEvent": {
+              "action": "open_url",
+              "value": "https://www.spigotmc.org/resources/citizensbooks.37465/"
+            },
+            "text": "player"
+          },
+          {
+            "color": "#F80305",
+            "text": "!"
+          }
+        ],
+        "text": ""
+      }
+    ]
+  }
+}

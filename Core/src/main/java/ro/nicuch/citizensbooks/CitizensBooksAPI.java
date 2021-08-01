@@ -40,10 +40,7 @@ import ro.nicuch.citizensbooks.dist.Distribution;
 import ro.nicuch.citizensbooks.utils.BookLink;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -58,12 +55,37 @@ public class CitizensBooksAPI {
     private final Map<String, BookLink> filters = new HashMap<>();
     private final File filtersDirectory;
     private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
+    private final File joinBookFile;
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
-        this.filtersDirectory = new File(this.plugin.getDataFolder() + File.separator + "filters");
+        this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
+        this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+    }
+
+    public ItemStack getJoinBook() {
+        if (this.joinBookFile.exists()) {
+            try {
+                return this.getBookFromJsonFile(this.joinBookFile);
+            } catch (JsonParseException ex) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public void removeJoinBook() {
+        this.joinBookFile.delete();
+    }
+
+    public void setJoinBook(ItemStack book) {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        this.putBookInJsonFile(this.joinBookFile, book);
     }
 
     public ItemStack getBookFromJsonFile(File jsonFile) throws JsonParseException {
@@ -76,6 +98,10 @@ public class CitizensBooksAPI {
     }
 
     public void putBookInJsonFile(File jsonFile, ItemStack book) throws JsonParseException {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
             JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
             this.gson.toJson(jsonBookContent, fileWriter);
@@ -109,12 +135,18 @@ public class CitizensBooksAPI {
         return false;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void reloadFilters(Logger logger) {
         logger.info("Loading filters...");
         this.filters.clear();
-        if (!this.filtersDirectory.exists())
+        if (!this.filtersDirectory.exists()) {
             this.filtersDirectory.mkdirs();
+            File helloWorldFile = new File(this.filtersDirectory + File.separator + "hello_world.json");
+            try {
+                Files.copy(this.plugin.getResource("hello_world.json"), helloWorldFile.toPath());
+            } catch (IOException e) {
+                logger.warning("Failed to save default hello_world filter! This error could be ignored...");
+            }
+        }
         AtomicInteger successfulFile = new AtomicInteger();
         FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
             @Override
@@ -274,6 +306,10 @@ public class CitizensBooksAPI {
         pi.setItem(slot, book);
         this.rightClick(player);
         pi.setItem(slot, old);
+    }
+
+    public ItemStack placeholderHook(Player player, ItemStack book) {
+        return this.placeholderHook(player, book, null);
     }
 
     public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
