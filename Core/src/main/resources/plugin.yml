@@ -1,5 +1,5 @@
 name: ${project.parent.artifactId}
-version: ${project.parent.version}
+version: ${project.version}
 author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
 softdepend: [PlaceholderAPI, Citizens, LuckPerms, Vault, Authme, NBTAPI]

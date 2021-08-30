@@ -185,7 +185,13 @@ public class CitizensBooksCommand implements TabExecutor {
                          * overwritten, so the edit is lost
                          */
                         this.plugin.reloadSettings();
-                        this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
+                        if (this.plugin.isDatabaseEnabled()) // disable the database
+                            this.plugin.getDatabase().disableDatabase(this.plugin.getLogger());
+                        if (!this.plugin.setDatabaseEnabled(this.plugin.getDatabase().enableDatabase(this.plugin.getLogger())))
+                            // 1) try to enable database
+                            // 2) set the database being enabled
+                            // 3) if is disabled, load default/normal filters
+                            this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
                         sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));

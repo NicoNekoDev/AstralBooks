@@ -90,3 +90,15 @@ join_book_always_show: false
 join_book_enable_delay: false
 join_book_delay: 0 # in ticks (20 ticks = 1 second) - if AuthMe is enabled, this will be ignored!
 join_book_last_seen_by_players: { }
+database:
+  type: "yaml" # yaml, sqlite, mysql
+  sqlite:
+    file_name: "storage.db"
+  mysql:
+    user: "user"
+    password: "password"
+    ip: "localhost"
+    port: 3306
+    name: "db_name"
+    enable_ssl: false
+    table_prefix: "cbooks_"

@@ -3,7 +3,7 @@
   <parent>
     <artifactId>CitizensBooks</artifactId>
     <groupId>ro.nicuch</groupId>
-    <version>2.6.5</version>
+    <version>parent</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>CitizensBooks-Distribution</artifactId>

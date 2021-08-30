@@ -38,6 +38,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import ro.nicuch.citizensbooks.dist.Distribution;
 import ro.nicuch.citizensbooks.utils.BookLink;
+import ro.nicuch.citizensbooks.utils.CitizensBooksDatabase;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
 
 public class CitizensBooksAPI {
     private final CitizensBooksPlugin plugin;
+    private final CitizensBooksDatabase database;
     private Distribution distribution = null;
     private final Map<String, BookLink> filters = new HashMap<>();
     private final File filtersDirectory;
@@ -61,6 +63,7 @@ public class CitizensBooksAPI {
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
+        this.database = this.plugin.getDatabase();
         this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
         this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
     }
@@ -124,10 +127,10 @@ public class CitizensBooksAPI {
                 return true;
             }
         } catch (final Exception ex) {
-            ex.printStackTrace();
-            this.plugin.getLogger().warning("Well, this version of CitizensBooks is incompatible with your server version " + version + "... ");
+            //ex.printStackTrace();
+            this.plugin.getLogger().warning("CitizensBooks is incompatible with your server version " + version + "... ");
             if (UpdateChecker.updateAvailable())
-                this.plugin.getLogger().info("Oh look! An update is available! Go to Spigot page and download it! It might fix the error!");
+                this.plugin.getLogger().info("Oh look! An update is available! Go to the Spigot page and download it! It might fix the error!");
             else
                 this.plugin.getLogger().warning("Please don't report this error! We try hard to update it as fast as possible!");
             return false;
@@ -213,6 +216,8 @@ public class CitizensBooksAPI {
         Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        if (this.plugin.isDatabaseEnabled())
+            return this.database.getFilterBook(filterName, new ItemStack(Material.WRITTEN_BOOK));
         return this.filters.getOrDefault(filterName, new BookLink(new ItemStack(Material.WRITTEN_BOOK), null)).getBook();
     }
 
@@ -228,6 +233,8 @@ public class CitizensBooksAPI {
         Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        if (this.plugin.isDatabaseEnabled())
+            return this.database.hasFilterBook(filterName);
         return this.filters.containsKey(filterName);
     }
 
@@ -249,6 +256,10 @@ public class CitizensBooksAPI {
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        if (this.plugin.isDatabaseEnabled()) {
+            this.database.putFilterBook(filterName, book);
+            return;
+        }
         File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
             JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
@@ -264,6 +275,8 @@ public class CitizensBooksAPI {
     }
 
     public Set<String> getFilters() {
+        if (this.plugin.isDatabaseEnabled())
+            return this.database.getFilterNames();
         return this.filters.keySet();
     }
 
@@ -274,6 +287,10 @@ public class CitizensBooksAPI {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void removeFilter(String filterName) {
+        if (this.plugin.isDatabaseEnabled()) {
+            this.database.removeFilterBook(filterName);
+            return;
+        }
         if (this.filters.containsKey(filterName)) {
             BookLink link = this.filters.remove(filterName);
             File jsonFile = link.getLink().toFile();

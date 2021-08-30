@@ -33,6 +33,7 @@ import ro.nicuch.citizensbooks.bstats.Metrics;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
+import ro.nicuch.citizensbooks.utils.CitizensBooksDatabase;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
@@ -45,9 +46,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private LuckPerms luckPerms;
     private final CitizensBooksAPI api = new CitizensBooksAPI(this);
     private YamlConfiguration settings;
-    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI;
+    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI, useDatabase;
     public final int configVersion = 9;
     private PlayerActions playerActionsListener;
+    private CitizensBooksDatabase database;
 
     @Override
     public void onEnable() {
@@ -55,7 +57,11 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
             if (this.api.loadDistribution()) {
-                this.api.reloadFilters(this.getLogger());
+                this.database = new CitizensBooksDatabase(this);
+                if (this.database.enableDatabase(this.getLogger())) {
+                    this.useDatabase = true;
+                } else
+                    this.api.reloadFilters(this.getLogger());
                 //bStats Metrics, by default enabled
                 new Metrics(this);
                 PluginManager manager = this.getServer().getPluginManager();
@@ -125,7 +131,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 if (this.settings.getBoolean("update_check", true))
                     manager.registerEvents(new UpdateChecker(this), this);
             } else {
-                this.getLogger().info("Disabling the plugin!");
+                this.getLogger().info("Failed to load distribution... disabling the plugin!");
                 this.setEnabled(false);
             }
             this.getLogger().info("============== END LOAD ==============");
@@ -141,6 +147,12 @@ public class CitizensBooksPlugin extends JavaPlugin {
     public void onDisable() {
         if (this.playerActionsListener != null)
             this.playerActionsListener.onDisable();
+        if (this.useDatabase)
+            this.database.disableDatabase(this.getLogger());
+    }
+
+    public CitizensBooksDatabase getDatabase() {
+        return this.database;
     }
 
     public CitizensBooksAPI getAPI() {
@@ -228,6 +240,14 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public boolean isNBTAPIEnabled() {
         return this.useNBTAPI;
+    }
+
+    public boolean isDatabaseEnabled() {
+        return this.useDatabase;
+    }
+
+    public boolean setDatabaseEnabled(boolean enabled) {
+        return (this.useDatabase = enabled);
     }
 
     public String getMessage(Message msg) {
