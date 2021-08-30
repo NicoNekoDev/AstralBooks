@@ -91,7 +91,7 @@ join_book_enable_delay: false
 join_book_delay: 0 # in ticks (20 ticks = 1 second) - if AuthMe is enabled, this will be ignored!
 join_book_last_seen_by_players: { }
 database:
-  type: "yaml" # yaml, sqlite, mysql
+Cha  type: "json" # json, sqlite, mysql
   threads: 2
   sqlite:
     file_name: "storage.db"

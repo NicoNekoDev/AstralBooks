@@ -36,6 +36,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
 import ro.nicuch.citizensbooks.utils.BookLink;
 import ro.nicuch.citizensbooks.utils.CitizensBooksDatabase;
@@ -46,6 +49,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -417,5 +421,31 @@ public class CitizensBooksAPI {
 
     protected List<String> getPlayers() {
         return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+    }
+
+    public String encodeItemStack(ItemStack item) {
+        if (item != null && item.getType() != Material.AIR)
+            try {
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
+                dataOutput.writeObject(item.serialize());
+                return Base64Coder.encodeLines(outputStream.toByteArray());
+            } catch (IOException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to encode item!", ex);
+            }
+        return "";
+    }
+
+    @SuppressWarnings("unchecked")
+    public ItemStack decodeItemStack(String data) {
+        if (data != null && !data.isEmpty())
+            try {
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
+                BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+                return ItemStack.deserialize((Map<String, Object>) dataInput.readObject());
+            } catch (IOException | ClassNotFoundException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to decode item!", ex);
+            }
+        return null;
     }
 }

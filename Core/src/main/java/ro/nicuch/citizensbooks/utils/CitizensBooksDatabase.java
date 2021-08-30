@@ -3,24 +3,19 @@ package ro.nicuch.citizensbooks.utils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.jetbrains.annotations.NotNull;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.sql.*;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +35,7 @@ public class CitizensBooksDatabase {
     public boolean enableDatabase(Logger logger) {
         try {
             YamlConfiguration settings = this.plugin.getSettings();
-            if ("mysql".equalsIgnoreCase(settings.getString("database.type", "yaml"))) {
+            if ("mysql".equalsIgnoreCase(settings.getString("database.type", "json"))) {
                 logger.info("Loading MySQL database...");
                 String user = settings.getString("database.mysql.user", "user");
                 String pass = settings.getString("database.mysql.password", "password");
@@ -57,7 +52,7 @@ public class CitizensBooksDatabase {
                 this.connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
                 this.isMySQL = true;
                 logger.info("Connected to MySQL database!");
-            } else if ("sqlite".equalsIgnoreCase(settings.getString("database.type", "yaml"))) {
+            } else if ("sqlite".equalsIgnoreCase(settings.getString("database.type", "json"))) {
                 logger.info("Loading SQLite database...");
                 String file = settings.getString("database.sqlite.file_name", "storage.db");
                 this.connection = DriverManager.getConnection("jdbc:sqlite:" + this.plugin.getDataFolder() + File.separator + file);
@@ -129,7 +124,7 @@ public class CitizensBooksDatabase {
             try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_book FROM " + this.table_prefix + "filters WHERE filter_name=?;")) {
                 statement.setString(1, filterName);
                 try (ResultSet result = statement.executeQuery()) {
-                    return this.decodeItemStack(result.getString("filter_book"));
+                    return this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
                 }
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to retrieve book data!", ex);
@@ -146,7 +141,7 @@ public class CitizensBooksDatabase {
                     "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;" :
                     "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;";
             try (PreparedStatement statement = this.connection.prepareStatement(query)) {
-                String encoded = this.encodeItemStack(book);
+                String encoded = this.plugin.getAPI().encodeItemStack(book);
                 statement.setString(1, filterName);
                 statement.setString(2, encoded);
                 statement.setString(3, encoded);
@@ -172,31 +167,5 @@ public class CitizensBooksDatabase {
 
     public Set<String> getFilterNames() {
         return this.filters;
-    }
-
-    protected String encodeItemStack(ItemStack item) {
-        if (item != null && item.getType() != Material.AIR)
-            try {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-                dataOutput.writeObject(item.serialize());
-                return Base64Coder.encodeLines(outputStream.toByteArray());
-            } catch (IOException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "Failed to encode item!", ex);
-            }
-        return "";
-    }
-
-    @SuppressWarnings("unchecked")
-    protected ItemStack decodeItemStack(String data) {
-        if (data != null && !data.isEmpty())
-            try {
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
-                BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
-                return ItemStack.deserialize((Map<String, Object>) dataInput.readObject());
-            } catch (IOException | ClassNotFoundException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "Failed to decode item!", ex);
-            }
-        return null;
     }
 }
