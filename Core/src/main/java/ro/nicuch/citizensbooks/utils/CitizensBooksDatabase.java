@@ -98,15 +98,17 @@ public class CitizensBooksDatabase {
 
     public void disableDatabase(Logger logger) {
         logger.info("Disabling database...");
-        this.filters.clear();
-        this.filterBooks.invalidateAll();
-        this.filterBooks = null;
-        this.poolExecutor.shutdown();
         try {
-            if (this.connection != null && this.connection.isClosed()) {
+            this.filters.clear();
+            if (this.filterBooks != null)
+                this.filterBooks.invalidateAll();
+            this.filterBooks = null;
+            this.poolExecutor.shutdown();
+            this.poolExecutor.awaitTermination(5, TimeUnit.SECONDS);
+            if (this.connection != null && !this.connection.isClosed()) {
                 this.connection.close();
             }
-        } catch (SQLException ignored) {
+        } catch (SQLException | InterruptedException ignored) {
         }
     }
 
@@ -117,7 +119,7 @@ public class CitizensBooksDatabase {
     public ItemStack getFilterBook(String filterName, ItemStack def) {
         try {
             return this.filterBooks.get(filterName);
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             return def;
         }
     }
@@ -125,6 +127,7 @@ public class CitizensBooksDatabase {
     protected Future<ItemStack> getFilterBookStack(String filterName) {
         return this.poolExecutor.submit(() -> {
             try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_book FROM " + this.table_prefix + "filters WHERE filter_name=?;")) {
+                statement.setString(1, filterName);
                 try (ResultSet result = statement.executeQuery()) {
                     return this.decodeItemStack(result.getString("filter_book"));
                 }
@@ -177,7 +180,6 @@ public class CitizensBooksDatabase {
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
                 dataOutput.writeObject(item.serialize());
-                dataOutput.close();
                 return Base64Coder.encodeLines(outputStream.toByteArray());
             } catch (IOException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to encode item!", ex);
@@ -195,6 +197,6 @@ public class CitizensBooksDatabase {
             } catch (IOException | ClassNotFoundException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to decode item!", ex);
             }
-        return new ItemStack(Material.AIR);
+        return null;
     }
 }

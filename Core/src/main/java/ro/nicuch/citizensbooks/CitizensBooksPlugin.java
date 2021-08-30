@@ -57,9 +57,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
             if (this.api.loadDistribution()) {
-                if (this.database.enableDatabase(this.getLogger())) {
-                    this.useDatabase = true;
-                } else
+                if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
                     this.api.reloadFilters(this.getLogger());
                 //bStats Metrics, by default enabled
                 new Metrics(this);
@@ -146,7 +144,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     public void onDisable() {
         if (this.playerActionsListener != null)
             this.playerActionsListener.onDisable();
-        if (this.useDatabase)
+        if (this.isDatabaseEnabled())
             this.database.disableDatabase(this.getLogger());
     }
 
