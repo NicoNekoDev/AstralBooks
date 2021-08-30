@@ -44,12 +44,12 @@ import java.io.InputStream;
 public class CitizensBooksPlugin extends JavaPlugin {
     private Permission vaultPerms;
     private LuckPerms luckPerms;
+    private final CitizensBooksDatabase database = new CitizensBooksDatabase(this);
     private final CitizensBooksAPI api = new CitizensBooksAPI(this);
     private YamlConfiguration settings;
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI, useDatabase;
     public final int configVersion = 9;
     private PlayerActions playerActionsListener;
-    private CitizensBooksDatabase database;
 
     @Override
     public void onEnable() {
@@ -57,7 +57,6 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
             if (this.api.loadDistribution()) {
-                this.database = new CitizensBooksDatabase(this);
                 if (this.database.enableDatabase(this.getLogger())) {
                     this.useDatabase = true;
                 } else

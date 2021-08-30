@@ -31,6 +31,7 @@ public class CitizensBooksDatabase {
     private String table_prefix;
     private LoadingCache<String, ItemStack> filterBooks;
     private final Set<String> filters = new HashSet<>();
+    private boolean isMySQL;
 
     public CitizensBooksDatabase(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -54,11 +55,13 @@ public class CitizensBooksDatabase {
                 boolean sslEnabled = settings.getBoolean("database.mysql.enable_ssl", false);
                 this.table_prefix = settings.getString("database.mysql.table_prefix", "cbooks_");
                 this.connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
+                this.isMySQL = true;
                 logger.info("Connected to MySQL database!");
             } else if ("sqlite".equalsIgnoreCase(settings.getString("database.type", "yaml"))) {
                 logger.info("Loading SQLite database...");
                 String file = settings.getString("database.sqlite.file_name", "storage.db");
                 this.connection = DriverManager.getConnection("jdbc:sqlite:" + this.plugin.getDataFolder() + File.separator + file);
+                this.isMySQL = false;
                 logger.info("Connected to SQLite database!");
             } else
                 return false;
@@ -82,6 +85,10 @@ public class CitizensBooksDatabase {
                             return CitizensBooksDatabase.this.getFilterBookStack(key).get();
                         }
                     });
+            if (this.filters.isEmpty())
+                logger.info("No filter was loaded!");
+            else
+                logger.info("Loaded " + this.filters.size() + " filters!");
             return true;
         } catch (SQLException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to connect to database!", ex);
@@ -104,7 +111,7 @@ public class CitizensBooksDatabase {
     }
 
     public boolean hasFilterBook(String filterName) {
-        return this.getFilterBook(filterName, null) != null;
+        return this.filters.contains(filterName);
     }
 
     public ItemStack getFilterBook(String filterName, ItemStack def) {
@@ -132,12 +139,15 @@ public class CitizensBooksDatabase {
         this.filters.add(filterName);
         this.filterBooks.put(filterName, book);
         this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;")) {
+            String query = this.isMySQL ?
+                    "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;" :
+                    "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;";
+            try (PreparedStatement statement = this.connection.prepareStatement(query)) {
                 String encoded = this.encodeItemStack(book);
                 statement.setString(1, filterName);
                 statement.setString(2, encoded);
                 statement.setString(3, encoded);
-                statement.executeQuery();
+                statement.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to save book data!", ex);
             }
@@ -187,5 +197,4 @@ public class CitizensBooksDatabase {
             }
         return new ItemStack(Material.AIR);
     }
-
 }
