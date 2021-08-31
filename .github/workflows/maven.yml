@@ -12,8 +12,8 @@ jobs:
           check-latest: true
       - name: Install spigot...
         run: |
-        chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
-        ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
+          chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
+          ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
         shell: bash
 
       - uses: actions/setup-java@v2
@@ -23,8 +23,8 @@ jobs:
           check-latest: true
       - name: Install spigot...
         run: |
-          chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v16.sh
-          ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
+            chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v16.sh
+            ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
         shell: bash
 
       - name: Build with Maven
