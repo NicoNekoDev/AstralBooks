@@ -13,16 +13,7 @@ jobs:
           java-version: '8'
           check-latest: true
 
-      - name: Load caching v8
-        uses: actions/cache@v2
-        id: cache-v8
-        with:
-          path: ~/cache
-          key: ${{ runner.os }}-node-${{ hashFiles('${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh') }}
-          restore-keys: ${{ runner.os }}-node-
-
       - name: Install spigot (1.8 -> 1.16)
-        if: steps.cache-v8.outputs.cache-hit != 'true'
         run: |
           chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
           ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
@@ -35,16 +26,7 @@ jobs:
           java-version: '16'
           check-latest: true
 
-      - name: Load caching v16
-        uses: actions/cache@v2
-        id: cache-v16
-        with:
-          path: ~/cache
-          key: ${{ runner.os }}-node-${{ hashFiles('${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v16.sh') }}
-          restore-keys: ${{ runner.os }}-node-
-
       - name: Install spigot... (1.17 -> latest)
-        if: steps.cache-v16.outputs.cache-hit != 'true'
         run: |
           chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v16.sh
           ${GITHUB_WORKSPACE}/.github/scripts/buildtools-install-v8.sh
