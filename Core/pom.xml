@@ -4,15 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>CitizensBooks-Core</artifactId>
+    <artifactId>citizensbooks</artifactId>
     <version>2.6.6</version>
     <packaging>jar</packaging>
 
     <parent>
-        <artifactId>citizensbooks</artifactId>
+        <artifactId>citizensbooks-parent</artifactId>
         <groupId>ro.nicuch</groupId>
-        <version>2.6.6</version>
+        <version>parent</version>
     </parent>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub NicoNekoDev Packages</name>
+            <url>https://maven.pkg.github.com/NicoNekoDev/CitizensBooks</url>
+        </repository>
+    </distributionManagement>
 
     <repositories>
         <repository>
@@ -286,11 +294,16 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+            </plugin>
         </plugins>
     </build>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <github.global.server>github</github.global.server>
     </properties>
 </project>
