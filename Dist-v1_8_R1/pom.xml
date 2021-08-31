@@ -13,7 +13,7 @@
     </properties>
 
     <parent>
-        <artifactId>CitizensBooks</artifactId>
+        <artifactId>citizensbooks</artifactId>
         <groupId>ro.nicuch</groupId>
         <version>2.6.6</version>
     </parent>
