@@ -17,12 +17,12 @@ jobs:
           check-latest: true
       - name: Install spigot...
         if: steps.cache.outputs.cache-hit != 'true'
-        run: buildtools-install-v8.sh
+        run: /buildtools-install-v8.sh
       - uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
           java-version: '16'
           check-latest: true
-      - run: buildtools-install-v16.sh
+      - run: /buildtools-install-v16.sh
       - name: Build with Maven
         run: mvn -B package --file pom.xml
