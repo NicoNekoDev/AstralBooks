@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <artifactId>citizensbooks</artifactId>
+        <artifactId>CitizensBooks</artifactId>
         <groupId>ro.nicuch</groupId>
         <version>parent</version>
     </parent>
