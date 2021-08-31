@@ -6,4 +6,4 @@ else
 	wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
 fi
 echo "[INFO} Installing spigot to maven..."
-java -jar BuildTools.jar --rev 1.17.1 --compile remapped
+java -jar BuildTools.jar --rev 1.17.1 --compile remapped-mojang
