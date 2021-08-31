@@ -11,7 +11,7 @@ jobs:
           java-version: '8'
           check-latest: true
       - name: Install spigot...
-        run: "${GITHUB_WORKSPACE}/.github/buildtools-install-v8.sh"
+        run: "${GITHUB_ACTION_PATH}/.github/buildtools-install-v8.sh"
         shell: bash
 
       - uses: actions/setup-java@v2
@@ -20,7 +20,7 @@ jobs:
           java-version: '16'
           check-latest: true
       - name: Install spigot...
-        run: "${GITHUB_WORKSPACE}/.github/buildtools-install-v16.sh"
+        run: "${GITHUB_ACTION_PATH}/.github/buildtools-install-v16.sh"
         shell: bash
 
       - name: Build with Maven
