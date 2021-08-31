@@ -11,7 +11,7 @@
     <parent>
         <artifactId>CitizensBooks</artifactId>
         <groupId>ro.nicuch</groupId>
-        <version>parent</version>
+        <version>2.6.6</version>
     </parent>
 
     <repositories>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_17_R1</artifactId>
-            <version>distribution-v1_17_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_16_R1</artifactId>
-            <version>distribution-v1_16_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_16_R2</artifactId>
-            <version>distribution-v1_16_R2</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_16_R3</artifactId>
-            <version>distribution-v1_16_R3</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -78,7 +78,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_15_R1</artifactId>
-            <version>distribution-v1_15_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -86,7 +86,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_14_R1</artifactId>
-            <version>distribution-v1_14_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -94,7 +94,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_13_R1</artifactId>
-            <version>distribution-v1_13_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_13_R2</artifactId>
-            <version>distribution-v1_13_R2</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -110,7 +110,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_12_R1</artifactId>
-            <version>distribution-v1_12_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -118,7 +118,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_11_R1</artifactId>
-            <version>distribution-v1_11_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -126,7 +126,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_10_R1</artifactId>
-            <version>distribution-v1_10_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_9_R1</artifactId>
-            <version>distribution-v1_9_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -142,7 +142,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_9_R2</artifactId>
-            <version>distribution-v1_9_R2</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -150,7 +150,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_8_R1</artifactId>
-            <version>distribution-v1_8_R1</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -158,7 +158,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_8_R2</artifactId>
-            <version>distribution-v1_8_R2</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -166,7 +166,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-v1_8_R3</artifactId>
-            <version>distribution-v1_8_R3</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
@@ -174,7 +174,7 @@
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>CitizensBooks-Distribution</artifactId>
-            <version>distribution</version>
+            <version>1.0.0</version>
             <scope>compile</scope>
             <type>jar</type>
             <optional>true</optional>
