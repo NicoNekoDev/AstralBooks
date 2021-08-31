@@ -10,8 +10,7 @@ jobs:
           distribution: 'adopt'
           java-version: '8'
           check-latest: true
-      - uses: actions/checkout@v2
-        name: Install spigot...
+      - name: Install spigot...
         run: "${GITHUB_WORKSPACE}/.github/buildtools-install-v8.sh"
         shell: bash
 
@@ -20,11 +19,9 @@ jobs:
           distribution: 'adopt'
           java-version: '16'
           check-latest: true
-      - uses: actions/checkout@v2
-        name: Install spigot...
+      - name: Install spigot...
         run: "${GITHUB_WORKSPACE}/.github/buildtools-install-v16.sh"
         shell: bash
 
-      - uses: actions/checkout@v2
       - name: Build with Maven
         run: mvn -B package --file pom.xml
