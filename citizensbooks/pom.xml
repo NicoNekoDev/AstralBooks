@@ -239,6 +239,7 @@
     </dependencies>
 
     <build>
+        <finalName>CitizensBooks-${project.version}</finalName>
         <resources>
             <resource>
                 <targetPath>.</targetPath>

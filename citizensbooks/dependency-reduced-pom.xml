@@ -19,6 +19,7 @@
         </includes>
       </resource>
     </resources>
+    <finalName>CitizensBooks-${project.version}</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
