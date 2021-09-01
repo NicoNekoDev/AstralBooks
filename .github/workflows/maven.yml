@@ -49,4 +49,4 @@ jobs:
         shell: bash
 
       - name: Build CitizensBooks with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package --file pom.xml deploy
