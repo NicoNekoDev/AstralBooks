@@ -49,4 +49,6 @@ jobs:
         shell: bash
 
       - name: Build CitizensBooks with Maven
-        run: mvn -B package deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn -B package --file pom.xml deploy -s $GITHUB_WORKSPACE/settings.xml
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
