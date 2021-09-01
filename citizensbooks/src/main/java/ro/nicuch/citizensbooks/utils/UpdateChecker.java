@@ -30,6 +30,7 @@ import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
+import java.util.logging.Level;
 
 public class UpdateChecker implements Listener {
     private final CitizensBooksPlugin plugin;
@@ -66,7 +67,7 @@ public class UpdateChecker implements Listener {
             con.setRequestMethod("GET");
             return new BufferedReader(new InputStreamReader(con.getInputStream())).readLine();
         } catch (Exception ex) {
-            this.plugin.getLogger().warning("Failed to check for update on spigot.");
+            this.plugin.getLogger().log(Level.WARNING, "Failed to check for update on spigot.");
         }
         return null;
     }

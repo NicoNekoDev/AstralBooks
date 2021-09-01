@@ -40,6 +40,7 @@ import ro.nicuch.citizensbooks.utils.UpdateChecker;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.logging.Level;
 
 public class CitizensBooksPlugin extends JavaPlugin {
     private Permission vaultPerms;
@@ -133,8 +134,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             }
             this.getLogger().info("============== END LOAD ==============");
         } catch (Exception ex) {
-            this.printError(ex); //StackOverflows are not catched directly, maybe this will help?
-            this.getLogger().info("Error detected, disabling the plugin!");
+            this.getLogger().log(Level.WARNING, "Error detected, disabling the plugin!", ex);
             this.getLogger().info("============== END LOAD ==============");
             this.setEnabled(false);
         }
@@ -195,7 +195,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             if (this.playerActionsListener != null)
                 this.playerActionsListener.onReload();
         } catch (Exception ex) {
-            this.printError(ex); //Saving files can cause IOException
+            this.getLogger().log(Level.WARNING, "Couldn't reload config", ex);
         }
     }
 
@@ -203,7 +203,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         try {
             this.settings.save(new File(this.getDataFolder() + File.separator + "config.yml"));
         } catch (Exception ex) {
-            this.printError(ex); //Saving files can cause IOException
+            this.getLogger().log(Level.WARNING, "Couldn't save config", ex);
         }
     }
 
@@ -255,23 +255,5 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
     public String getMessageNoHeader(Message msg) {
         return ChatColor.translateAlternateColorCodes('&', this.settings.getString(msg.getPath(), msg.getPath()));
-    }
-
-    /*
-     * author GamerKing195 (from AutoupdaterAPI)
-     */
-    public void printError(Exception ex) {
-        this.getLogger().severe("A severe error has occurred with CitizensBooks.");
-        this.getLogger().severe("If you cannot figure out this error on your own (e.g. a config error) please copy and paste everything from here to END ERROR and post it at https://github.com/nicuch/CitizensBooks/issues.");
-        this.getLogger().severe("");
-        this.getLogger().severe("============== BEGIN ERROR ==============");
-        this.getLogger().severe("PLUGIN VERSION: CitizensBooks " + getDescription().getVersion());
-        this.getLogger().severe("");
-        this.getLogger().severe("MESSAGE: " + ex.getMessage());
-        this.getLogger().severe("");
-        this.getLogger().severe("STACKTRACE: ");
-        ex.printStackTrace();
-        this.getLogger().severe("");
-        this.getLogger().severe("============== END ERROR ==============");
     }
 }
