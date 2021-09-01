@@ -1,4 +1,4 @@
-name: ${project.parent.artifactId}
+name: CitizensBooks
 version: ${project.version}
 author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
