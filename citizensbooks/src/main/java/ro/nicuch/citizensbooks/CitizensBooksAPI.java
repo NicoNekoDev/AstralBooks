@@ -325,7 +325,11 @@ public class CitizensBooksAPI {
         ItemStack old = player.getInventory().getItem(slot);
         PlayerInventory pi = player.getInventory();
         pi.setItem(slot, book);
-        this.rightClick(player);
+        try {
+            this.rightClick(player);
+        } catch (Exception ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Something went wrong!", ex);
+        }
         pi.setItem(slot, old);
     }
 
