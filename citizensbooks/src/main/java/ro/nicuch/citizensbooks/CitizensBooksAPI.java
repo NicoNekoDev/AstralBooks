@@ -214,7 +214,7 @@ public class CitizensBooksAPI {
      * @param filterName filter name/id
      * @return the book
      */
-    public ItemStack getFilter(String filterName) {
+    public ItemStack getFilter(String filterName, ItemStack defaultItemStack) {
         Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
@@ -222,7 +222,11 @@ public class CitizensBooksAPI {
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled())
             return this.database.getFilterBook(filterName, new ItemStack(Material.WRITTEN_BOOK));
-        return this.filters.getOrDefault(filterName, new BookLink(new ItemStack(Material.WRITTEN_BOOK), null)).getBook();
+        return this.filters.getOrDefault(filterName, new BookLink(defaultItemStack, null)).getBook();
+    }
+
+    public ItemStack getFilter(String filterName) {
+        return this.getFilter(filterName, new ItemStack(Material.WRITTEN_BOOK));
     }
 
     /**
