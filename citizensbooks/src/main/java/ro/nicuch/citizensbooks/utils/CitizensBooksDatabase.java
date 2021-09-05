@@ -25,8 +25,10 @@ public class CitizensBooksDatabase {
     private ExecutorService poolExecutor;
     private String table_prefix;
     private LoadingCache<String, ItemStack> filterBooks;
+    private LoadingCache<Pair<Integer, String>, ItemStack> npcBooks;
     private final Set<String> filters = new HashSet<>();
     private boolean isMySQL;
+    private String serverName;
 
     public CitizensBooksDatabase(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -49,6 +51,7 @@ public class CitizensBooksDatabase {
                 String database = settings.getString("database.mysql.name", "database");
                 boolean sslEnabled = settings.getBoolean("database.mysql.enable_ssl", false);
                 this.table_prefix = settings.getString("database.mysql.table_prefix", "cbooks_");
+                this.serverName = settings.getString("database.mysql.server_name", "default");
                 this.connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
                 this.isMySQL = true;
                 logger.info("Connected to MySQL database!");
@@ -65,6 +68,15 @@ public class CitizensBooksDatabase {
                             "filter_name VARCHAR(255) PRIMARY KEY," +
                             "filter_book TEXT" +
                             ");");
+            if (this.plugin.isCitizensEnabled()) {
+                this.connection.createStatement().executeUpdate(
+                        "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
+                                "unique_id INT PRIMARY KEY AUTO_INCREMENT," +
+                                "npc_id INT NOT NULL," +
+                                "server VARCHAR(255)," +
+                                "npc_book TEXT" +
+                                ");");
+            }
             try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT filter_name FROM " + this.table_prefix + "filters;")) {
                 while (preload.next()) {
                     this.filters.add(preload.getString("filter_name"));
@@ -80,6 +92,17 @@ public class CitizensBooksDatabase {
                             return CitizensBooksDatabase.this.getFilterBookStack(key).get();
                         }
                     });
+            if (this.plugin.isCitizensEnabled()) {
+                this.npcBooks = CacheBuilder.newBuilder()
+                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                        .expireAfterAccess(5, TimeUnit.MINUTES)
+                        .build(new CacheLoader<>() {
+                            @Override
+                            public ItemStack load(@NotNull Pair<Integer, String> key) throws Exception {
+                                return CitizensBooksDatabase.this.getNPCBookStack(key).get();
+                            }
+                        });
+            }
             if (this.filters.isEmpty())
                 logger.info("No filter was loaded!");
             else
@@ -105,6 +128,48 @@ public class CitizensBooksDatabase {
             }
         } catch (SQLException | InterruptedException ignored) {
         }
+    }
+
+    public ItemStack getNPCBook(int npcId, String side, ItemStack def) {
+        if (!this.plugin.isCitizensEnabled())
+            throw new IllegalStateException("Citizens is not enabled!");
+        try {
+            return this.npcBooks.get(new Pair<>(npcId, side));
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    public void removeNPCBook(int npcId, String side) {
+        if (!this.plugin.isCitizensEnabled())
+            throw new IllegalStateException("Citizens is not enabled!");
+        this.poolExecutor.submit(() -> {
+            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
+                statement.setInt(1, npcId);
+                statement.setString(2, side);
+                statement.setString(3, this.serverName);
+                statement.executeUpdate();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to remove book data!", ex);
+            }
+        });
+    }
+
+
+    protected Future<ItemStack> getNPCBookStack(Pair<Integer, String> key) {
+        return this.poolExecutor.submit(() -> {
+            try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_book FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
+                statement.setInt(1, key.getFirstValue());
+                statement.setString(2, key.getSecondValue());
+                statement.setString(3, this.serverName);
+                try (ResultSet result = statement.executeQuery()) {
+                    return this.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
+                }
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to retrieve book data!", ex);
+                return null;
+            }
+        });
     }
 
     public boolean hasFilterBook(String filterName) {

@@ -37,7 +37,7 @@ public class CitizensActions implements Listener {
     private final CitizensBooksAPI api;
 
     public CitizensActions(CitizensBooksPlugin plugin) {
-        api = (this.plugin = plugin).getAPI();
+        this.api = (this.plugin = plugin).getAPI();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)

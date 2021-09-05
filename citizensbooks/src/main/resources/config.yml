@@ -103,3 +103,4 @@ database:
     name: "db_name"
     enable_ssl: false
     table_prefix: "cbooks_"
+    server_name: "default"

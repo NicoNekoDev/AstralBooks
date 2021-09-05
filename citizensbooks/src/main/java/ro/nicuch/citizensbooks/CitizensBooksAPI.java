@@ -62,6 +62,8 @@ public class CitizensBooksAPI {
     private final File filtersDirectory;
     private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final File joinBookFile;
+    private JsonObject jsonSavedBooks = new JsonObject();
+
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -70,6 +72,81 @@ public class CitizensBooksAPI {
         this.database = this.plugin.getDatabase();
         this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
         this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+    }
+
+    public void reloadSavedBooks(Logger logger) {
+        try (FileReader reader = new FileReader(this.joinBookFile)) {
+            this.jsonSavedBooks = this.gson.fromJson(reader, JsonObject.class);
+            if (this.jsonSavedBooks.isJsonNull()) {
+                this.jsonSavedBooks = new JsonObject();
+            }
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, "Failed to reload saved_books.json!", ex);
+        }
+    }
+
+    public void saveSavedBooks(Logger logger) {
+        try (FileWriter writer = new FileWriter(joinBookFile)) {
+            this.gson.toJson(this.jsonSavedBooks, writer);
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, "Failed to save saved_books.json!", ex);
+        }
+    }
+
+    public void putNPCBook(int npcId, String side, ItemStack book) {
+        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        JsonObject bookSideObject = new JsonObject();
+        bookSideObject.add("book_content", this.distribution.convertBookToJson(book));
+        bookSideObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
+
+        String id = String.valueOf(npcId);
+
+        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(id);
+        if (jsonNPCId == null)
+            jsonNPCId = new JsonObject();
+        jsonNPCId.add(side, bookSideObject);
+
+        this.jsonSavedBooks.add(id, jsonNPCId);
+    }
+
+    public boolean hasNPCBook(int npcId, String side) {
+        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
+        if (jsonNPCId == null)
+            return false;
+        JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
+        if (bookSideObject == null)
+            return false;
+        return bookSideObject.getAsJsonObject("book_content") != null;
+    }
+
+    public ItemStack getNPCBook(int npcId, String side, ItemStack defaultStack) {
+        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        if (defaultStack != null)
+            Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
+        if (jsonNPCId == null)
+            return defaultStack;
+        JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
+        if (bookSideObject == null)
+            return defaultStack;
+        JsonObject bookObject = bookSideObject.getAsJsonObject("book_content");
+        if (bookObject == null)
+            return defaultStack;
+        ItemStack stack = this.distribution.convertJsonToBook(bookObject);
+        if (stack == null)
+            return defaultStack;
+        return stack;
+    }
+
+    public ItemStack getNPCBook(int npcId, String side) {
+        return this.getNPCBook(npcId, side, null);
     }
 
     public ItemStack getJoinBook() {
