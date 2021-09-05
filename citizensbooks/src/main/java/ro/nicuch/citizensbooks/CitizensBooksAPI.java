@@ -62,6 +62,7 @@ public class CitizensBooksAPI {
     private final File filtersDirectory;
     private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final File joinBookFile;
+    private final File savedBooksFile;
     private JsonObject jsonSavedBooks = new JsonObject();
 
 
@@ -72,12 +73,24 @@ public class CitizensBooksAPI {
         this.database = this.plugin.getDatabase();
         this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
         this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+        this.savedBooksFile = new File(plugin.getDataFolder() + File.separator + "saved_books.json");
     }
 
     public void reloadSavedBooks(Logger logger) {
-        try (FileReader reader = new FileReader(this.joinBookFile)) {
+        this.jsonSavedBooks = null;
+        if (this.plugin.isDatabaseEnabled())
+            return;
+        if (!this.savedBooksFile.exists()) {
+            try {
+                Files.copy(this.plugin.getResource("saved_books.json"), this.savedBooksFile.toPath());
+            } catch (IOException e) {
+                logger.warning("Failed to save default saved_books.json file!");
+                return;
+            }
+        }
+        try (FileReader reader = new FileReader(this.savedBooksFile)) {
             this.jsonSavedBooks = this.gson.fromJson(reader, JsonObject.class);
-            if (this.jsonSavedBooks.isJsonNull()) {
+            if (this.jsonSavedBooks == null || this.jsonSavedBooks.isJsonNull()) {
                 this.jsonSavedBooks = new JsonObject();
             }
         } catch (Exception ex) {
@@ -86,7 +99,9 @@ public class CitizensBooksAPI {
     }
 
     public void saveSavedBooks(Logger logger) {
-        try (FileWriter writer = new FileWriter(joinBookFile)) {
+        if (this.plugin.isDatabaseEnabled())
+            return;
+        try (FileWriter writer = new FileWriter(savedBooksFile)) {
             this.gson.toJson(this.jsonSavedBooks, writer);
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Failed to save saved_books.json!", ex);
@@ -100,6 +115,10 @@ public class CitizensBooksAPI {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        if (this.plugin.isDatabaseEnabled()) {
+            this.plugin.getDatabase().putNPCBook(npcId, side, book);
+            return;
+        }
         JsonObject bookSideObject = new JsonObject();
         bookSideObject.add("book_content", this.distribution.convertBookToJson(book));
         bookSideObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
@@ -115,11 +134,15 @@ public class CitizensBooksAPI {
     }
 
     public boolean hasNPCBook(int npcId, String side) {
+        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        if (this.plugin.isDatabaseEnabled())
+            return this.plugin.getDatabase().hasNPCBook(npcId, side);
         JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
-        if (jsonNPCId == null)
+        if (jsonNPCId == null || jsonNPCId.isJsonNull())
             return false;
         JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
-        if (bookSideObject == null)
+        if (bookSideObject == null || bookSideObject.isJsonNull())
             return false;
         return bookSideObject.getAsJsonObject("book_content") != null;
     }
@@ -130,14 +153,16 @@ public class CitizensBooksAPI {
         if (defaultStack != null)
             Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                     " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        if (this.plugin.isDatabaseEnabled())
+            return this.plugin.getDatabase().getNPCBook(npcId, side, defaultStack);
         JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
-        if (jsonNPCId == null)
+        if (jsonNPCId == null || jsonNPCId.isJsonNull())
             return defaultStack;
         JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
-        if (bookSideObject == null)
+        if (bookSideObject == null || bookSideObject.isJsonNull())
             return defaultStack;
         JsonObject bookObject = bookSideObject.getAsJsonObject("book_content");
-        if (bookObject == null)
+        if (bookObject == null || bookObject.isJsonNull())
             return defaultStack;
         ItemStack stack = this.distribution.convertJsonToBook(bookObject);
         if (stack == null)

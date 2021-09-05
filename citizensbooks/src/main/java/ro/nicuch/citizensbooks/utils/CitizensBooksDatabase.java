@@ -27,6 +27,7 @@ public class CitizensBooksDatabase {
     private LoadingCache<String, ItemStack> filterBooks;
     private LoadingCache<Pair<Integer, String>, ItemStack> npcBooks;
     private final Set<String> filters = new HashSet<>();
+    private final Set<Pair<Integer, String>> savedBooks = new HashSet<>();
     private boolean isMySQL;
     private String serverName;
 
@@ -71,15 +72,23 @@ public class CitizensBooksDatabase {
             if (this.plugin.isCitizensEnabled()) {
                 this.connection.createStatement().executeUpdate(
                         "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
-                                "unique_id INT PRIMARY KEY AUTO_INCREMENT," +
                                 "npc_id INT NOT NULL," +
-                                "server VARCHAR(255)," +
-                                "npc_book TEXT" +
+                                "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
+                                "server VARCHAR(255) DEFAULT 'default'," +
+                                "npc_book TEXT," +
+                                "CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)" +
                                 ");");
             }
             try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT filter_name FROM " + this.table_prefix + "filters;")) {
                 while (preload.next()) {
                     this.filters.add(preload.getString("filter_name"));
+                }
+            }
+            if (this.plugin.isCitizensEnabled()) {
+                try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT npc_id, side FROM " + this.table_prefix + "npc_books;")) {
+                    while (preload.next()) {
+                        this.savedBooks.add(new Pair<>(preload.getInt("npc_id"), preload.getString("side")));
+                    }
                 }
             }
             this.poolExecutor = Executors.newFixedThreadPool(this.plugin.getSettings().getInt("database.threads", 2));
@@ -143,6 +152,7 @@ public class CitizensBooksDatabase {
     public void removeNPCBook(int npcId, String side) {
         if (!this.plugin.isCitizensEnabled())
             throw new IllegalStateException("Citizens is not enabled!");
+        this.savedBooks.remove(new Pair<>(npcId, side));
         this.poolExecutor.submit(() -> {
             try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
                 statement.setInt(1, npcId);
@@ -170,6 +180,34 @@ public class CitizensBooksDatabase {
                 return null;
             }
         });
+    }
+
+    public void putNPCBook(int npcId, String side, ItemStack book) {
+        if (!this.plugin.isCitizensEnabled())
+            throw new IllegalStateException("Citizens is not enabled!");
+        Pair<Integer, String> pairKey = new Pair<>(npcId, side);
+        this.savedBooks.add(pairKey);
+        this.npcBooks.put(pairKey, book);
+        this.poolExecutor.submit(() -> {
+            String query = this.isMySQL ?
+                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;" :
+                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON CONFLICT(npc_id_side) DO UPDATE SET npc_book=?;";
+            try (PreparedStatement statement = this.connection.prepareStatement(query)) {
+                String encoded = this.plugin.getAPI().encodeItemStack(book);
+                statement.setInt(1, npcId);
+                statement.setString(2, side);
+                statement.setString(3, this.serverName);
+                statement.setString(4, encoded);
+                statement.setString(5, encoded);
+                statement.executeUpdate();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to save book data!", ex);
+            }
+        });
+    }
+
+    public boolean hasNPCBook(int npcId, String side) {
+        return this.savedBooks.contains(new Pair<>(npcId, side));
     }
 
     public boolean hasFilterBook(String filterName) {
