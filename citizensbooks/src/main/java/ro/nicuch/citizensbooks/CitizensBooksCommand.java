@@ -50,7 +50,7 @@ public class CitizensBooksCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        Player player;
+        Player player = this.isPlayer(sender) ? (Player) sender : null;
         if (args.length > 0) {
             switch (args[0]) {
                 case "help":
@@ -77,11 +77,10 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.CITIZENS_NOT_ENABLED));
                         break;
                     }
-                    if (!this.isPlayer(sender)) {
+                    if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    player = (Player) sender;
                     Optional<NPC> npc;
                     String side = "right_side";
                     if (args.length > 1) {
@@ -172,7 +171,6 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    player = (Player) sender;
                     String action = References.NBTAPI_ITEM_RIGHT_KEY;
                     if (args.length > 1) {
                         switch (args[1]) {
@@ -292,7 +290,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                     break;
                 case "setjoin":
-                    if (!this.isPlayer(sender)) {
+                    if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
@@ -300,7 +298,6 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    player = (Player) sender;
                     if (!this.hasBookInHand(player)) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                         break;
@@ -321,7 +318,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     sender.sendMessage(this.plugin.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));
                     break;
                 case "openbook":
-                    if (!this.isPlayer(sender)) {
+                    if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
@@ -329,7 +326,6 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    player = (Player) sender;
                     if (!this.hasBookInHand(player)) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
                         break;
@@ -424,7 +420,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_REMOVE));
                                 break;
                             case "getbook":
-                                if (!this.isPlayer(sender)) {
+                                if (player == null) {
                                     sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                     break;
                                 }
@@ -442,7 +438,6 @@ public class CitizensBooksCommand implements TabExecutor {
                                         sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_FILTER));
                                         break;
                                     }
-                                    player = (Player) sender;
                                     ItemStack book = this.api.getFilter(filter_name);
                                     player.getInventory().addItem(book);
                                     sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
@@ -625,7 +620,6 @@ public class CitizensBooksCommand implements TabExecutor {
         return item.getType() != Material.AIR;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isPlayer(CommandSender sender) {
         return (sender instanceof Player);
     }
