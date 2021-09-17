@@ -22,11 +22,8 @@ npcbook {
   }
   about;
   reload;
-  set;
   setjoin;
-  remove;
   remjoin;
-  getbook;
   openbook;
   setcmd {
     command brigadier:string single_word {
@@ -47,6 +44,29 @@ npcbook {
     }
     getbook {
       name brigadier:string single_word;
+    }
+  }
+  remcmd {
+    command brigadier:string single_word;
+  }
+  npc {
+    set {
+      name brigadier:string single_word {
+        right;
+        left;
+        }
+    }
+    remove {
+      name brigadier:string single_word {
+        right;
+        left;
+        }
+    }
+    getbook {
+      name brigadier:string single_word {
+        right;
+        left;
+        }
     }
   }
 }

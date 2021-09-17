@@ -104,6 +104,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         side = "right_side";
                                     else if ("left".equalsIgnoreCase(args[2]))
                                         side = "left_side";
+                                    else {
+                                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_NPC_SET).replace("%npc%", npc.get().getFullName()));
+                                        break;
+                                    }
                                 }
                                 this.api.putNPCBook(npc.get().getId(), side, this.getItemFromHand(player));
                                 this.api.saveNPCBooks(this.plugin.getLogger());
@@ -124,6 +128,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         side = "right_side";
                                     else if ("left".equalsIgnoreCase(args[2]))
                                         side = "left_side";
+                                    else {
+                                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_NPC_REMOVE).replace("%npc%", npc.get().getFullName()));
+                                        break;
+                                    }
                                 }
                                 this.api.removeNPCBook(npc.get().getId(), side);
                                 this.api.saveNPCBooks(this.plugin.getLogger());
@@ -143,6 +151,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         side = "right_side";
                                     else if ("left".equalsIgnoreCase(args[2]))
                                         side = "left_side";
+                                    else {
+                                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_NPC_GETBOOK).replace("%npc%", npc.get().getFullName()));
+                                        break;
+                                    }
                                 }
                                 if (!this.api.hasNPCBook(npc.get().getId(), side)) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_NPC).replace("%npc%", npc.get().getFullName()));
@@ -153,6 +165,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                 sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
                                 break;
                             default:
+                                this.sendNpcHelp(sender);
                                 break;
                         }
                     }
@@ -198,6 +211,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                             action = References.NBTAPI_ITEM_RIGHT_KEY;
                                         else if ("left".equalsIgnoreCase(args[3]))
                                             action = References.NBTAPI_ITEM_LEFT_KEY;
+                                        else {
+                                            sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET).replace("%filter_name%", filter_name));
+                                            break;
+                                        }
                                     }
                                     ItemStack item = this.getItemFromHand(player);
                                     NBTItem nbtItem = new NBTItem(item);
@@ -222,6 +239,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         action = References.NBTAPI_ITEM_RIGHT_KEY;
                                     else if ("left".equalsIgnoreCase(args[2]))
                                         action = References.NBTAPI_ITEM_LEFT_KEY;
+                                    else {
+                                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET));
+                                        break;
+                                    }
                                 }
                                 ItemStack item = this.getItemFromHand(player);
                                 NBTItem nbtItem = new NBTItem(item);
@@ -656,9 +677,9 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         if (page == 2) {
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_GETBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_OPENBOOK).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
@@ -671,8 +692,8 @@ public class CitizensBooksCommand implements TabExecutor {
         } else {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_HELP).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SET).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMOVE).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETJOIN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
         }
@@ -696,6 +717,17 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage("");
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+    }
+
+    private void sendNpcHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
+        sender.sendMessage("");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }

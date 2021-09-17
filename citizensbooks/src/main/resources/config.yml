@@ -41,9 +41,6 @@ lang:
   command_name_invalid: "&cThe command name should only contain letters, numbers, dashes and underscores!"
   usage:
     help: "&aUsage: &f/npcbook help [page]"
-    set: "&aUsage: &f/npcbook set [right/left]"
-    remove: "&aUsage: &f/npcbook remove [right/left]"
-    getbook: "&aUsage: &f/npcbook getbook [right/left]"
     openbook: "&aUsage: &f/npcbook openbook"
     forceopen: "&aUsage: &f/npcbook forceopen <filter name> <player>"
     setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name> [permission]"
@@ -57,14 +54,15 @@ lang:
     actionitem:
       set: "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"
       remove: "&aUsage: &f/npcbook actionitem remove [right/left]"
+    npc:
+      set: "&aUsage: &f/npcbook npc set [right/left]"
+      remove: "&aUsage: &f/npcbook npc remove [right/left]"
+      getbook: "&aUsage: &f/npcbook npc getbook [right/left]"
   help:
     info: "&e<    &6Commands and Usage &f| &6Page index (%page%/3) &e    >"
     arguments: "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"
     help: "&f/npcbook help [page] $ &9Show help page."
     about: "&f/npcbook about $ &9Informations about the plugin."
-    set: "&f/npcbook set [right/left] $ &9Set a book for npc."
-    remove: "&f/npcbook remove [right/left] $ &9Remove the book from npc."
-    getbook: "&f/npcbook getbook [right/left] $ &9Get the book of npc."
     openbook: "&f/npcbook openbook $ &9Opens a writen book."
     forceopen: "&f/npcbook forceopen <filter name> <player> $ &9Force a player to open a book."
     reload: "&f/npcbook reload $ &9Reload the config file."
@@ -79,6 +77,10 @@ lang:
     actionitem:
       set: "&f/npcbook actionitem set <filter name> [right/left] $ &9Put a filter on the item you hold."
       remove: "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold."
+    npc:
+      set: "&f/npcbook npc set [right/left] $ &9Set a book for npc."
+      remove: "&f/npcbook npc remove [right/left] $ &9Remove the book from npc."
+      getbook: "&f/npcbook npc getbook [right/left] $ &9Get the book of npc."
 save: { }
 commands:
   hello:
