@@ -70,14 +70,25 @@ public class CitizensBooksDatabase {
                             "filter_book TEXT" +
                             ");");
             if (this.plugin.isCitizensEnabled()) {
-                this.connection.createStatement().executeUpdate(
-                        "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
-                                "npc_id INT NOT NULL," +
-                                "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
-                                "server VARCHAR(255) DEFAULT 'default'," +
-                                "npc_book TEXT," +
-                                "CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)" +
-                                ");");
+                if (this.isMySQL) {
+                    this.connection.createStatement().executeUpdate(
+                            "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
+                                    "npc_id INT NOT NULL," +
+                                    "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
+                                    "server VARCHAR(255) DEFAULT 'default'," +
+                                    "npc_book TEXT," +
+                                    "CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)" +
+                                    ");");
+                } else {
+                    this.connection.createStatement().executeUpdate(
+                            "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
+                                    "npc_id INT NOT NULL," +
+                                    "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
+                                    "server VARCHAR(255) DEFAULT 'default'," +
+                                    "npc_book TEXT," +
+                                    "PRIMARY KEY (npc_id, side)" +
+                                    ");");
+                }
             }
             try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT filter_name FROM " + this.table_prefix + "filters;")) {
                 while (preload.next()) {
@@ -191,7 +202,7 @@ public class CitizensBooksDatabase {
         this.poolExecutor.submit(() -> {
             String query = this.isMySQL ?
                     "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;" :
-                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON CONFLICT(npc_id_side) DO UPDATE SET npc_book=?;";
+                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON CONFLICT(npc_id, side) DO UPDATE SET npc_book=?;";
             try (PreparedStatement statement = this.connection.prepareStatement(query)) {
                 String encoded = this.plugin.getAPI().encodeItemStack(book);
                 statement.setInt(1, npcId);

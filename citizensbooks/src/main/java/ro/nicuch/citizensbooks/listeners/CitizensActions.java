@@ -43,9 +43,9 @@ public class CitizensActions implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void rightClick(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getSettings().isItemStack("save." + npcId + ".right_side"))
+        if (!this.api.hasNPCBook(npcId, "right_side"))
             return;
-        ItemStack book = this.plugin.getSettings().getItemStack("save." + npcId + ".right_side", new ItemStack(Material.WRITTEN_BOOK));
+        ItemStack book = this.api.getNPCBook(npcId, "right_side", new ItemStack(Material.WRITTEN_BOOK));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.RIGHT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -61,9 +61,9 @@ public class CitizensActions implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void leftCLick(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.plugin.getSettings().isItemStack("save." + npcId + ".left_side"))
+        if (!this.api.hasNPCBook(npcId, "left_side"))
             return;
-        ItemStack book = this.plugin.getSettings().getItemStack("save." + npcId + ".left_side", new ItemStack(Material.WRITTEN_BOOK));
+        ItemStack book = this.api.getNPCBook(npcId, "left_side", new ItemStack(Material.WRITTEN_BOOK));
         BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.LEFT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
@@ -80,16 +80,10 @@ public class CitizensActions implements Listener {
     public void clone(NPCCloneEvent event) {
         int npcId = event.getNPC().getId();
         int cloneId = event.getClone().getId();
-        ItemStack left_book = null;
-        ItemStack right_book = null;
-        if (this.plugin.getSettings().isItemStack("save." + npcId + ".left_side"))
-            left_book = this.plugin.getSettings().getItemStack("save." + npcId + ".left_side");
-        if (this.plugin.getSettings().isItemStack("save." + npcId + ".right_side"))
-            right_book = this.plugin.getSettings().getItemStack("save." + npcId + ".right_side");
-        if (left_book != null) this.plugin.getSettings().set("save." + cloneId + ".left_side",
-                left_book);
-        if (right_book != null) this.plugin.getSettings().set("save." + cloneId + ".right_side",
-                right_book);
-        this.plugin.saveSettings(); //Allways saved
+        ItemStack right_book = this.api.hasNPCBook(npcId, "right_side") ? this.api.getNPCBook(npcId, "right_side") : null;
+        ItemStack left_book = this.api.hasNPCBook(npcId, "left_side") ? this.api.getNPCBook(npcId, "left_side") : null;
+        if (right_book != null) this.api.putNPCBook(cloneId, "right_side", right_book);
+        if (left_book != null) this.api.putNPCBook(cloneId, "left_side", left_book);
+        this.api.saveNPCBooks(this.plugin.getLogger());
     }
 }

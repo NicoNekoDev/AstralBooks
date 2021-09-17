@@ -135,6 +135,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                 }
                                 this.api.removeNPCBook(npc.get().getId(), side);
                                 this.api.saveNPCBooks(this.plugin.getLogger());
+                                sender.sendMessage(this.plugin.getMessage(Message.REMOVED_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
                                 break;
                             case "getbook":
                                 if (!this.api.hasPermission(sender, "npcbook.command.npc.getbook")) {
@@ -308,6 +309,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         // 2) set the database being enabled
                         // 3) if is disabled, load default/normal filters
                         this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
+                    this.api.reloadNPCBooks(this.plugin.getLogger());
                     sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                     break;
                 case "setjoin":

@@ -75,7 +75,7 @@ public class CitizensBooksAPI {
         this.savedBooksFile = new File(plugin.getDataFolder() + File.separator + "saved_books.json");
     }
 
-    public void reloadSavedBooks(Logger logger) {
+    public void reloadNPCBooks(Logger logger) {
         this.jsonSavedBooks = null;
         if (this.plugin.isDatabaseEnabled())
             return;
@@ -150,7 +150,7 @@ public class CitizensBooksAPI {
 
     public boolean hasNPCBook(int npcId, String side) {
         Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
         if (this.plugin.isDatabaseEnabled())
             return this.plugin.getDatabase().hasNPCBook(npcId, side);
         JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
@@ -159,12 +159,12 @@ public class CitizensBooksAPI {
         JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
         if (bookSideObject == null || bookSideObject.isJsonNull())
             return false;
-        return bookSideObject.getAsJsonObject("book_content") != null;
+        return bookSideObject.getAsJsonObject("book_content") != null && !bookSideObject.isJsonNull();
     }
 
     public ItemStack getNPCBook(int npcId, String side, ItemStack defaultStack) {
         Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
         if (defaultStack != null)
             Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                     " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");

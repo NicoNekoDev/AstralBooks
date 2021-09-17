@@ -56,81 +56,86 @@ public class CitizensBooksPlugin extends JavaPlugin {
         try {
             this.getLogger().info("============== BEGIN LOAD ==============");
             this.reloadSettings();
-            if (this.api.loadDistribution()) {
-                if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
-                    this.api.reloadFilters(this.getLogger());
-                //bStats Metrics, by default enabled
-                new Metrics(this);
-                PluginManager manager = this.getServer().getPluginManager();
-                if (!manager.isPluginEnabled("LuckPerms")) {
-                    this.getLogger().info("LuckPerms not found!");
-                    if (!manager.isPluginEnabled("Vault"))
-                        this.getLogger().info("Vault not found!");
-                    else {
-                        this.getLogger().info("Vault found, try hooking!");
+            if (!this.api.loadDistribution()) {
+                this.getLogger().info("Failed to load distribution... disabling the plugin!");
+                this.setEnabled(false);
+                this.getLogger().info("============== END LOAD ==============");
+                return;
+            }
+            //bStats Metrics, by default enabled
+            new Metrics(this);
+            PluginManager manager = this.getServer().getPluginManager();
+            if (!manager.isPluginEnabled("LuckPerms")) {
+                this.getLogger().info("LuckPerms not found!");
+                if (!manager.isPluginEnabled("Vault"))
+                    this.getLogger().info("Vault not found!");
+                else {
+                    this.getLogger().info("Vault found, try hooking!");
+                    this.useVault = true;
+                    this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                }
+            } else {
+                this.getLogger().info("LuckPerms found, try hooking!");
+                if (manager.getPlugin("LuckPerms").getDescription().getVersion().startsWith("5")) {
+                    this.useLuckPerms = true;
+                    this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
+                    if (manager.isPluginEnabled("Vault"))
+                        this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
+                } else {
+                    this.getLogger().info("Your LuckPerms version is oudated! :(");
+                    if (manager.isPluginEnabled("Vault")) {
+                        this.getLogger().info("Vault found instead! Try hooking!");
                         this.useVault = true;
                         this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
                     }
-                } else {
-                    this.getLogger().info("LuckPerms found, try hooking!");
-                    if (manager.getPlugin("LuckPerms").getDescription().getVersion().startsWith("5")) {
-                        this.useLuckPerms = true;
-                        this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
-                        if (manager.isPluginEnabled("Vault"))
-                            this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
-                    } else {
-                        this.getLogger().info("Your LuckPerms version is oudated! :(");
-                        if (manager.isPluginEnabled("Vault")) {
-                            this.getLogger().info("Vault found instead! Try hooking!");
-                            this.useVault = true;
-                            this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
-                        }
-                    }
                 }
-                if (!manager.isPluginEnabled("PlaceholderAPI"))
-                    this.getLogger().info("PlaceholderAPI not found!");
-                else {
-                    this.getLogger().info("PlaceholderAPI found, try hooking!");
-                    this.usePlaceholderAPI = true;
-                }
-                manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
-                if (!manager.isPluginEnabled("Citizens"))
-                    this.getLogger().info("Citizens not found!");
-                else {
-                    this.getLogger().info("Citizens found, try hooking!");
-                    manager.registerEvents(new CitizensActions(this), this);
-                    this.useCitizens = true;
-                }
-                if (!manager.isPluginEnabled("Authme"))
-                    this.getLogger().info("Authme not found!");
-                else {
-                    this.getLogger().info("Authme found, try hooking!");
-                    manager.registerEvents(new AuthmeActions(this), this);
-                    this.useAuthMe = true;
-                }
-                if (!manager.isPluginEnabled("NBTAPI"))
-                    this.getLogger().info("NBTAPI not found!");
-                else {
-                    this.getLogger().info("NBTAPI found, try hooking!");
-                    this.useNBTAPI = true;
-                }
-                PluginCommand npcBookCommand = this.getCommand("npcbook");
-                CitizensBooksCommand npcBookExecutor = new CitizensBooksCommand(this);
-                npcBookCommand.setExecutor(npcBookExecutor);
-                npcBookCommand.setTabCompleter(npcBookExecutor);
-                if (CommodoreProvider.isSupported()) {
-                    this.getLogger().info("Loading Brigardier support...");
-                    Commodore commodore = CommodoreProvider.getCommodore(this);
-                    this.registerCompletions(commodore, npcBookCommand);
-                } else
-                    this.getLogger().info("Brigardier is not supported on this version!");
-                //Update checker, by default enabled
-                if (this.settings.getBoolean("update_check", true))
-                    manager.registerEvents(new UpdateChecker(this), this);
-            } else {
-                this.getLogger().info("Failed to load distribution... disabling the plugin!");
-                this.setEnabled(false);
             }
+            if (!manager.isPluginEnabled("PlaceholderAPI"))
+                this.getLogger().info("PlaceholderAPI not found!");
+            else {
+                this.getLogger().info("PlaceholderAPI found, try hooking!");
+                this.usePlaceholderAPI = true;
+            }
+            manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
+            if (!manager.isPluginEnabled("Citizens"))
+                this.getLogger().info("Citizens not found!");
+            else {
+                this.getLogger().info("Citizens found, try hooking!");
+                manager.registerEvents(new CitizensActions(this), this);
+                this.useCitizens = true;
+            }
+            if (!manager.isPluginEnabled("Authme"))
+                this.getLogger().info("Authme not found!");
+            else {
+                this.getLogger().info("Authme found, try hooking!");
+                manager.registerEvents(new AuthmeActions(this), this);
+                this.useAuthMe = true;
+            }
+            if (!manager.isPluginEnabled("NBTAPI"))
+                this.getLogger().info("NBTAPI not found!");
+            else {
+                this.getLogger().info("NBTAPI found, try hooking!");
+                this.useNBTAPI = true;
+            }
+
+            // load database, filters and npc books after dependencies
+            if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
+                this.api.reloadFilters(this.getLogger());
+            this.api.reloadNPCBooks(this.getLogger());
+
+            PluginCommand npcBookCommand = this.getCommand("npcbook");
+            CitizensBooksCommand npcBookExecutor = new CitizensBooksCommand(this);
+            npcBookCommand.setExecutor(npcBookExecutor);
+            npcBookCommand.setTabCompleter(npcBookExecutor);
+            if (CommodoreProvider.isSupported()) {
+                this.getLogger().info("Loading Brigardier support...");
+                Commodore commodore = CommodoreProvider.getCommodore(this);
+                this.registerCompletions(commodore, npcBookCommand);
+            } else
+                this.getLogger().info("Brigardier is not supported on this version!");
+            //Update checker, by default enabled
+            if (this.settings.getBoolean("update_check", true))
+                manager.registerEvents(new UpdateChecker(this), this);
             this.getLogger().info("============== END LOAD ==============");
         } catch (Exception ex) {
             this.getLogger().log(Level.WARNING, "Error detected, disabling the plugin!", ex);
