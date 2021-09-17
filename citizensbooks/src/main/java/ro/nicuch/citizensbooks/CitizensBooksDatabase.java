@@ -1,4 +1,4 @@
-package ro.nicuch.citizensbooks.utils;
+package ro.nicuch.citizensbooks;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -6,7 +6,7 @@ import com.google.common.cache.LoadingCache;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import ro.nicuch.citizensbooks.CitizensBooksPlugin;
+import ro.nicuch.citizensbooks.utils.Pair;
 
 import java.io.File;
 import java.sql.*;

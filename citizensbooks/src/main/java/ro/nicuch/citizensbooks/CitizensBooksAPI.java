@@ -41,7 +41,6 @@ import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
 import ro.nicuch.citizensbooks.utils.BookLink;
-import ro.nicuch.citizensbooks.utils.CitizensBooksDatabase;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -98,14 +97,30 @@ public class CitizensBooksAPI {
         }
     }
 
-    public void saveSavedBooks(Logger logger) {
+    public void saveNPCBooks(Logger logger) {
         if (this.plugin.isDatabaseEnabled())
             return;
-        try (FileWriter writer = new FileWriter(savedBooksFile)) {
+        try (FileWriter writer = new FileWriter(this.savedBooksFile)) {
             this.gson.toJson(this.jsonSavedBooks, writer);
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Failed to save saved_books.json!", ex);
         }
+    }
+
+    public void removeNPCBook(int npcId, String side) {
+        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        if (this.plugin.isDatabaseEnabled()) {
+            this.plugin.getDatabase().removeNPCBook(npcId, side);
+            return;
+        }
+        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
+        if (jsonNPCId == null || jsonNPCId.isJsonNull())
+            return;
+        jsonNPCId.remove(side);
+        if (jsonNPCId.has("right_side") || jsonNPCId.has("left_side"))
+            return;
+        this.jsonSavedBooks.remove(String.valueOf(npcId));
     }
 
     public void putNPCBook(int npcId, String side, ItemStack book) {

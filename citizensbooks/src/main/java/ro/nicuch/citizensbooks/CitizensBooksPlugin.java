@@ -33,7 +33,6 @@ import ro.nicuch.citizensbooks.bstats.Metrics;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
-import ro.nicuch.citizensbooks.utils.CitizensBooksDatabase;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
