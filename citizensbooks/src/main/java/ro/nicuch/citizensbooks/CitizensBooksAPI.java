@@ -157,9 +157,7 @@ public class CitizensBooksAPI {
         if (jsonNPCId == null || jsonNPCId.isJsonNull())
             return false;
         JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
-        if (bookSideObject == null || bookSideObject.isJsonNull())
-            return false;
-        return bookSideObject.getAsJsonObject("book_content") != null && !bookSideObject.isJsonNull();
+        return bookSideObject != null && bookSideObject.isJsonNull(); // we care only about side object
     }
 
     public ItemStack getNPCBook(int npcId, String side, ItemStack defaultStack) {
