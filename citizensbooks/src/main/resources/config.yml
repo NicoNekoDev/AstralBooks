@@ -20,13 +20,14 @@ lang:
   removed_book_successfully: "&aYou have removed the book for %npc%&a!"
   removed_join_book_successfully: "&aYou have removed the join book!"
   no_npc_selected: "&cYou need to have an NPC selected!"
-  no_book_in_hand: "&cYou need to have a written book in your hand!"
+  no_written_book_in_hand: "&cYou need to have a written book in your hand!"
+  no_writable_book_in_hand: "&cYou need to have a writable book in your hand!"
   no_item_in_hand: "&cYou need to have an item in your hand!"
   no_book_for_npc: "&cThis NPC doesn't have a book!"
   no_book_for_filter: "&cThis filter doesn't have a book!"
   filter_saved: "&aFilter %filter_name% was saved."
   filter_removed: "&aFilter %filter_name% was removed."
-  book_recived: "&aYou recived the book in your inventory!"
+  book_recived: "&aYou received the book in your inventory!"
   citizens_not_enabled: "&cCitizens plugin is not enabled! This command requires Citizens to be installed!"
   nbtapi_not_enabled: "&cNBTAPI plugin is not enabled! This command requires NBTAPI to be installed!"
   set_custom_command_successfully: "&aCommand %command% has been set!"
@@ -42,6 +43,7 @@ lang:
   usage:
     help: "&aUsage: &f/npcbook help [page]"
     openbook: "&aUsage: &f/npcbook openbook"
+    closebook: "&aUsage: &f/npcbook closebook <author> <title>"
     forceopen: "&aUsage: &f/npcbook forceopen <filter name> <player>"
     setcmd: "&aUsage: &f/npcbook setcmd <command> <filter name> [permission]"
     remcmd: "&aUsage: &f/npcbook remcmd <command>"
@@ -62,8 +64,9 @@ lang:
     info: "&e<    &6Commands and Usage &f| &6Page index (%page%/3) &e    >"
     arguments: "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"
     help: "&f/npcbook help [page] $ &9Show help page."
-    about: "&f/npcbook about $ &9Informations about the plugin."
-    openbook: "&f/npcbook openbook $ &9Opens a writen book."
+    about: "&f/npcbook about $ &9Information about the plugin."
+    openbook: "&f/npcbook openbook $ &9Opens a written book."
+    closebook: "&f/npcbook closebook <author> <title> $ &9Closes a writable book."
     forceopen: "&f/npcbook forceopen <filter name> <player> $ &9Force a player to open a book."
     reload: "&f/npcbook reload $ &9Reload the config file."
     setcmd: "&f/npcbook setcmd <command> <filter name> $ &9Sets a custom command by the given filter name."
@@ -81,11 +84,10 @@ lang:
       set: "&f/npcbook npc set [right/left] $ &9Set a book for npc."
       remove: "&f/npcbook npc remove [right/left] $ &9Remove the book from npc."
       getbook: "&f/npcbook npc getbook [right/left] $ &9Get the book of npc."
-save: { }
 commands:
   hello:
-    filter_name: hello_world
-    permission: perm.hello_world
+    filter_name: "hello_world"
+    permission: "perm.hello_world"
 join_book_enabled: false
 join_book_last_change: 0 #DO NOT MANUALLY EDIT THIS
 join_book_always_show: false

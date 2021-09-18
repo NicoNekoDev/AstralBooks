@@ -35,10 +35,7 @@ import org.bukkit.util.StringUtil;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.References;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class CitizensBooksCommand implements TabExecutor {
     private final CitizensBooksPlugin plugin;
@@ -90,8 +87,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
-                                if (!this.hasBookInHand(player)) {
-                                    sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
+                                if (!this.hasItemTypeInHand(player, Material.WRITTEN_BOOK)) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                     break;
                                 }
                                 npc = Optional.ofNullable(CitizensAPI.getDefaultNPCSelector().getSelected(player));
@@ -321,8 +318,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.hasBookInHand(player)) {
-                        sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
+                    if (!this.hasItemTypeInHand(player, Material.WRITTEN_BOOK)) {
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
                     this.api.setJoinBook(this.getItemFromHand(player));
@@ -349,11 +346,35 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.hasBookInHand(player)) {
-                        sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
+                    if (!this.hasItemTypeInHand(player, Material.WRITTEN_BOOK)) {
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
                     this.openBook(player, this.getItemFromHand(player));
+                    break;
+                case "closebook":
+                    if (player == null) {
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
+                        break;
+                    }
+                    if (!this.api.hasPermission(sender, "npcbook.command.closebook")) {
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                        break;
+                    }
+                    if (args.length > 2) {
+                        Material material = Material.getMaterial("BOOK_AND_QUILL");
+                        if (material == null)
+                            // 1.13+ (Thanks PikaMug)
+                            material = Material.getMaterial("WRITABLE_BOOK");
+                        if (!this.hasItemTypeInHand(player, material)) {
+                            sender.sendMessage(this.plugin.getMessage(Message.NO_WRITABLE_BOOK_IN_HAND));
+                            break;
+                        }
+                        String author = args[1];
+                        String title = args.length > 3 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : args[2]; // copy if at least 2 title-args
+                        this.closeBook(player, this.getItemFromHand(player), author, title);
+                    } else
+                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_CLOSEBOOK));
                     break;
                 case "setcmd":
                     if (!this.api.hasPermission(sender, "npcbook.command.setcmd")) {
@@ -417,8 +438,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                         sender.sendMessage(this.plugin.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
                                         break;
                                     }
-                                    if (!this.hasBookInHand((Player) sender)) {
-                                        sender.sendMessage(this.plugin.getMessage(Message.NO_BOOK_IN_HAND));
+                                    if (!this.hasItemTypeInHand(player, Material.WRITTEN_BOOK)) {
+                                        sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                         break;
                                     }
                                     this.api.createFilter(filter_name, this.getItemFromHand((Player) sender));
@@ -629,11 +650,11 @@ public class CitizensBooksCommand implements TabExecutor {
         return completions;
     }
 
-    private boolean hasBookInHand(Player player) {
+    private boolean hasItemTypeInHand(Player player, Material type) {
         ItemStack item = this.api.getDistribution().getItemInHand(player);
         if (item == null)
             return false;
-        return item.getType() == Material.WRITTEN_BOOK;
+        return item.getType() == type;
     }
 
     private boolean hasItemInHand(Player player) {
@@ -657,7 +678,16 @@ public class CitizensBooksCommand implements TabExecutor {
         if (material == null)
             // 1.13+
             material = Material.getMaterial("WRITABLE_BOOK");
-        ItemStack item = new ItemStack(material);
+        ItemStack item = new ItemStack(material, book.getAmount());
+        item.setItemMeta(meta);
+        this.api.getDistribution().setItemInHand(player, item);
+    }
+
+    private void closeBook(Player player, ItemStack book, String author, String title) {
+        BookMeta meta = (BookMeta) book.getItemMeta();
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK, book.getAmount());
+        meta.setAuthor(ChatColor.translateAlternateColorCodes('&', author));
+        meta.setTitle(ChatColor.translateAlternateColorCodes('&', title));
         item.setItemMeta(meta);
         this.api.getDistribution().setItemInHand(player, item);
     }
@@ -679,25 +709,26 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         if (page == 2) {
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_OPENBOOK).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
-        } else if (page == 3) {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
+        } else if (page == 3) {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_OPENBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_CLOSEBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETJOIN).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
         } else {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_HELP).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETJOIN).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
         }
         sender.sendMessage("");
     }

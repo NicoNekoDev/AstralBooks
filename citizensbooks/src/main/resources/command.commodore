@@ -20,6 +20,11 @@ npcbook {
       @a;
     }
   }
+  closebook {
+    author brigadier:string single_word {
+      title brigadier:string greedy_phrase;
+    }
+  }
   about;
   reload;
   setjoin;

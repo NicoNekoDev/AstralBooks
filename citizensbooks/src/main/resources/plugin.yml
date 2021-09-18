@@ -13,33 +13,41 @@ permissions:
   npcbook.*:
     children:
       npcbook.command.help: true
-      npcbook.command.set: true
-      npcbook.command.remove: true
-      npcbook.command.getbook: true
+      npcbook.command.npc.set: true
+      npcbook.command.npc.remove: true
+      npcbook.command.npc.getbook: true
       npcbook.command.openbook: true
+      npcbook.command.closebook: true
       npcbook.command.reload: true
       npcbook.command.setcmd: true
       npcbook.command.remcmd: true
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
-      npcbook.notify: true
+      npcbook.command.forceopen: true
+      npcbook.command.actionitem.set: true
+      npcbook.command.actionitem.remove: true
       npcbook.command.setjoin: true
       npcbook.command.remjoin: true
       npcbook.nojoinbook: true
+      npcbook.notify: true
   npcbook.command.*:
     children:
       npcbook.command.help: true
-      npcbook.command.set: true
-      npcbook.command.remove: true
-      npcbook.command.getbook: true
+      npcbook.command.npc.set: true
+      npcbook.command.npc.remove: true
+      npcbook.command.npc.getbook: true
       npcbook.command.openbook: true
+      npcbook.command.closebook: true
       npcbook.command.reload: true
       npcbook.command.setcmd: true
       npcbook.command.remcmd: true
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
+      npcbook.command.forceopen: true
+      npcbook.command.actionitem.set: true
+      npcbook.command.actionitem.remove: true
       npcbook.command.setjoin: true
       npcbook.command.remjoin: true
   npcbook.command.filter.*:
@@ -47,13 +55,22 @@ permissions:
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
+  npcbook.command.actionitem.*:
+    children:
+      npcbook.command.actionitem.set: true
+      npcbook.command.actionitem.remove: true
+  npcbook.command.npc.*:
+    children:
+      npcbook.command.npc.set: true
+      npcbook.command.npc.remove: true
+      npcbook.command.npc.getbook: true
   npcbook.command.help:
     default: false
-  npcbook.command.set:
+  npcbook.command.npc.set:
     default: false
-  npcbook.command.remove:
+  npcbook.command.npc.remove:
     default: false
-  npcbook.command.getbook:
+  npcbook.command.npc.getbook:
     default: false
   npcbook.command.openbook:
     default: false
@@ -69,9 +86,15 @@ permissions:
     default: false
   npcbook.command.filter.getbook:
     default: false
+  npcbook.command.actionitem.set:
+    default: false
+  npcbook.command.actionitem.remove:
+    default: false
   npcbook.command.setjoin:
     default: false
   npcbook.command.remjoin:
+    default: false
+  npcbook.command.closebook:
     default: false
   npcbook.notify:
     default: op
