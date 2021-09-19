@@ -1,21 +1,21 @@
 /*
 
-   CitizensBooks
-   Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
+    CitizensBooks
+    Copyright (c) 2021 @ Drăghiciu 'nicuch' Nicolae
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
-*/
+ */
 
 package ro.nicuch.citizensbooks.listeners;
 
@@ -109,8 +109,8 @@ public class PlayerActions implements Listener {
         if (this.api.getJoinBook() == null)
             return;
         Player player = event.getPlayer();
-         if (this.api.hasPermission(player, "npcbook.nojoinbook"))
-             return;
+        if (this.api.hasPermission(player, "npcbook.nojoinbook"))
+            return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false)) {
             int delay = this.plugin.getSettings().getInt("join_book_delay", 0);
             if (delay <= 0)
@@ -136,19 +136,12 @@ public class PlayerActions implements Listener {
             return;
         ItemStack item = event.getItem();
         NBTItem nbtItem = new NBTItem(item);
-        String filterName = null;
-        switch (event.getAction()) {
-            case LEFT_CLICK_AIR:
-            case LEFT_CLICK_BLOCK:
-                filterName = nbtItem.getString(References.NBTAPI_ITEM_LEFT_KEY);
-                break;
-            case RIGHT_CLICK_AIR:
-            case RIGHT_CLICK_BLOCK:
-                filterName = nbtItem.getString(References.NBTAPI_ITEM_RIGHT_KEY);
-                break;
-            default:
-                break;
-        }
+        String filterName =
+                switch (event.getAction()) {
+                    case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> nbtItem.getString(References.NBTAPI_ITEM_LEFT_KEY);
+                    case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> nbtItem.getString(References.NBTAPI_ITEM_RIGHT_KEY);
+                    default -> null;
+                };
         if (filterName == null || filterName.isEmpty())
             return;
         if (!this.api.hasFilter(filterName))

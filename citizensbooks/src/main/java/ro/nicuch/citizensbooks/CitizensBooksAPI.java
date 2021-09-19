@@ -1,21 +1,21 @@
 /*
 
-   CitizensBooks
-   Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
+    CitizensBooks
+    Copyright (c) 2021 @ Drăghiciu 'nicuch' Nicolae
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
-*/
+ */
 
 package ro.nicuch.citizensbooks;
 
@@ -40,7 +40,7 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
-import ro.nicuch.citizensbooks.utils.BookLink;
+import ro.nicuch.citizensbooks.utils.Pair;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -57,7 +57,7 @@ public class CitizensBooksAPI {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksDatabase database;
     private Distribution distribution = null;
-    private final Map<String, BookLink> filters = new HashMap<>();
+    private final Map<String, Pair<ItemStack, Path>> filters = new HashMap<>();
     private final File filtersDirectory;
     private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final File joinBookFile;
@@ -290,7 +290,7 @@ public class CitizensBooksAPI {
                     }
                     JsonObject jsonBookContent = jsonObject.getAsJsonObject("book_content");
                     ItemStack book = CitizensBooksAPI.this.distribution.convertJsonToBook(jsonBookContent);
-                    CitizensBooksAPI.this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
+                    CitizensBooksAPI.this.filters.put(filterName, new Pair<>(book, jsonFile.toPath()));
                     successfulFile.incrementAndGet();
                 } catch (Exception ex) {
                     logger.warning("Failed to load " + jsonFile.getName());
@@ -337,7 +337,7 @@ public class CitizensBooksAPI {
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled())
             return this.database.getFilterBook(filterName, new ItemStack(Material.WRITTEN_BOOK));
-        return this.filters.getOrDefault(filterName, new BookLink(defaultItemStack, null)).getBook();
+        return this.filters.getOrDefault(filterName, new Pair<>(defaultItemStack, null)).getFirstValue();
     }
 
     public ItemStack getFilter(String filterName) {
@@ -391,7 +391,7 @@ public class CitizensBooksAPI {
             jsonFileObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
             jsonFileObject.add("book_content", jsonBookContent);
             this.gson.toJson(jsonFileObject, fileWriter);
-            this.filters.put(filterName, new BookLink(book, jsonFile.toPath()));
+            this.filters.put(filterName, new Pair<>(book, jsonFile.toPath()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -415,8 +415,8 @@ public class CitizensBooksAPI {
             return;
         }
         if (this.filters.containsKey(filterName)) {
-            BookLink link = this.filters.remove(filterName);
-            File jsonFile = link.getLink().toFile();
+            Pair<ItemStack, Path> link = this.filters.remove(filterName);
+            File jsonFile = link.getSecondValue().toFile();
             if (jsonFile.exists())
                 jsonFile.delete();
         }

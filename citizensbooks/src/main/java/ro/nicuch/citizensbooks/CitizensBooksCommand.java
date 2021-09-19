@@ -1,21 +1,21 @@
 /*
 
-   CitizensBooks
-   Copyright (c) 2018 @ Drăghiciu 'nicuch' Nicolae
+    CitizensBooks
+    Copyright (c) 2021 @ Drăghiciu 'nicuch' Nicolae
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
-*/
+ */
 
 package ro.nicuch.citizensbooks;
 
@@ -50,7 +50,7 @@ public class CitizensBooksCommand implements TabExecutor {
         Player player = this.isPlayer(sender) ? (Player) sender : null;
         if (args.length > 0) {
             switch (args[0]) {
-                case "help":
+                case "help" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.help")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -64,8 +64,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         }
                     } else
                         this.sendHelp(sender, 0);
-                    break;
-                case "npc":
+                }
+                case "npc" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.npc")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -82,7 +82,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     String side = "right_side";
                     if (args.length > 1) {
                         switch (args[1]) {
-                            case "set":
+                            case "set" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.npc.set")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -109,8 +109,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                 this.api.putNPCBook(npc.get().getId(), side, this.getItemFromHand(player));
                                 this.api.saveNPCBooks(this.plugin.getLogger());
                                 sender.sendMessage(this.plugin.getMessage(Message.SET_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
-                                break;
-                            case "remove":
+                            }
+                            case "remove" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.npc.remove")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -133,8 +133,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                 this.api.removeNPCBook(npc.get().getId(), side);
                                 this.api.saveNPCBooks(this.plugin.getLogger());
                                 sender.sendMessage(this.plugin.getMessage(Message.REMOVED_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
-                                break;
-                            case "getbook":
+                            }
+                            case "getbook" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.npc.getbook")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -161,15 +161,12 @@ public class CitizensBooksCommand implements TabExecutor {
                                 ItemStack book = this.api.getNPCBook(npc.get().getId(), side, new ItemStack(Material.WRITTEN_BOOK));
                                 player.getInventory().addItem(book);
                                 sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
-                                break;
-                            default:
-                                this.sendNpcHelp(sender);
-                                break;
+                            }
+                            default -> this.sendNpcHelp(sender);
                         }
                     }
-                    break;
-                case "actionitem":
-                case "ai":
+                }
+                case "actionitem", "ai" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.actionitem")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -185,7 +182,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     String action = References.NBTAPI_ITEM_RIGHT_KEY;
                     if (args.length > 1) {
                         switch (args[1]) {
-                            case "set":
+                            case "set" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.actionitem.set")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -222,8 +219,8 @@ public class CitizensBooksCommand implements TabExecutor {
 
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET));
-                                break;
-                            case "remove":
+                            }
+                            case "remove" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.actionitem.remove")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -248,15 +245,13 @@ public class CitizensBooksCommand implements TabExecutor {
                                     nbtItem.removeKey(action);
                                 this.api.getDistribution().setItemInHand(player, item);
                                 sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
-                                break;
-                            default:
-                                this.sendActionItemHelp(sender);
-                                break;
+                            }
+                            default -> this.sendActionItemHelp(sender);
                         }
                     } else
                         this.sendActionItemHelp(sender);
-                    break;
-                case "forceopen":
+                }
+                case "forceopen" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.forceopen")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -282,11 +277,9 @@ public class CitizensBooksCommand implements TabExecutor {
                         }
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
-                    break;
-                case "about":
-                    this.sendAbout(sender);
-                    break;
-                case "reload":
+                }
+                case "about" -> this.sendAbout(sender);
+                case "reload" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.reload")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -308,8 +301,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
                     this.api.reloadNPCBooks(this.plugin.getLogger());
                     sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
-                    break;
-                case "setjoin":
+                }
+                case "setjoin" -> {
                     if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
@@ -326,8 +319,8 @@ public class CitizensBooksCommand implements TabExecutor {
                     this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
                     this.plugin.saveSettings(); //Always saved
                     sender.sendMessage(this.plugin.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
-                    break;
-                case "remjoin":
+                }
+                case "remjoin" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.remjoin")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -336,8 +329,8 @@ public class CitizensBooksCommand implements TabExecutor {
                     this.plugin.getSettings().set("join_book_last_change", 0);
                     this.plugin.saveSettings(); //Always saved
                     sender.sendMessage(this.plugin.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));
-                    break;
-                case "openbook":
+                }
+                case "openbook" -> {
                     if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
@@ -351,8 +344,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         break;
                     }
                     this.openBook(player, this.getItemFromHand(player));
-                    break;
-                case "closebook":
+                }
+                case "closebook" -> {
                     if (player == null) {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
@@ -375,8 +368,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         this.closeBook(player, this.getItemFromHand(player), author, title);
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_CLOSEBOOK));
-                    break;
-                case "setcmd":
+                }
+                case "setcmd" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.setcmd")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -398,8 +391,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.SET_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command_name%", args[1]).replace("%filter_name%", filter_name));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_SETCMD));
-                    break;
-                case "remcmd":
+                }
+                case "remcmd" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.remcmd")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
@@ -415,15 +408,15 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.REMOVED_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command%", command_name));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_REMCMD));
-                    break;
-                case "filter":
+                }
+                case "filter" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.filter")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
                     if (args.length > 1) {
                         switch (args[1]) {
-                            case "set":
+                            case "set" -> {
                                 if (!this.isPlayer(sender)) {
                                     sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                     break;
@@ -446,8 +439,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage(Message.FILTER_SAVED).replace("%filter_name%", filter_name));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_SET));
-                                break;
-                            case "remove":
+                            }
+                            case "remove" -> {
                                 if (!this.api.hasPermission(sender, "npcbook.command.filter.remove")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
@@ -462,8 +455,8 @@ public class CitizensBooksCommand implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED).replace("%filter_name%", filter_name));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_REMOVE));
-                                break;
-                            case "getbook":
+                            }
+                            case "getbook" -> {
                                 if (player == null) {
                                     sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                                     break;
@@ -487,20 +480,18 @@ public class CitizensBooksCommand implements TabExecutor {
                                     sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_GETBOOK));
-                                break;
-                            default:
-                                this.sendFilterHelp(sender);
-                                break;
+                            }
+                            default -> this.sendFilterHelp(sender);
                         }
                     } else
                         this.sendFilterHelp(sender);
-                    break;
-                default:
+                }
+                default -> {
                     if (this.api.hasPermission(sender, "npcbook.command.help"))
                         this.sendHelp(sender, 0);
                     else
                         this.sendAbout(sender);
-                    break;
+                }
             }
         } else {
             if (this.api.hasPermission(sender, "npcbook.command.help"))

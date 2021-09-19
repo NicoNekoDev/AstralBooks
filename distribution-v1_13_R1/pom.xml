@@ -8,15 +8,15 @@
     <version>distribution</version>
     <packaging>jar</packaging>
 
-    <properties>
-        <java.version>11</java.version>
-    </properties>
-
     <parent>
         <artifactId>citizensbooks-parent</artifactId>
         <groupId>ro.nicuch</groupId>
         <version>parent</version>
     </parent>
+
+    <properties>
+        <java.version>16</java.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -54,7 +54,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>11</release>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
             <plugin>
