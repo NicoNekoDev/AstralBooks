@@ -38,6 +38,6 @@ jobs:
           key: maven-${{ hashFiles('**/buildtools-install-v16.sh') }}
 
       - name: Build & Deploy CitizensBooks with Maven
-        run: mvn -B package --file pom.xml deploy -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn --batch-mode deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
