@@ -97,7 +97,7 @@
     </repository>
     <repository>
       <id>citizens-repo</id>
-      <url>http://repo.citizensnpcs.co/</url>
+      <url>https://repo.citizensnpcs.co/</url>
     </repository>
     <repository>
       <id>codemc-repo</id>
@@ -108,8 +108,8 @@
       <url>https://libraries.minecraft.net/</url>
     </repository>
     <repository>
-      <id>github</id>
-      <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples</url>
+      <id>simpletuples-repo</id>
+      <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples/</url>
     </repository>
   </repositories>
   <pluginRepositories>

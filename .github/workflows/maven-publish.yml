@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '16'
-          distribution: 'adopt'
+          distribution: 'temurin'
           check-latest: true
           server-id: github
           settings-path: ${{ github.workspace }}
@@ -40,4 +40,4 @@ jobs:
       - name: Build & Deploy CitizensBooks with Maven
         run: mvn -B package --file pom.xml deploy -s $GITHUB_WORKSPACE/settings.xml
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
