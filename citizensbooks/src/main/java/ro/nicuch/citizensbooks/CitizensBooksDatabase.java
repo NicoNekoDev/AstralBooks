@@ -22,10 +22,10 @@ package ro.nicuch.citizensbooks;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import ro.nicuch.citizensbooks.utils.Pair;
 
 import java.io.File;
 import java.sql.*;
@@ -117,7 +117,7 @@ public class CitizensBooksDatabase {
             if (this.plugin.isCitizensEnabled()) {
                 try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT npc_id, side FROM " + this.table_prefix + "npc_books;")) {
                     while (preload.next()) {
-                        this.savedBooks.add(new Pair<>(preload.getInt("npc_id"), preload.getString("side")));
+                        this.savedBooks.add(Pair.of(preload.getInt("npc_id"), preload.getString("side")));
                     }
                 }
             }
@@ -173,7 +173,7 @@ public class CitizensBooksDatabase {
         if (!this.plugin.isCitizensEnabled())
             throw new IllegalStateException("Citizens is not enabled!");
         try {
-            return this.npcBooks.get(new Pair<>(npcId, side));
+            return this.npcBooks.get(Pair.of(npcId, side));
         } catch (Exception e) {
             return def;
         }
@@ -182,7 +182,7 @@ public class CitizensBooksDatabase {
     public void removeNPCBook(int npcId, String side) {
         if (!this.plugin.isCitizensEnabled())
             throw new IllegalStateException("Citizens is not enabled!");
-        this.savedBooks.remove(new Pair<>(npcId, side));
+        this.savedBooks.remove(Pair.of(npcId, side));
         this.poolExecutor.submit(() -> {
             try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
                 statement.setInt(1, npcId);
@@ -215,7 +215,7 @@ public class CitizensBooksDatabase {
     public void putNPCBook(int npcId, String side, ItemStack book) {
         if (!this.plugin.isCitizensEnabled())
             throw new IllegalStateException("Citizens is not enabled!");
-        Pair<Integer, String> pairKey = new Pair<>(npcId, side);
+        Pair<Integer, String> pairKey = Pair.of(npcId, side);
         this.savedBooks.add(pairKey);
         this.npcBooks.put(pairKey, book);
         this.poolExecutor.submit(() -> {
@@ -237,7 +237,7 @@ public class CitizensBooksDatabase {
     }
 
     public boolean hasNPCBook(int npcId, String side) {
-        return this.savedBooks.contains(new Pair<>(npcId, side));
+        return this.savedBooks.contains(Pair.of(npcId, side));
     }
 
     public boolean hasFilterBook(String filterName) {

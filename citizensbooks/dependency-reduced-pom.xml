@@ -107,6 +107,10 @@
       <id>minecraft-repo</id>
       <url>https://libraries.minecraft.net/</url>
     </repository>
+    <repository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples</url>
+    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>

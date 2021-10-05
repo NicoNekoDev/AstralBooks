@@ -20,6 +20,7 @@
 package ro.nicuch.citizensbooks;
 
 import com.google.gson.*;
+import io.github.NicoNekoDev.SimpleTuples.Pair;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -40,7 +41,6 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
-import ro.nicuch.citizensbooks.utils.Pair;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -290,7 +290,7 @@ public class CitizensBooksAPI {
                     }
                     JsonObject jsonBookContent = jsonObject.getAsJsonObject("book_content");
                     ItemStack book = CitizensBooksAPI.this.distribution.convertJsonToBook(jsonBookContent);
-                    CitizensBooksAPI.this.filters.put(filterName, new Pair<>(book, jsonFile.toPath()));
+                    CitizensBooksAPI.this.filters.put(filterName, Pair.of(book, jsonFile.toPath()));
                     successfulFile.incrementAndGet();
                 } catch (Exception ex) {
                     logger.warning("Failed to load " + jsonFile.getName());
@@ -337,7 +337,7 @@ public class CitizensBooksAPI {
         Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled())
             return this.database.getFilterBook(filterName, new ItemStack(Material.WRITTEN_BOOK));
-        return this.filters.getOrDefault(filterName, new Pair<>(defaultItemStack, null)).getFirstValue();
+        return this.filters.getOrDefault(filterName, Pair.of(defaultItemStack, null)).getFirstValue();
     }
 
     public ItemStack getFilter(String filterName) {
@@ -391,7 +391,7 @@ public class CitizensBooksAPI {
             jsonFileObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
             jsonFileObject.add("book_content", jsonBookContent);
             this.gson.toJson(jsonFileObject, fileWriter);
-            this.filters.put(filterName, new Pair<>(book, jsonFile.toPath()));
+            this.filters.put(filterName, Pair.of(book, jsonFile.toPath()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
