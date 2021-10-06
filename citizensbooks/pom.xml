@@ -249,7 +249,7 @@
         <dependency>
             <groupId>io.github.niconekodev</groupId>
             <artifactId>simpletuples</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
             <scope>compile</scope>
             <type>jar</type>
         </dependency>
