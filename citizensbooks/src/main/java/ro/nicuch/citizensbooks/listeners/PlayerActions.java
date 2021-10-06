@@ -65,6 +65,7 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
             return;
         this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            boolean wasEmpty = this.delayedPlayers.isEmpty();
             DelayedPlayer delayedPlayer = this.delayedPlayers.poll();
             while (delayedPlayer != null) {
                 Player player = delayedPlayer.getPlayer();
@@ -73,11 +74,12 @@ public class PlayerActions implements Listener {
                         if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
                             continue;
                     this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
-                    this.plugin.saveSettings();
                 }
                 this.api.openBook(player, this.api.placeholderHook(player, this.api.getJoinBook(), null));
                 delayedPlayer = this.delayedPlayers.poll();
             }
+            if (!wasEmpty) // save outside the while loop, only if needed
+                this.plugin.saveSettings();
         }, 1L, 1L);
     }
 
