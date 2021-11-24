@@ -37,7 +37,6 @@ import java.util.List;
 
 public class DistributionHandler extends Distribution {
     private final Field pagesField;
-    private final JsonParser parser = new JsonParser();
 
     public DistributionHandler() throws NoSuchFieldException {
         super("1_15_R1");
@@ -67,7 +66,7 @@ public class DistributionHandler extends Distribution {
             List<IChatBaseComponent> pages = bookMeta.hasPages() ? (List<IChatBaseComponent>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
             for (IChatBaseComponent page : pages) {
-                jsonPages.add(this.parser.parse(IChatBaseComponent.ChatSerializer.a(page)));
+                jsonPages.add(super.gson.fromJson(IChatBaseComponent.ChatSerializer.a(page), JsonElement.class));
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");

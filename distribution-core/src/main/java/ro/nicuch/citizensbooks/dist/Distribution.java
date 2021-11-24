@@ -19,12 +19,14 @@
 
 package ro.nicuch.citizensbooks.dist;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class Distribution {
-    final String version;
+    protected final Gson gson = new Gson();
+    private final String version;
 
     public Distribution(final String version) {
         this.version = version;
