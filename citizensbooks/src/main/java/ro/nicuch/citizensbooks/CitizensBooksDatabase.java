@@ -123,7 +123,6 @@ public class CitizensBooksDatabase {
             }
             this.poolExecutor = Executors.newFixedThreadPool(this.plugin.getSettings().getInt("database.threads", 2));
             this.filterBooks = CacheBuilder.newBuilder()
-                    .expireAfterWrite(5, TimeUnit.MINUTES)
                     .expireAfterAccess(5, TimeUnit.MINUTES)
                     .build(new CacheLoader<>() {
                         @Override
@@ -133,7 +132,6 @@ public class CitizensBooksDatabase {
                     });
             if (this.plugin.isCitizensEnabled()) {
                 this.npcBooks = CacheBuilder.newBuilder()
-                        .expireAfterWrite(5, TimeUnit.MINUTES)
                         .expireAfterAccess(5, TimeUnit.MINUTES)
                         .build(new CacheLoader<>() {
                             @Override
