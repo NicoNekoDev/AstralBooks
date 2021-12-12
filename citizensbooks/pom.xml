@@ -45,10 +45,6 @@
             <id>minecraft-repo</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
-        <repository>
-            <id>SimpleTuples-repo</id>
-            <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -243,7 +239,7 @@
         <dependency>
             <groupId>me.lucko</groupId>
             <artifactId>commodore</artifactId>
-            <version>1.10</version>
+            <version>1.11</version>
             <scope>compile</scope>
             <type>jar</type>
         </dependency>

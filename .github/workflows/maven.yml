@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v8.sh') }}
+          key: maven-${{ hashFiles('**/scripts') }}
           restore-keys: |
             maven-
 
@@ -37,15 +37,6 @@ jobs:
           java-version: '16'
           check-latest: true
 
-      - name: Cache local Maven repository
-        id: cache-v16
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v16.sh') }}
-          restore-keys: |
-            maven-
-
       - name: Install spigot... (1.17)
         if: steps.cache-v16.outputs.cache-hit != 'true'
         run: |
@@ -59,15 +50,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           check-latest: true
-
-      - name: Cache local Maven repository
-        id: cache-v17
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v17.sh') }}
-          restore-keys: |
-            maven-
 
       - name: Install spigot... (1.18 -> latest)
         if: steps.cache-v17.outputs.cache-hit != 'true'

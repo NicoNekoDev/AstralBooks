@@ -28,21 +28,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v8.sh') }}
-
-      - name: Cache local Maven repository
-        id: cache-v16
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v16.sh') }}
-
-      - name: Cache local Maven repository
-        id: cache-v17
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: maven-${{ hashFiles('**/buildtools-install-v17.sh') }}
+          key: maven-${{ hashFiles('**/scripts') }}
 
       - name: Build & Deploy CitizensBooks with Maven
         run: mvn --batch-mode deploy -s $GITHUB_WORKSPACE/settings.xml

@@ -13,7 +13,7 @@
                 <repository>
                     <id>github</id>
                     <name>GitHub NicoNekoDev Packages</name>
-                    <url>https://maven.pkg.github.com/NicoNekoDev</url>
+                    <url>https://maven.pkg.github.com/NicoNekoDev/CitizensBooks</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
