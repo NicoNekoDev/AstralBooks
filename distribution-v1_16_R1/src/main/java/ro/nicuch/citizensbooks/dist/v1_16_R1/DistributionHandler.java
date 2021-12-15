@@ -20,9 +20,12 @@
 package ro.nicuch.citizensbooks.dist.v1_16_R1;
 
 import com.google.gson.*;
+import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
+import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.server.v1_16_R1.EnumHand;
 import net.minecraft.server.v1_16_R1.IChatBaseComponent;
 import net.minecraft.server.v1_16_R1.PacketPlayOutOpenBook;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftMetaBook;
@@ -34,12 +37,13 @@ import ro.nicuch.citizensbooks.dist.Distribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DistributionHandler extends Distribution {
     private final Field pagesField;
 
-    public DistributionHandler() throws NoSuchFieldException {
-        super("1_16_R1");
+    public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
+        super("1_16_R1", papiStr, papiStrList);
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }
@@ -102,5 +106,34 @@ public class DistributionHandler extends Distribution {
             ex.printStackTrace();
         }
         return newBook;
+    }
+
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
+    @Override
+    public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        BookMeta bookMeta = (BookMeta) book.getItemMeta();
+        try {
+            List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, ((List<IChatBaseComponent>) this.pagesField.get(bookMeta)).stream().map(IChatBaseComponent.ChatSerializer::a).toList(), Optional.ofNullable(npc)) : new ArrayList<>();
+            String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
+            String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
+            ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
+            bookMeta.setAuthor(author);
+            bookMeta.setTitle(title);
+            this.pagesField.set(bookMeta, pages.stream().map(IChatBaseComponent.ChatSerializer::a).toList());
+            newBook.setItemMeta(bookMeta);
+            return newBook;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return book;
+    }
+
+    @Override
+    public ItemStack applyPlaceholders(Player player, ItemStack book) {
+        return this.applyPlaceholders(player, book, null);
     }
 }

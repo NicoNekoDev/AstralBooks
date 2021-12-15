@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>citizensbooks</artifactId>
-    <version>2.6.8</version>
+    <version>2.6.9</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -22,20 +22,12 @@
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
             <id>jitpack-repo</id>
             <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>placeholderapi-repo</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
-        </repository>
-        <repository>
-            <id>citizens-repo</id>
-            <url>https://repo.citizensnpcs.co/</url>
         </repository>
         <repository>
             <id>codemc-repo</id>
@@ -183,12 +175,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>net.citizensnpcs</groupId>
-            <artifactId>citizensapi</artifactId>
-            <version>2.0.28-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
@@ -201,12 +187,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.17.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>de.tr7zw</groupId>
             <artifactId>item-nbt-api-plugin</artifactId>
             <version>2.8.0</version>
@@ -216,20 +196,6 @@
             <groupId>me.lucko</groupId>
             <artifactId>commodore</artifactId>
             <version>1.11</version>
-            <scope>compile</scope>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.9</version>
-            <scope>compile</scope>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>io.github.niconekodev</groupId>
-            <artifactId>simpletuples</artifactId>
-            <version>1.0.1</version>
             <scope>compile</scope>
             <type>jar</type>
         </dependency>

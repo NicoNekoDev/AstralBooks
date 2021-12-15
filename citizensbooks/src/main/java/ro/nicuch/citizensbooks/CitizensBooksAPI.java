@@ -21,6 +21,7 @@ package ro.nicuch.citizensbooks;
 
 import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -30,13 +31,11 @@ import net.luckperms.api.query.QueryOptions;
 import net.milkbowl.vault.permission.Permission;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
@@ -242,7 +241,37 @@ public class CitizensBooksAPI {
             final Class<?> clazz = Class.forName("ro.nicuch.citizensbooks.dist." + version + ".DistributionHandler");
             if (Distribution.class.isAssignableFrom(clazz)) {
                 this.plugin.getLogger().info("Loading support for version " + version + "...");
-                this.distribution = (Distribution) clazz.getConstructor().newInstance();
+                TripletFunction<Player, String, Optional<NPC>, String> papiString = (player, arg, optionalNPC) -> {
+                    if (!CitizensBooksAPI.this.plugin.isPlaceHolderEnabled())
+                        return arg;
+                    if (optionalNPC.isEmpty())
+                        return PlaceholderAPI.setPlaceholders(player, arg);
+                    else {
+                        NPC npc = optionalNPC.get();
+                        return PlaceholderAPI.setPlaceholders(player, arg).replace("%npc_name%", npc.getName())
+                                .replace("%npc_id%", npc.getId() + "")
+                                .replace("%npc_loc_x%", npc.getEntity().getLocation().getX() + "")
+                                .replace("%npc_loc_y%", npc.getEntity().getLocation().getY() + "")
+                                .replace("%npc_loc_z%", npc.getEntity().getLocation().getZ() + "")
+                                .replace("%npc_loc_world%", npc.getEntity().getWorld().getName());
+                    }
+                };
+                TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStringList = (player, argList, optionalNPC) -> {
+                    if (!CitizensBooksAPI.this.plugin.isPlaceHolderEnabled())
+                        return argList;
+                    if (optionalNPC.isEmpty())
+                        return PlaceholderAPI.setPlaceholders(player, argList);
+                    else {
+                        NPC npc = optionalNPC.get();
+                        return PlaceholderAPI.setPlaceholders(player, argList).stream().map(str -> str.replace("%npc_name%", npc.getName())
+                                .replace("%npc_id%", npc.getId() + "")
+                                .replace("%npc_loc_x%", npc.getEntity().getLocation().getX() + "")
+                                .replace("%npc_loc_y%", npc.getEntity().getLocation().getY() + "")
+                                .replace("%npc_loc_z%", npc.getEntity().getLocation().getZ() + "")
+                                .replace("%npc_loc_world%", npc.getEntity().getWorld().getName())).toList();
+                    }
+                };
+                this.distribution = (Distribution) clazz.getConstructor(TripletFunction.class, TripletFunction.class).newInstance(papiString, papiStringList);
                 return true;
             }
         } catch (final Exception ex) {
@@ -255,6 +284,14 @@ public class CitizensBooksAPI {
             return false;
         }
         return false;
+    }
+
+    public ItemStack placeholderHook(Player player, ItemStack book) {
+        return this.distribution.applyPlaceholders(player, book);
+    }
+
+    public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
+        return this.distribution.applyPlaceholders(player, book, npc);
     }
 
     public void reloadFilters(Logger logger) {
@@ -449,67 +486,10 @@ public class CitizensBooksAPI {
         } catch (Exception ex) {
             this.plugin.getLogger().log(Level.WARNING, "Something went wrong!", ex);
         }
-        pi.setItem(slot, old);
-    }
-
-    public ItemStack placeholderHook(Player player, ItemStack book) {
-        return this.placeholderHook(player, book, null);
-    }
-
-    public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        if (!this.plugin.isPlaceHolderEnabled())
-            return book;
-        if (book.hasItemMeta()) {
-            BookMeta bookMeta = (BookMeta) book.getItemMeta();
-            if (bookMeta.hasTitle()) {
-                if (npc == null) {
-                    bookMeta.setTitle(PlaceholderAPI.setPlaceholders(player, bookMeta.getTitle()));
-                } else {
-                    Location loc = npc.getStoredLocation();
-                    bookMeta.setTitle(PlaceholderAPI.setPlaceholders(player, bookMeta.getTitle())
-                            .replace("%npc_name%", npc.getName())
-                            .replace("%npc_id%", npc.getId() + "")
-                            .replace("%npc_loc_x%", loc.getX() + "")
-                            .replace("%npc_loc_y%", loc.getY() + "")
-                            .replace("%npc_loc_z%", loc.getZ() + "")
-                            .replace("%npc_loc_world%", loc.getWorld().getName()));
-                }
-            }
-            if (bookMeta.hasAuthor()) {
-                if (npc == null) {
-                    bookMeta.setAuthor(PlaceholderAPI.setPlaceholders(player, bookMeta.getAuthor()));
-                } else {
-                    Location loc = npc.getStoredLocation();
-                    bookMeta.setAuthor(PlaceholderAPI.setPlaceholders(player, bookMeta.getAuthor())
-                            .replace("%npc_name%", npc.getName())
-                            .replace("%npc_id%", npc.getId() + "")
-                            .replace("%npc_loc_x%", loc.getX() + "")
-                            .replace("%npc_loc_y%", loc.getY() + "")
-                            .replace("%npc_loc_z%", loc.getZ() + "")
-                            .replace("%npc_loc_world%", loc.getWorld().getName()));
-                }
-            }
-            if (bookMeta.hasPages()) {
-                if (npc == null) {
-                    bookMeta.setPages(PlaceholderAPI.setPlaceholders(player, bookMeta.getPages()));
-                } else {
-                    Location loc = npc.getStoredLocation();
-                    bookMeta.setPages(PlaceholderAPI.setPlaceholders(player, bookMeta.getPages()).stream().map(str -> str
-                            .replace("%npc_name%", npc.getName())
-                            .replace("%npc_id%", npc.getId() + "")
-                            .replace("%npc_loc_x%", loc.getX() + "")
-                            .replace("%npc_loc_y%", loc.getY() + "")
-                            .replace("%npc_loc_z%", loc.getZ() + "")
-                            .replace("%npc_loc_world%", loc.getWorld().getName())).collect(Collectors.toList()));
-                }
-            }
-            book.setItemMeta(bookMeta);
-        }
-        return book;
+        if (old != null)
+            pi.setItem(slot, old.clone());
+        else
+            pi.setItem(slot, null);
     }
 
     public boolean hasPermission(CommandSender sender, String permission) {

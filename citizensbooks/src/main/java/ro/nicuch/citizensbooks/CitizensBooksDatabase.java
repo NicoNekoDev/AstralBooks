@@ -126,7 +126,7 @@ public class CitizensBooksDatabase {
                     .expireAfterAccess(5, TimeUnit.MINUTES)
                     .build(new CacheLoader<>() {
                         @Override
-                        public ItemStack load(@NotNull String key) throws Exception {
+                        public @NotNull ItemStack load(@NotNull String key) throws Exception {
                             return CitizensBooksDatabase.this.getFilterBookStack(key).get();
                         }
                     });
@@ -135,7 +135,7 @@ public class CitizensBooksDatabase {
                         .expireAfterAccess(5, TimeUnit.MINUTES)
                         .build(new CacheLoader<>() {
                             @Override
-                            public ItemStack load(@NotNull Pair<Integer, String> key) throws Exception {
+                            public @NotNull ItemStack load(@NotNull Pair<Integer, String> key) throws Exception {
                                 return CitizensBooksDatabase.this.getNPCBookStack(key).get();
                             }
                         });

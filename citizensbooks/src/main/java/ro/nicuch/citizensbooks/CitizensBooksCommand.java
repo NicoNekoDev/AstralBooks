@@ -160,7 +160,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                 }
                                 ItemStack book = this.api.getNPCBook(npc.get().getId(), side, new ItemStack(Material.WRITTEN_BOOK));
                                 player.getInventory().addItem(book);
-                                sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
+                                sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECEIVED));
                             }
                             default -> this.sendNpcHelp(sender);
                         }
@@ -256,7 +256,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (args.length > 2) {
+                    if (args.length > 1) {
                         String filter_name = args[1];
                         if (!this.api.isValidName(filter_name)) {
                             sender.sendMessage(this.plugin.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
@@ -266,14 +266,23 @@ public class CitizensBooksCommand implements TabExecutor {
                             sender.sendMessage(this.plugin.getMessage(Message.FILTER_NOT_FOUND));
                             break;
                         }
-                        if ("*".equals(args[2]) || "@a".equals(args[2]))
-                            Bukkit.getOnlinePlayers().forEach(p -> this.api.openBook(p, this.api.placeholderHook(p, this.api.getFilter(filter_name), null)));
-                        else {
-                            Optional<Player> optionalPlayer = this.api.getPlayer(args[2]);
-                            if (optionalPlayer.isPresent()) {
-                                this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(filter_name), null));
-                            } else
-                                sender.sendMessage(this.plugin.getMessage(Message.PLAYER_NOT_FOUND));
+                        if (args.length == 2) {
+                            if (player == null) {
+                                sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
+                                sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
+                                break;
+                            }
+                            this.api.openBook(player, this.api.placeholderHook(player, this.api.getFilter(filter_name), null));
+                        } else {
+                            if ("*".equals(args[2]) || "@a".equals(args[2]))
+                                Bukkit.getOnlinePlayers().forEach(p -> this.api.openBook(p, this.api.placeholderHook(p, this.api.getFilter(filter_name), null)));
+                            else {
+                                Optional<Player> optionalPlayer = this.api.getPlayer(args[2]);
+                                if (optionalPlayer.isPresent()) {
+                                    this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(filter_name), null));
+                                } else
+                                    sender.sendMessage(this.plugin.getMessage(Message.PLAYER_NOT_FOUND));
+                            }
                         }
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
@@ -477,7 +486,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                     }
                                     ItemStack book = this.api.getFilter(filter_name);
                                     player.getInventory().addItem(book);
-                                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECIVED));
+                                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_RECEIVED));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_GETBOOK));
                             }

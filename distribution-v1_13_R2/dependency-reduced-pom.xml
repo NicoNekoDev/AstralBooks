@@ -6,7 +6,7 @@
     <version>parent</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>distribution-core</artifactId>
+  <artifactId>distribution-v1_13_R2</artifactId>
   <version>distribution</version>
   <build>
     <plugins>
@@ -30,7 +30,25 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>spigot-repo</id>
+      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
   <dependencies>
+    <dependency>
+      <groupId>ro.nicuch</groupId>
+      <artifactId>distribution-core</artifactId>
+      <version>distribution</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot</artifactId>
+      <version>1.13.2-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>

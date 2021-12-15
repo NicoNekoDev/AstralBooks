@@ -21,15 +21,24 @@ package ro.nicuch.citizensbooks.dist;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
+import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
+import java.util.Optional;
 
 public abstract class Distribution {
     protected final Gson gson = new Gson();
     private final String version;
+    protected final TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr;
+    protected final TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList;
 
-    public Distribution(final String version) {
+    public Distribution(final String version, TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList) {
         this.version = version;
+        this.papiReplaceStr = papiReplaceStr;
+        this.papiReplaceStrList = papiReplaceStrList;
     }
 
     public final String getVersion() {
@@ -45,4 +54,8 @@ public abstract class Distribution {
     public abstract JsonObject convertBookToJson(ItemStack book);
 
     public abstract ItemStack convertJsonToBook(JsonObject jsonBook);
+
+    public abstract ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc);
+
+    public abstract ItemStack applyPlaceholders(Player player, ItemStack book);
 }

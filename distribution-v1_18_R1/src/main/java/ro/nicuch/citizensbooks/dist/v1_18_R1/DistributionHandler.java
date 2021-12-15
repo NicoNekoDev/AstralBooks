@@ -19,9 +19,15 @@
 
 package ro.nicuch.citizensbooks.dist.v1_18_R1;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
+import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftMetaBook;
@@ -33,12 +39,13 @@ import ro.nicuch.citizensbooks.dist.Distribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DistributionHandler extends Distribution {
     private final Field pagesField;
 
-    public DistributionHandler() throws NoSuchFieldException {
-        super("1_18_R1");
+    public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
+        super("1_18_R1", papiStr, papiStrList);
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }
@@ -93,7 +100,7 @@ public class DistributionHandler extends Distribution {
             bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
             List<String> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
-                    pages.add(jsonPage.toString());
+                pages.add(jsonPage.toString());
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
@@ -101,5 +108,34 @@ public class DistributionHandler extends Distribution {
             ex.printStackTrace();
         }
         return newBook;
+    }
+
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
+    @Override
+    public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) {
+        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        BookMeta bookMeta = (BookMeta) book.getItemMeta();
+        try {
+            List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
+            String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
+            String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
+            ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
+            bookMeta.setAuthor(author);
+            bookMeta.setTitle(title);
+            this.pagesField.set(bookMeta, pages);
+            newBook.setItemMeta(bookMeta);
+            return newBook;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return book;
+    }
+
+    @Override
+    public ItemStack applyPlaceholders(Player player, ItemStack book) {
+        return this.applyPlaceholders(player, book, null);
     }
 }
