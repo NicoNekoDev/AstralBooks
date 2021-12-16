@@ -22,6 +22,10 @@
             <id>citizens-repo</id>
             <url>https://repo.citizensnpcs.co/</url>
         </repository>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -71,6 +75,13 @@
         <module>distribution-v1_18_R1</module>
         <module>distribution-core</module>
     </modules>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <build>
         <plugins>

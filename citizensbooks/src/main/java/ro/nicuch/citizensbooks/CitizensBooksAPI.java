@@ -287,10 +287,14 @@ public class CitizensBooksAPI {
     }
 
     public ItemStack placeholderHook(Player player, ItemStack book) {
+        if (!this.plugin.isPlaceHolderEnabled())
+            return book;
         return this.distribution.applyPlaceholders(player, book);
     }
 
     public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
+        if (!this.plugin.isPlaceHolderEnabled())
+            return book;
         return this.distribution.applyPlaceholders(player, book, npc);
     }
 
