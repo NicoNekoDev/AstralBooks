@@ -124,9 +124,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.api.reloadNPCBooks(this.getLogger());
 
             PluginCommand npcBookCommand = this.getCommand("npcbook");
-            CitizensBooksCommand npcBookExecutor = new CitizensBooksCommand(this);
-            npcBookCommand.setExecutor(npcBookExecutor);
-            npcBookCommand.setTabCompleter(npcBookExecutor);
+            npcBookCommand.setExecutor(new CitizensBooksCommand(this));
             if (CommodoreProvider.isSupported()) {
                 this.getLogger().info("Loading Brigardier support...");
                 Commodore commodore = CommodoreProvider.getCommodore(this);
