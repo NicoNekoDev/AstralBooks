@@ -17,19 +17,20 @@
 
  */
 
-package ro.nicuch.citizensbooks.dist.v1_11_R1;
+package ro.nicuch.citizensbooks.dist.v1_18_R2;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
-import io.netty.buffer.Unpooled;
 import net.citizensnpcs.api.npc.NPC;
-import net.minecraft.server.v1_11_R1.IChatBaseComponent;
-import net.minecraft.server.v1_11_R1.PacketDataSerializer;
-import net.minecraft.server.v1_11_R1.PacketPlayOutCustomPayload;
+import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
+import net.minecraft.world.InteractionHand;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_11_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_11_R1.inventory.CraftMetaBook;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftMetaBook;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -44,15 +45,13 @@ public class DistributionHandler extends Distribution {
     private final Field pagesField;
 
     public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
-        super("1_11_R1",  papiStr, papiStrList);
+        super("1_18_R1", papiStr, papiStrList);
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }
 
     public void sendRightClick(Player player) {
-        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(
-                new PacketPlayOutCustomPayload("MC|BOpen", new PacketDataSerializer(Unpooled.buffer(256).setByte(0, (byte) 0).writerIndex(1)))
-        );
+        ((CraftPlayer) player).getHandle().connection.send(new ClientboundOpenBookPacket(InteractionHand.MAIN_HAND));
     }
 
     @Override
@@ -65,15 +64,15 @@ public class DistributionHandler extends Distribution {
         return player.getInventory().getItemInMainHand();
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
     @Override
     public JsonObject convertBookToJson(ItemStack book) {
         try {
             BookMeta bookMeta = (BookMeta) book.getItemMeta();
-            List<IChatBaseComponent> pages = bookMeta.hasPages() ? (List<IChatBaseComponent>) this.pagesField.get(bookMeta) : new ArrayList<>();
+            List<String> pages = bookMeta.hasPages() ? (List<String>) this.pagesField.get(bookMeta) : new ArrayList<>();
             JsonArray jsonPages = new JsonArray();
-            for (IChatBaseComponent page : pages) {
-                jsonPages.add(super.gson.fromJson(IChatBaseComponent.ChatSerializer.a(page), JsonElement.class));
+            for (String page : pages) {
+                jsonPages.add(super.gson.fromJson(page, JsonElement.class));
             }
             JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
             JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
@@ -88,6 +87,7 @@ public class DistributionHandler extends Distribution {
         return new JsonObject();
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public ItemStack convertJsonToBook(JsonObject jsonBook) {
         ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
@@ -98,9 +98,9 @@ public class DistributionHandler extends Distribution {
             JsonArray jsonPages = jsonBook.getAsJsonArray("pages");
             bookMeta.setAuthor(jsonAuthor.isString() ? jsonAuthor.getAsString() : "Server");
             bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
-            List<IChatBaseComponent> pages = new ArrayList<>();
+            List<String> pages = new ArrayList<>();
             for (JsonElement jsonPage : jsonPages) {
-                pages.add(IChatBaseComponent.ChatSerializer.a(jsonPage.toString()));
+                pages.add(jsonPage.toString());
             }
             this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
@@ -110,7 +110,7 @@ public class DistributionHandler extends Distribution {
         return newBook;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
     public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) {
         Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
@@ -119,13 +119,13 @@ public class DistributionHandler extends Distribution {
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
         try {
-            List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, ((List<IChatBaseComponent>) this.pagesField.get(bookMeta)).stream().map(IChatBaseComponent.ChatSerializer::a).toList(), Optional.ofNullable(npc)) : new ArrayList<>();
+            List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
             String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
             String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
             ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
             bookMeta.setAuthor(author);
             bookMeta.setTitle(title);
-            this.pagesField.set(bookMeta, pages.stream().map(IChatBaseComponent.ChatSerializer::a).toList());
+            this.pagesField.set(bookMeta, pages);
             newBook.setItemMeta(bookMeta);
             return newBook;
         } catch (Exception ex) {

@@ -23,7 +23,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>distribution-v1_11_R1</artifactId>
+    <artifactId>distribution-v1_18_R2</artifactId>
     <version>distribution</version>
     <packaging>jar</packaging>
 
@@ -51,11 +51,13 @@
             <version>distribution</version>
             <scope>provided</scope>
             <type>jar</type>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.11.2-R0.1-SNAPSHOT</version>
+            <version>1.18.2-R0.1-SNAPSHOT</version>
+            <classifier>remapped-mojang</classifier>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -69,6 +71,43 @@
                 <configuration>
                     <release>${java.version}</release>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
+                <version>1.2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-obf</id>
+                        <configuration>
+                            <srgIn>org.spigotmc:minecraft-server:1.18.2-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+                            <reverse>true</reverse>
+                            <remappedDependencies>org.spigotmc:spigot:1.18.2-R0.1-SNAPSHOT:jar:remapped-mojang
+                            </remappedDependencies>
+                            <remappedArtifactAttached>true</remappedArtifactAttached>
+                            <remappedClassifierName>remapped-obf</remappedClassifierName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-spigot</id>
+                        <configuration>
+                            <inputFile>
+                                ${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar
+                            </inputFile>
+                            <srgIn>org.spigotmc:minecraft-server:1.18.2-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
+                            <remappedDependencies>org.spigotmc:spigot:1.18.2-R0.1-SNAPSHOT:jar:remapped-obf
+                            </remappedDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

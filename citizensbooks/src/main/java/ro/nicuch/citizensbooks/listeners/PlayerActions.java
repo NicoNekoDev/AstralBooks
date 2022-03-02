@@ -1,7 +1,7 @@
 /*
 
     CitizensBooks
-    Copyright (c) 2021 @ Drăghiciu 'nicuch' Nicolae
+    Copyright (c) 2022 @ Drăghiciu 'NicoNekoDev' Nicolae
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
