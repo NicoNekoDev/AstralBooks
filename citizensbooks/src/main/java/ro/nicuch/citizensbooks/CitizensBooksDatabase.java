@@ -83,41 +83,48 @@ public class CitizensBooksDatabase {
                 logger.info("Connected to SQLite database!");
             } else
                 return false;
-            this.connection.createStatement().executeUpdate(
-                    "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "filters (" +
-                            "filter_name VARCHAR(255) PRIMARY KEY," +
-                            "filter_book TEXT" +
-                            ");");
-            if (this.plugin.isCitizensEnabled()) {
-                if (this.isMySQL) {
-                    this.connection.createStatement().executeUpdate(
-                            "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
-                                    "npc_id INT NOT NULL," +
-                                    "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
-                                    "server VARCHAR(255) DEFAULT 'default'," +
-                                    "npc_book TEXT," +
-                                    "CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)" +
-                                    ");");
-                } else {
-                    this.connection.createStatement().executeUpdate(
-                            "CREATE TABLE IF NOT EXISTS " + this.table_prefix + "npc_books (" +
-                                    "npc_id INT NOT NULL," +
-                                    "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
-                                    "server VARCHAR(255) DEFAULT 'default'," +
-                                    "npc_book TEXT," +
-                                    "PRIMARY KEY (npc_id, side)" +
-                                    ");");
-                }
-            }
-            try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT filter_name FROM " + this.table_prefix + "filters;")) {
-                while (preload.next()) {
-                    this.filters.add(preload.getString("filter_name"));
-                }
+            try (PreparedStatement statement = this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS ? (filter_name VARCHAR(255) PRIMARY KEY,filter_book TEXT);")) {
+                statement.setString(1, this.table_prefix + "filters");
+                statement.executeUpdate();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "Failed to create 'filters' table!", ex);
             }
             if (this.plugin.isCitizensEnabled()) {
-                try (ResultSet preload = this.connection.createStatement().executeQuery("SELECT npc_id, side FROM " + this.table_prefix + "npc_books;")) {
+                String query = this.isMySQL ? "CREATE TABLE IF NOT EXISTS ? (" +
+                        "npc_id INT NOT NULL," +
+                        "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
+                        "server VARCHAR(255) DEFAULT 'default'," +
+                        "npc_book TEXT," +
+                        "CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)" +
+                        ");" : "CREATE TABLE IF NOT EXISTS ? (" +
+                        "npc_id INT NOT NULL," +
+                        "side VARCHAR(32) NOT NULL DEFAULT 'right_side'," +
+                        "server VARCHAR(255) DEFAULT 'default'," +
+                        "npc_book TEXT," +
+                        "PRIMARY KEY (npc_id, side)" +
+                        ");";
+                try (PreparedStatement statement = this.connection.prepareStatement(query)) {
+                    statement.setString(1, this.table_prefix + "npc_books");
+                    statement.executeUpdate();
+                } catch (SQLException ex) {
+                    this.plugin.getLogger().log(Level.SEVERE, "Failed to create 'npcbooks' table!", ex);
+                }
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_name FROM ?;")) {
+                statement.setString(1, this.table_prefix + "filters");
+                try (ResultSet preload = statement.executeQuery()) {
                     while (preload.next()) {
-                        this.savedBooks.add(Pair.of(preload.getInt("npc_id"), preload.getString("side")));
+                        this.filters.add(preload.getString("filter_name"));
+                    }
+                }
+            }
+            if (this.plugin.isCitizensEnabled()) {
+                try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_id, side FROM ?;")) {
+                    statement.setString(1, this.table_prefix + "npc_books");
+                    try (ResultSet preload = statement.executeQuery()) {
+                        while (preload.next()) {
+                            this.savedBooks.add(Pair.of(preload.getInt("npc_id"), preload.getString("side")));
+                        }
                     }
                 }
             }
@@ -182,10 +189,11 @@ public class CitizensBooksDatabase {
             throw new IllegalStateException("Citizens is not enabled!");
         this.savedBooks.remove(Pair.of(npcId, side));
         this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
-                statement.setInt(1, npcId);
-                statement.setString(2, side);
-                statement.setString(3, this.serverName);
+            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM ? WHERE npc_id=? AND side=? AND server=?;")) {
+                statement.setString(1, this.table_prefix + "npc_books");
+                statement.setInt(2, npcId);
+                statement.setString(3, side);
+                statement.setString(4, this.serverName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to remove book data!", ex);
@@ -196,10 +204,11 @@ public class CitizensBooksDatabase {
 
     protected Future<ItemStack> getNPCBookStack(Pair<Integer, String> key) {
         return this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_book FROM " + this.table_prefix + "npc_books WHERE npc_id=? AND side=? AND server=?;")) {
-                statement.setInt(1, key.getFirstValue());
-                statement.setString(2, key.getSecondValue());
-                statement.setString(3, this.serverName);
+            try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_book FROM ? WHERE npc_id=? AND side=? AND server=?;")) {
+                statement.setString(1, this.table_prefix + "npc_books");
+                statement.setInt(2, key.getFirstValue());
+                statement.setString(3, key.getSecondValue());
+                statement.setString(4, this.serverName);
                 try (ResultSet result = statement.executeQuery()) {
                     return this.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
                 }
@@ -218,15 +227,16 @@ public class CitizensBooksDatabase {
         this.npcBooks.put(pairKey, book);
         this.poolExecutor.submit(() -> {
             String query = this.isMySQL ?
-                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;" :
-                    "INSERT INTO " + this.table_prefix + "npc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON CONFLICT(npc_id, side) DO UPDATE SET npc_book=?;";
+                    "INSERT INTO ? (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;" :
+                    "INSERT INTO ? (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON CONFLICT(npc_id, side) DO UPDATE SET npc_book=?;";
             try (PreparedStatement statement = this.connection.prepareStatement(query)) {
                 String encoded = this.plugin.getAPI().encodeItemStack(book);
-                statement.setInt(1, npcId);
-                statement.setString(2, side);
-                statement.setString(3, this.serverName);
-                statement.setString(4, encoded);
+                statement.setString(1, this.table_prefix + "npc_books");
+                statement.setInt(2, npcId);
+                statement.setString(3, side);
+                statement.setString(4, this.serverName);
                 statement.setString(5, encoded);
+                statement.setString(6, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to save book data!", ex);
@@ -245,15 +255,16 @@ public class CitizensBooksDatabase {
     public ItemStack getFilterBook(String filterName, ItemStack def) {
         try {
             return this.filterBooks.get(filterName);
-        } catch (Exception e) {
+        } catch (Exception ignore) {
             return def;
         }
     }
 
     protected Future<ItemStack> getFilterBookStack(String filterName) {
         return this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_book FROM " + this.table_prefix + "filters WHERE filter_name=?;")) {
-                statement.setString(1, filterName);
+            try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_book FROM ? WHERE filter_name=?;")) {
+                statement.setString(1, this.table_prefix + "filters");
+                statement.setString(2, filterName);
                 try (ResultSet result = statement.executeQuery()) {
                     return this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
                 }
@@ -269,13 +280,14 @@ public class CitizensBooksDatabase {
         this.filterBooks.put(filterName, book);
         this.poolExecutor.submit(() -> {
             String query = this.isMySQL ?
-                    "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;" :
-                    "INSERT INTO " + this.table_prefix + "filters (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;";
+                    "INSERT INTO ? (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;" :
+                    "INSERT INTO ? (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;";
             try (PreparedStatement statement = this.connection.prepareStatement(query)) {
                 String encoded = this.plugin.getAPI().encodeItemStack(book);
-                statement.setString(1, filterName);
-                statement.setString(2, encoded);
+                statement.setString(1, this.table_prefix + "filters");
+                statement.setString(2, filterName);
                 statement.setString(3, encoded);
+                statement.setString(4, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to save book data!", ex);
@@ -287,8 +299,9 @@ public class CitizensBooksDatabase {
         this.filters.remove(filterName);
         this.filterBooks.invalidate(filterName);
         this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM " + this.table_prefix + "filters WHERE filter_name=?;")) {
-                statement.setString(1, filterName);
+            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM ? WHERE filter_name=?;")) {
+                statement.setString(1, this.table_prefix + "filters");
+                statement.setString(2, filterName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to remove book data!", ex);

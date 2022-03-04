@@ -434,7 +434,7 @@ public class CitizensBooksAPI {
             this.gson.toJson(jsonFileObject, fileWriter);
             this.filters.put(filterName, Pair.of(book, jsonFile.toPath()));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            this.plugin.getLogger().log(Level.WARNING, "Failed to create json file", ex);
         }
     }
 
