@@ -45,6 +45,7 @@ jobs:
         shell: bash
 
       - name: Build CitizensBooks with Maven
-        run: mvn --batch-mode package -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn --batch-mode package -s $GITHUB_WORKSPACE/settings.xml verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=NicoNekoDev_CitizensBooks
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
