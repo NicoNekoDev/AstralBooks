@@ -40,6 +40,11 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
+import ro.nicuch.citizensbooks.item.EmptyItemData;
+import ro.nicuch.citizensbooks.item.ItemData;
+import ro.nicuch.citizensbooks.item.NBTAPIItemData;
+import ro.nicuch.citizensbooks.item.PersistentItemData;
+import ro.nicuch.citizensbooks.utils.CipherUtil;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -63,8 +68,11 @@ public class CitizensBooksAPI {
     private final File savedBooksFile;
     private JsonObject jsonSavedBooks = new JsonObject();
 
-
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    public boolean noNBTAPIRequired() {
+        return this.distribution.noNBTAPIRequired();
+    }
 
     public CitizensBooksAPI(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
@@ -74,13 +82,93 @@ public class CitizensBooksAPI {
         this.savedBooksFile = new File(plugin.getDataFolder() + File.separator + "saved_books.json");
     }
 
+    public ItemData itemDataFactory(ItemStack stack) {
+        if (this.noNBTAPIRequired()) {
+            return new PersistentItemData(stack);
+        } else if (this.plugin.isNBTAPIEnabled()) {
+            return new NBTAPIItemData(stack);
+        }
+        return new EmptyItemData(stack);
+    }
+
+    public ItemStack encryptBook(ItemStack book, String password, boolean lock) {
+        ItemData data = this.itemDataFactory(book);
+        JsonObject bookContent = this.distribution.convertBookToJson(book);
+        try {
+            JsonArray bookPages = bookContent.getAsJsonArray("pages");
+            JsonArray encryptedPages = new JsonArray();
+            for (JsonElement bookPage : bookPages) {
+                if (lock)
+                    encryptedPages.add(this.encrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+                else
+                    encryptedPages.add(this.decrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+            }
+            bookContent.add("pages", encryptedPages);
+        } catch (Exception ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed to cipher!", ex);
+        }
+        return data.copyDataToStack(this.distribution.convertJsonToBook(bookContent));
+    }
+
+    private JsonElement encrypt(JsonElement jsonElement, String password) throws Exception {
+        if (jsonElement.isJsonPrimitive()) {
+            JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
+            if (primitive.isString()) {
+                return new JsonPrimitive(CipherUtil.encrypt(password, primitive.getAsString()));
+            }
+        } else if (jsonElement.isJsonObject()) {
+            JsonObject object = jsonElement.getAsJsonObject();
+            JsonObject copy = new JsonObject();
+            for (Map.Entry<String, JsonElement> elementEntry : object.entrySet()) {
+                copy.add(elementEntry.getKey(), this.encrypt(elementEntry.getValue(), password));
+            }
+            return copy;
+        } else if (jsonElement.isJsonArray()) {
+            JsonArray array = jsonElement.getAsJsonArray();
+            JsonArray copy = new JsonArray();
+            for (JsonElement element : array) {
+                copy.add(this.encrypt(element, password));
+            }
+            return copy;
+        }
+        return jsonElement;
+    }
+
+    private JsonElement decrypt(JsonElement jsonElement, String password) throws Exception {
+        if (jsonElement.isJsonPrimitive()) {
+            JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
+            if (primitive.isString()) {
+                return new JsonPrimitive(CipherUtil.decrypt(password, primitive.getAsString()));
+            }
+        } else if (jsonElement.isJsonObject()) {
+            JsonObject object = jsonElement.getAsJsonObject();
+            for (Map.Entry<String, JsonElement> elementEntry : object.entrySet()) {
+                object.add(elementEntry.getKey(), this.decrypt(elementEntry.getValue(), password));
+            }
+            return object;
+        } else if (jsonElement.isJsonArray()) {
+            JsonArray array = jsonElement.getAsJsonArray();
+            JsonArray copy = new JsonArray();
+            for (JsonElement element : array) {
+                copy.add(this.decrypt(element, password));
+            }
+            return copy;
+        }
+        return jsonElement;
+    }
+
     public void reloadNPCBooks(Logger logger) {
         this.jsonSavedBooks = null;
         if (this.plugin.isDatabaseEnabled())
             return;
         if (!this.savedBooksFile.exists()) {
             try {
-                Files.copy(this.plugin.getResource("saved_books.json"), this.savedBooksFile.toPath());
+                InputStream input = this.plugin.getResource("saved_books.json");
+                if (input == null) {
+                    logger.warning("Failed to save default saved_books.json file!");
+                    return;
+                }
+                Files.copy(input, this.savedBooksFile.toPath());
             } catch (IOException e) {
                 logger.warning("Failed to save default saved_books.json file!");
                 return;
@@ -305,7 +393,12 @@ public class CitizensBooksAPI {
             this.filtersDirectory.mkdirs();
             File helloWorldFile = new File(this.filtersDirectory + File.separator + "hello_world.json");
             try {
-                Files.copy(this.plugin.getResource("hello_world.json"), helloWorldFile.toPath());
+                InputStream input = this.plugin.getResource("hello_world.json");
+                if (input == null) {
+                    logger.warning("Failed to save default hello_world filter! This error could be ignored...");
+                    return;
+                }
+                Files.copy(input, helloWorldFile.toPath());
             } catch (IOException e) {
                 logger.warning("Failed to save default hello_world filter! This error could be ignored...");
             }
@@ -518,7 +611,6 @@ public class CitizensBooksAPI {
         ).checkPermission(permission).asBoolean();
     }
 
-    @SuppressWarnings("deprecation")
     protected Optional<Player> getPlayer(String name) {
         Player player = Bukkit.getPlayer(name);
         if (player == null)

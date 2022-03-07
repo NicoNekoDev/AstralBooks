@@ -2,13 +2,19 @@ name: CitizensBooks
 version: ${project.version}
 author: nicuch
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
-softdepend: [PlaceholderAPI, Citizens, LuckPerms, Vault, AuthMe, Authme, NBTAPI]
+softdepend: [ PlaceholderAPI, Citizens, LuckPerms, Vault, AuthMe, Authme, NBTAPI ]
 website: https://www.spigotmc.org/resources/citizensbooks.37465/
 api-version: 1.13
 commands:
   npcbook:
     description: Basic CitizensBooks command.
     permission: npcbook.command.*
+  encryptbook:
+    description: Encrypt books
+    permission: npcbook.command.encrypt
+  decryptbook:
+    description: Decrypt books
+    permission: npcbook.command.decrypt
 permissions:
   npcbook.*:
     children:
@@ -29,6 +35,8 @@ permissions:
       npcbook.command.actionitem.remove: true
       npcbook.command.setjoin: true
       npcbook.command.remjoin: true
+      npcbook.command.encrypt: true
+      npcbook.command.decrypt: true
       npcbook.nojoinbook: true
       npcbook.notify: true
   npcbook.command.*:
@@ -50,6 +58,8 @@ permissions:
       npcbook.command.actionitem.remove: true
       npcbook.command.setjoin: true
       npcbook.command.remjoin: true
+      npcbook.command.encrypt: true
+      npcbook.command.decrypt: true
   npcbook.command.filter.*:
     children:
       npcbook.command.filter.set: true
@@ -95,6 +105,10 @@ permissions:
   npcbook.command.remjoin:
     default: false
   npcbook.command.closebook:
+    default: false
+  npcbook.command.encrypt:
+    default: false
+  npcbook.command.decrypt:
     default: false
   npcbook.notify:
     default: op

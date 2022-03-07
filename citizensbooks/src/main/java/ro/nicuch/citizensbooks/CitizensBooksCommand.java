@@ -19,7 +19,6 @@
 
 package ro.nicuch.citizensbooks;
 
-import de.tr7zw.nbtapi.NBTItem;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -28,12 +27,15 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
+import ro.nicuch.citizensbooks.item.ItemData;
 import ro.nicuch.citizensbooks.utils.Message;
-import ro.nicuch.citizensbooks.utils.References;
+import ro.nicuch.citizensbooks.utils.PersistentKey;
 
 import java.util.*;
 
@@ -46,7 +48,7 @@ public class CitizensBooksCommand implements TabExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         Optional<Player> player = this.isPlayer(sender) ? Optional.of((Player) sender) : Optional.empty();
         if (args.length > 0) {
             switch (args[0]) {
@@ -171,7 +173,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.plugin.isNBTAPIEnabled()) {
+                    if (!(this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired())) {
                         sender.sendMessage(this.plugin.getMessage(Message.NBTAPI_NOT_ENABLED));
                         break;
                     }
@@ -179,7 +181,7 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    String action = References.NBTAPI_ITEM_RIGHT_KEY;
+                    PersistentKey action = null;
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -203,18 +205,18 @@ public class CitizensBooksCommand implements TabExecutor {
                                     }
                                     if (args.length > 3) {
                                         if ("right".equalsIgnoreCase(args[3]))
-                                            action = References.NBTAPI_ITEM_RIGHT_KEY;
+                                            action = PersistentKey.ITEM_RIGHT_KEY;
                                         else if ("left".equalsIgnoreCase(args[3]))
-                                            action = References.NBTAPI_ITEM_LEFT_KEY;
+                                            action = PersistentKey.ITEM_LEFT_KEY;
                                         else {
                                             sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET).replace("%filter_name%", filter_name));
                                             break;
                                         }
                                     }
                                     ItemStack item = this.getItemFromHand(player.get());
-                                    NBTItem nbtItem = new NBTItem(item);
-                                    nbtItem.setString(action, filter_name);
-                                    this.api.getDistribution().setItemInHand(player.get(), item);
+                                    ItemData data = this.api.itemDataFactory(item);
+                                    data.putString(action, filter_name);
+                                    this.api.getDistribution().setItemInHand(player.get(), data.build());
                                     sender.sendMessage(this.plugin.getMessage(Message.FILTER_APPLIED_TO_ITEM).replace("%filter_name%", filter_name));
 
                                 } else
@@ -231,19 +233,19 @@ public class CitizensBooksCommand implements TabExecutor {
                                 }
                                 if (args.length > 2) {
                                     if ("right".equalsIgnoreCase(args[2]))
-                                        action = References.NBTAPI_ITEM_RIGHT_KEY;
+                                        action = PersistentKey.ITEM_RIGHT_KEY;
                                     else if ("left".equalsIgnoreCase(args[2]))
-                                        action = References.NBTAPI_ITEM_LEFT_KEY;
+                                        action = PersistentKey.ITEM_LEFT_KEY;
                                     else {
                                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_ACTIONITEM_SET));
                                         break;
                                     }
                                 }
                                 ItemStack item = this.getItemFromHand(player.get());
-                                NBTItem nbtItem = new NBTItem(item);
-                                if (nbtItem.hasKey(action))
-                                    nbtItem.removeKey(action);
-                                this.api.getDistribution().setItemInHand(player.get(), item);
+                                ItemData data = this.api.itemDataFactory(item);
+                                if (data.hasStringKey(action))
+                                    data.removeKey(action);
+                                this.api.getDistribution().setItemInHand(player.get(), data.build());
                                 sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
                             }
                             default -> this.sendActionItemHelp(sender);
@@ -512,7 +514,7 @@ public class CitizensBooksCommand implements TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         List<String> completions = new ArrayList<>();
         List<String> commands = new ArrayList<>();
 
@@ -560,8 +562,11 @@ public class CitizensBooksCommand implements TabExecutor {
                         commands.addAll(this.api.getFilters());
                     break;
                 case "remcmd":
-                    if (this.api.hasPermission(sender, "npcbook.command.remcmd"))
-                        commands.addAll(this.plugin.getSettings().getConfigurationSection("commands").getKeys(false));
+                    if (this.api.hasPermission(sender, "npcbook.command.remcmd")) {
+                        ConfigurationSection section = this.plugin.getSettings().getConfigurationSection("commands");
+                        if (section != null)
+                            commands.addAll(section.getKeys(false));
+                    }
                     break;
                 case "npc":
                     if (this.api.hasPermission(sender, "npcbook.command.npc.set"))
@@ -678,6 +683,8 @@ public class CitizensBooksCommand implements TabExecutor {
         if (material == null)
             // 1.13+
             material = Material.getMaterial("WRITABLE_BOOK");
+        if (material == null)
+            throw new UnsupportedOperationException("Something went wrong with Bukkit Material!");
         ItemStack item = new ItemStack(material, book.getAmount());
         item.setItemMeta(meta);
         this.api.getDistribution().setItemInHand(player, item);
@@ -686,9 +693,11 @@ public class CitizensBooksCommand implements TabExecutor {
     private void closeBook(Player player, ItemStack book, String author, String title) {
         BookMeta meta = (BookMeta) book.getItemMeta();
         ItemStack item = new ItemStack(Material.WRITTEN_BOOK, book.getAmount());
-        meta.setAuthor(ChatColor.translateAlternateColorCodes('&', author));
-        meta.setTitle(ChatColor.translateAlternateColorCodes('&', title));
-        item.setItemMeta(meta);
+        if (meta != null) {
+            meta.setAuthor(ChatColor.translateAlternateColorCodes('&', author));
+            meta.setTitle(ChatColor.translateAlternateColorCodes('&', title));
+            item.setItemMeta(meta);
+        }
         this.api.getDistribution().setItemInHand(player, item);
     }
 

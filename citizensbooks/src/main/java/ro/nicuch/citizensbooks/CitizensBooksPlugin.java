@@ -27,13 +27,16 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import ro.nicuch.citizensbooks.bstats.Metrics;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
 import ro.nicuch.citizensbooks.utils.Message;
+import ro.nicuch.citizensbooks.utils.PersistentKey;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.File;
@@ -62,6 +65,12 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("============== END LOAD ==============");
                 return;
             }
+            if (!PersistentKey.init(this)) {
+                this.getLogger().info("Failed to load PersistentKey!");
+                this.setEnabled(false);
+                this.getLogger().info("============== END LOAD ==============");
+                return;
+            }
             //bStats Metrics, by default enabled
             new Metrics(this);
             PluginManager manager = this.getServer().getPluginManager();
@@ -71,24 +80,40 @@ public class CitizensBooksPlugin extends JavaPlugin {
                     this.getLogger().info("Vault not found!");
                 else {
                     this.getLogger().info("Vault found, try hooking!");
-                    this.useVault = true;
-                    this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                    RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
+                    if (provider != null) {
+                        this.useVault = true;
+                        this.vaultPerms = provider.getProvider();
+                    } else
+                        this.getLogger().info("Failed to hook into Vault!");
                 }
             } else {
                 this.getLogger().info("LuckPerms found, try hooking!");
-                if (manager.getPlugin("LuckPerms").getDescription().getVersion().startsWith("5")) {
-                    this.useLuckPerms = true;
-                    this.luckPerms = this.getServer().getServicesManager().getRegistration(LuckPerms.class).getProvider();
-                    if (manager.isPluginEnabled("Vault"))
-                        this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
-                } else {
-                    this.getLogger().info("Your LuckPerms version is oudated! :(");
-                    if (manager.isPluginEnabled("Vault")) {
-                        this.getLogger().info("Vault found instead! Try hooking!");
-                        this.useVault = true;
-                        this.vaultPerms = this.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+                Plugin plugin = manager.getPlugin("LuckPerms");
+                if (plugin != null) {
+                    if (plugin.getDescription().getVersion().startsWith("5")) {
+                        RegisteredServiceProvider<LuckPerms> provider = this.getServer().getServicesManager().getRegistration(LuckPerms.class);
+                        if (provider != null) {
+                            this.useLuckPerms = true;
+                            this.luckPerms = provider.getProvider();
+                            if (manager.isPluginEnabled("Vault"))
+                                this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
+                        } else
+                            this.getLogger().info("Failed to hook into LuckPerms!");
+                    } else {
+                        this.getLogger().info("Your LuckPerms version is oudated! :(");
+                        if (manager.isPluginEnabled("Vault")) {
+                            RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
+                            if (provider != null) {
+                                this.getLogger().info("Vault found instead! Try hooking!");
+                                this.useVault = true;
+                                this.vaultPerms = provider.getProvider();
+                            } else // do we need it?
+                                this.getLogger().info("Failed to hook into Vault!");
+                        }
                     }
-                }
+                } else
+                    this.getLogger().info("Failed to hook into LuckPerms!");
             }
             if (!manager.isPluginEnabled("PlaceholderAPI"))
                 this.getLogger().info("PlaceholderAPI not found!");
@@ -112,10 +137,17 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.useAuthMe = true;
             }
             if (!manager.isPluginEnabled("NBTAPI"))
-                this.getLogger().info("NBTAPI not found!");
+                if (this.api.noNBTAPIRequired())
+                    this.getLogger().info("NBTAPI not found, but support for it it's not required!");
+                else
+                    this.getLogger().info("NBTAPI not found!");
             else {
-                this.getLogger().info("NBTAPI found, try hooking!");
-                this.useNBTAPI = true;
+                if (this.api.noNBTAPIRequired()) {
+                    this.getLogger().info("NBTAPI found, but support for it it's not required!");
+                } else {
+                    this.getLogger().info("NBTAPI found, try hooking!");
+                    this.useNBTAPI = true;
+                }
             }
 
             // load database, filters and npc books after dependencies
@@ -124,11 +156,20 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.api.reloadNPCBooks(this.getLogger());
 
             PluginCommand npcBookCommand = this.getCommand("npcbook");
-            npcBookCommand.setExecutor(new CitizensBooksCommand(this));
+            if (npcBookCommand != null)
+                npcBookCommand.setExecutor(new CitizensBooksCommand(this));
+            PluginCommand encryptBookCommand = this.getCommand("encryptbook");
+            if (encryptBookCommand != null)
+                encryptBookCommand.setExecutor(new CipherBookCommand(this, true));
+            PluginCommand decryptBookCommand = this.getCommand("decryptbook");
+            if (decryptBookCommand != null)
+                decryptBookCommand.setExecutor(new CipherBookCommand(this, false));
             if (CommodoreProvider.isSupported()) {
                 this.getLogger().info("Loading Brigardier support...");
                 Commodore commodore = CommodoreProvider.getCommodore(this);
-                this.registerCompletions(commodore, npcBookCommand);
+                this.getLogger().info("  Command /npcbook: " + (this.registerCompletions(commodore, npcBookCommand, "command.commodore") ? "supported" : "unsupported"));
+                this.getLogger().info("  Command /encryptbook: " + (this.registerCompletions(commodore, encryptBookCommand, "encrypt.commodore") ? "supported" : "unsupported"));
+                this.getLogger().info("  Command /decryptbook: " + (this.registerCompletions(commodore, decryptBookCommand, "decrypt.commodore") ? "supported" : "unsupported"));
             } else
                 this.getLogger().info("Brigardier is not supported on this version!");
             //Update checker, by default enabled
@@ -162,15 +203,16 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.settings;
     }
 
-    private void registerCompletions(Commodore commodore, PluginCommand command) {
-        try (InputStream is = this.getResource("command.commodore")) {
+    private boolean registerCompletions(Commodore commodore, PluginCommand command, String resource) {
+        if (command == null)
+            return false;
+        try (InputStream is = this.getResource(resource)) {
             if (is == null)
                 throw new FileNotFoundException();
-            commodore.register(command, CommodoreFileFormat.parse(is), player -> this.api.hasPermission(player, "npcbook.command.commodore"));
-            this.getLogger().info("Brigardier loaded!");
+            commodore.register(command, CommodoreFileFormat.parse(is), player -> this.api.hasPermission(player, "npcbook.tab.completer"));
+            return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
-            this.getLogger().info("Could not load Brigardier!");
+            return false;
         }
     }
 

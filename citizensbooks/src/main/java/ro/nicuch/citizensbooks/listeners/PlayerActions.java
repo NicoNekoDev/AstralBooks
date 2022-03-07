@@ -19,7 +19,6 @@
 
 package ro.nicuch.citizensbooks.listeners;
 
-import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,13 +28,15 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
+import ro.nicuch.citizensbooks.item.ItemData;
 import ro.nicuch.citizensbooks.utils.Message;
-import ro.nicuch.citizensbooks.utils.References;
+import ro.nicuch.citizensbooks.utils.PersistentKey;
 
 import java.util.Objects;
 import java.util.concurrent.DelayQueue;
@@ -70,10 +71,10 @@ public class PlayerActions implements Listener {
             while (delayedPlayer != null) {
                 Player player = delayedPlayer.getPlayer();
                 if (!this.plugin.getSettings().getBoolean("join_book_always_show", false)) {
-                    if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId().toString()))
-                        if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId().toString(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
+                    if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId()))
+                        if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
                             continue;
-                    this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId().toString(), System.currentTimeMillis());
+                    this.plugin.getSettings().set("join_book_last_seen_by_players." + player.getUniqueId(), System.currentTimeMillis());
                     needSave = true;
                 }
                 this.api.openBook(player, this.api.placeholderHook(player, this.api.getJoinBook(), null));
@@ -93,7 +94,7 @@ public class PlayerActions implements Listener {
         event.setCancelled(true);
         String filterName = this.plugin.getSettings().getString("commands." + command + ".filter_name");
         String permission = this.plugin.getSettings().isString("commands." + command + ".permission") ? this.plugin.getSettings().getString("commands." + command + ".permission") : "none";
-        if (!(permission.equalsIgnoreCase("none") || this.api.hasPermission(player, permission)))
+        if (!("none".equalsIgnoreCase(permission) || this.api.hasPermission(player, permission)))
             return;
         if (!this.api.hasFilter(filterName)) {
             player.sendMessage(this.plugin.getMessage(Message.NO_BOOK_FOR_FILTER));
@@ -133,16 +134,18 @@ public class PlayerActions implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onClickWithItem(PlayerInteractEvent event) {
-        if (!this.plugin.isNBTAPIEnabled())
+        if (!(this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()))
             return;
         if (!event.hasItem())
             return;
+        if (event.getHand() != EquipmentSlot.HAND)
+            return;
         ItemStack item = event.getItem();
-        NBTItem nbtItem = new NBTItem(item);
+        ItemData data = this.api.itemDataFactory(item);
         String filterName =
                 switch (event.getAction()) {
-                    case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> nbtItem.getString(References.NBTAPI_ITEM_LEFT_KEY);
-                    case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> nbtItem.getString(References.NBTAPI_ITEM_RIGHT_KEY);
+                    case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> data.getString(PersistentKey.ITEM_LEFT_KEY);
+                    case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> data.getString(PersistentKey.ITEM_RIGHT_KEY);
                     default -> null;
                 };
         if (filterName == null || filterName.isEmpty())

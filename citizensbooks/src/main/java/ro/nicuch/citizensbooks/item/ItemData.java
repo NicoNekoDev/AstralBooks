@@ -17,10 +17,28 @@
 
  */
 
-package ro.nicuch.citizensbooks.utils;
+package ro.nicuch.citizensbooks.item;
 
-public class References {
-    public static String NBTAPI_ITEM_RIGHT_KEY = "RightBookValue";
-    public static String NBTAPI_ITEM_LEFT_KEY = "LeftBookValue";
-    // TODO: later add permissions maybe?
+import org.bukkit.inventory.ItemStack;
+import ro.nicuch.citizensbooks.utils.PersistentKey;
+
+public interface ItemData {
+
+    boolean hasStringKey(PersistentKey key);
+
+    void putString(PersistentKey key, String value);
+
+    String getString(PersistentKey key);
+
+    boolean hasIntKey(PersistentKey key);
+
+    void putInt(PersistentKey key, int value);
+
+    int getInt(PersistentKey key);
+
+    void removeKey(PersistentKey key);
+
+    ItemStack build();
+
+    ItemStack copyDataToStack(ItemStack stack);
 }

@@ -32,6 +32,7 @@ import java.util.Optional;
 public abstract class Distribution {
     protected final Gson gson = new Gson();
     private final String version;
+    private boolean noNBTAPIRequired = false;
     protected final TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr;
     protected final TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList;
 
@@ -39,6 +40,17 @@ public abstract class Distribution {
         this.version = version;
         this.papiReplaceStr = papiReplaceStr;
         this.papiReplaceStrList = papiReplaceStrList;
+    }
+
+    public Distribution(final String version, TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList, boolean noNBTAPIRequired) {
+        this.version = version;
+        this.papiReplaceStr = papiReplaceStr;
+        this.papiReplaceStrList = papiReplaceStrList;
+        this.noNBTAPIRequired = noNBTAPIRequired;
+    }
+
+    public final boolean noNBTAPIRequired() {
+        return this.noNBTAPIRequired;
     }
 
     public final String getVersion() {
@@ -58,4 +70,8 @@ public abstract class Distribution {
     public abstract ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc);
 
     public abstract ItemStack applyPlaceholders(Player player, ItemStack book);
+
+    public final Gson getGson() {
+        return this.gson;
+    }
 }

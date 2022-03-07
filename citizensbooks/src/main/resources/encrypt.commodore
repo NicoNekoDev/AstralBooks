@@ -1,0 +1,3 @@
+encryptbook {
+  password brigadier:string single_word;
+}

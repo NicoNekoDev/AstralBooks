@@ -40,6 +40,14 @@ lang:
   filter_removed_from_item: "&aThe filter has been removed from your holding item."
   filter_name_invalid: "&cThe filter name should only contain letters, numbers, dashes and underscores!"
   command_name_invalid: "&cThe command name should only contain letters, numbers, dashes and underscores!"
+  encrypt_disabled: "&cBook encrypt is disabled!"
+  encrypt_successfully: "&aBook encrypted successfully!"
+  decrypt_successfully: "&aBook decrypted successfully!"
+  decrypt_failed: "&cBook password is not correct! %tries% remaining until locked."
+  book_decryption_locked: "&cBook is now locked! Go to the book author to unlock it!"
+  book_not_original: "&cThe book is not an original!"
+  book_already_encrypted: "&cBook is already encrypted!"
+  book_already_decrypted: "&cBook is already decrypted!"
   usage:
     help: "&aUsage: &f/npcbook help [page]"
     openbook: "&aUsage: &f/npcbook openbook"
@@ -49,6 +57,8 @@ lang:
     remcmd: "&aUsage: &f/npcbook remcmd <command>"
     setjoin: "&aUsage: &f/npcbook setjoin"
     remjoin: "&aUsage: &f/npcbook remjoin"
+    encryptbook: "&aUsage: &f/encryptbook <password>"
+    decryptbook: "&aUsage: &f/decryptbook <password>"
     filter:
       set: "&aUsage: &f/npcbook filter set <filter name>"
       remove: "&aUsage: &f/npcbook filter remove <filter name>"
@@ -94,6 +104,10 @@ join_book_always_show: false
 join_book_enable_delay: false
 join_book_delay: 0 # in ticks (20 ticks = 1 second) - if AuthMe is enabled, this will be ignored!
 join_book_last_seen_by_players: { }
+enable_encrypted_books: false
+enable_encryption_fails: true
+encryption_fails: 10 # how many times can other players fail to unlock a book before only the author can unlock it?
+enable_encryption_on_copies: false
 database:
   type: "json" # json, sqlite, mysql
   threads: 2

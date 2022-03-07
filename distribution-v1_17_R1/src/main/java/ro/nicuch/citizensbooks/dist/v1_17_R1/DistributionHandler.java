@@ -42,7 +42,7 @@ public class DistributionHandler extends Distribution {
     private final Field pagesField;
 
     public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
-        super("1_17_R1", papiStr, papiStrList);
+        super("1_17_R1", papiStr, papiStrList, true);
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
     }
