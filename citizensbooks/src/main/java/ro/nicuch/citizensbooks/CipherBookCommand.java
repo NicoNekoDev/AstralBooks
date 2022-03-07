@@ -19,7 +19,6 @@
 
 package ro.nicuch.citizensbooks;
 
-import com.google.common.hash.Hashing;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -29,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.item.ItemData;
+import ro.nicuch.citizensbooks.utils.CipherUtil;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 
@@ -44,7 +44,6 @@ public class CipherBookCommand implements CommandExecutor {
         this.lock = lock;
     }
 
-    @SuppressWarnings({"UnstableApiUsage", "deprecation"})
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         Optional<Player> player = this.isPlayer(sender) ? Optional.of((Player) sender) : Optional.empty();
@@ -85,7 +84,7 @@ public class CipherBookCommand implements CommandExecutor {
                 }
             }
 
-            String password = Hashing.md5().hashBytes(args[0].getBytes()).toString();
+            String password = CipherUtil.sha256(args[0]);
             ItemData data = this.api.itemDataFactory(book);
             if (this.lock) {
                 if (data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {

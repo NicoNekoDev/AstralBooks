@@ -363,7 +363,6 @@ public class CitizensBooksAPI {
                 return true;
             }
         } catch (final Exception ex) {
-            //ex.printStackTrace();
             this.plugin.getLogger().warning("CitizensBooks is incompatible with your server version " + version + "... ");
             if (UpdateChecker.updateAvailable())
                 this.plugin.getLogger().info("Oh look! An update is available! Go to the Spigot page and download it! It might fix the error!");

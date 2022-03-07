@@ -24,6 +24,9 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public class CipherUtil {
@@ -92,6 +95,18 @@ public class CipherUtil {
             appendHex(result, b);
         }
         return result.toString();
+    }
+
+    public static String sha256(String original) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(
+                    original.getBytes(StandardCharsets.UTF_8));
+            return toHex(encodedHash);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     private final static String HEX = "0123456789ABCDEF";
