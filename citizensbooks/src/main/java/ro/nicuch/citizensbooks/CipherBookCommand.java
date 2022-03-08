@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -32,7 +33,9 @@ import ro.nicuch.citizensbooks.utils.CipherUtil;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class CipherBookCommand implements CommandExecutor {
     private final CitizensBooksPlugin plugin;
@@ -84,49 +87,55 @@ public class CipherBookCommand implements CommandExecutor {
                 }
             }
 
-            String password = CipherUtil.sha256(args[0]);
-            ItemData data = this.api.itemDataFactory(book);
-            if (this.lock) {
-                if (data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {
-                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_ALREADY_ENCRYPTED));
-                    return true;
-                }
-                data.putString(PersistentKey.BOOK_PASSWORD, password);
-            } else {
-                if (!data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {
-                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_ALREADY_DECRYPTED));
-                    return true;
-                }
-                String currentPassword = data.getString(PersistentKey.BOOK_PASSWORD);
-                if (!password.equals(currentPassword)) {
-                    if (meta != null && meta.getAuthor() != null && !meta.getAuthor().equalsIgnoreCase(sender.getName())) {
-                        if (this.plugin.getSettings().getBoolean("enable_encryption_fails", true)) {
-                            int maxEncryptionFails = this.plugin.getSettings().getInt("encryption_fails", 10);
-                            if (data.hasIntKey(PersistentKey.BOOK_PASSWORD_FAILS)) {
-                                int tries = data.getInt(PersistentKey.BOOK_PASSWORD_FAILS);
-                                if (tries >= maxEncryptionFails) {
-                                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPTION_LOCKED));
-                                    return true;
-                                }
-                                data.putInt(PersistentKey.BOOK_PASSWORD_FAILS, ++tries);
-                            } else
-                                data.putInt(PersistentKey.BOOK_PASSWORD_FAILS, 1);
-                            this.putItemInHand(player.get(), data.build()); // update item in hand
-                        }
+            try {
+                String password = CipherUtil.sha256(args[0]);
+                ItemData data = this.api.itemDataFactory(book);
+                if (this.lock) {
+                    if (data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {
+                        sender.sendMessage(this.plugin.getMessage(Message.BOOK_ALREADY_ENCRYPTED));
+                        return true;
                     }
-                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPT_FAILED)
-                            .replace("%tries%", String.valueOf(this.plugin.getSettings().getInt("encryption_fails", 10) -
-                                    (data.hasIntKey(PersistentKey.BOOK_PASSWORD_FAILS) ? data.getInt(PersistentKey.BOOK_PASSWORD_FAILS) : 0))));
-                    return true;
+                    data.putString(PersistentKey.BOOK_PASSWORD, password);
+                } else {
+                    if (!data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {
+                        sender.sendMessage(this.plugin.getMessage(Message.BOOK_ALREADY_DECRYPTED));
+                        return true;
+                    }
+                    String currentPassword = data.getString(PersistentKey.BOOK_PASSWORD);
+                    if (!password.equals(currentPassword)) {
+                        if (meta != null && meta.getAuthor() != null && !meta.getAuthor().equalsIgnoreCase(sender.getName())) {
+                            if (this.plugin.getSettings().getBoolean("enable_encryption_fails", true)) {
+                                int maxEncryptionFails = this.plugin.getSettings().getInt("encryption_fails", 10);
+                                if (data.hasIntKey(PersistentKey.BOOK_PASSWORD_FAILS)) {
+                                    int tries = data.getInt(PersistentKey.BOOK_PASSWORD_FAILS);
+                                    if (tries >= maxEncryptionFails) {
+                                        sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPTION_LOCKED));
+                                        return true;
+                                    }
+                                    data.putInt(PersistentKey.BOOK_PASSWORD_FAILS, ++tries);
+                                } else
+                                    data.putInt(PersistentKey.BOOK_PASSWORD_FAILS, 1);
+                                this.putItemInHand(player.get(), data.build()); // update item in hand
+                            }
+                        }
+                        sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPT_FAILED)
+                                .replace("%tries%", String.valueOf(this.plugin.getSettings().getInt("encryption_fails", 10) -
+                                        (data.hasIntKey(PersistentKey.BOOK_PASSWORD_FAILS) ? data.getInt(PersistentKey.BOOK_PASSWORD_FAILS) : 0))));
+                        return true;
+                    }
+                    data.removeKey(PersistentKey.BOOK_PASSWORD);
                 }
-                data.removeKey(PersistentKey.BOOK_PASSWORD);
-            }
 
-            this.putItemInHand(player.get(), this.api.encryptBook(data.build(), password, this.lock));
-            if (this.lock)
-                sender.sendMessage(this.plugin.getMessage(Message.BOOK_ENCRYPTED));
-            else
-                sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPTED));
+                this.putItemInHand(player.get(), this.api.encryptBook(data.build(), password, this.lock));
+                if (this.lock)
+                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_ENCRYPTED));
+                else
+                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPTED));
+            } catch (NoSuchAlgorithmException ex) {
+                player.get().sendMessage(ChatColor.DARK_RED + "" + ChatColor.ITALIC + "Something went wrong with the plugin! Please contact the server administrator(s) and tell them to look into the console!");
+                this.plugin.getLogger().log(Level.WARNING, "Failed to find SHA256 algorithm!", ex);
+                return true;
+            }
         } else {
             if (this.lock)
                 sender.sendMessage(this.plugin.getMessage(Message.USAGE_ENCRYPT));

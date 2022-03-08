@@ -43,9 +43,7 @@ public abstract class Distribution {
     }
 
     public Distribution(final String version, TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList, boolean noNBTAPIRequired) {
-        this.version = version;
-        this.papiReplaceStr = papiReplaceStr;
-        this.papiReplaceStrList = papiReplaceStrList;
+        this(version, papiReplaceStr, papiReplaceStrList);
         this.noNBTAPIRequired = noNBTAPIRequired;
     }
 
@@ -63,13 +61,13 @@ public abstract class Distribution {
 
     public abstract ItemStack getItemInHand(Player player);
 
-    public abstract JsonObject convertBookToJson(ItemStack book);
+    public abstract JsonObject convertBookToJson(ItemStack book) throws IllegalAccessException;
 
-    public abstract ItemStack convertJsonToBook(JsonObject jsonBook);
+    public abstract ItemStack convertJsonToBook(JsonObject jsonBook) throws IllegalAccessException;
 
-    public abstract ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc);
+    public abstract ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) throws IllegalAccessException;
 
-    public abstract ItemStack applyPlaceholders(Player player, ItemStack book);
+    public abstract ItemStack applyPlaceholders(Player player, ItemStack book) throws IllegalAccessException;
 
     public final Gson getGson() {
         return this.gson;

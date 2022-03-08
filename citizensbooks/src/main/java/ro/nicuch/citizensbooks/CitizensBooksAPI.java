@@ -92,22 +92,27 @@ public class CitizensBooksAPI {
     }
 
     public ItemStack encryptBook(ItemStack book, String password, boolean lock) {
-        ItemData data = this.itemDataFactory(book);
-        JsonObject bookContent = this.distribution.convertBookToJson(book);
         try {
-            JsonArray bookPages = bookContent.getAsJsonArray("pages");
-            JsonArray encryptedPages = new JsonArray();
-            for (JsonElement bookPage : bookPages) {
-                if (lock)
-                    encryptedPages.add(this.encrypt(this.distribution.getGson().toJsonTree(bookPage), password));
-                else
-                    encryptedPages.add(this.decrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+            ItemData data = this.itemDataFactory(book);
+            JsonObject bookContent = this.distribution.convertBookToJson(book);
+            try {
+                JsonArray bookPages = bookContent.getAsJsonArray("pages");
+                JsonArray encryptedPages = new JsonArray();
+                for (JsonElement bookPage : bookPages) {
+                    if (lock)
+                        encryptedPages.add(this.encrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+                    else
+                        encryptedPages.add(this.decrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+                }
+                bookContent.add("pages", encryptedPages);
+            } catch (Exception ex) {
+                this.plugin.getLogger().log(Level.WARNING, "Failed to cipher!", ex);
             }
-            bookContent.add("pages", encryptedPages);
-        } catch (Exception ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Failed to cipher!", ex);
+            return data.copyDataToStack(this.distribution.convertJsonToBook(bookContent));
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
+            return book;
         }
-        return data.copyDataToStack(this.distribution.convertJsonToBook(bookContent));
     }
 
     private JsonElement encrypt(JsonElement jsonElement, String password) throws Exception {
@@ -211,28 +216,32 @@ public class CitizensBooksAPI {
     }
 
     public void putNPCBook(int npcId, String side, ItemStack book) {
-        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        if (this.plugin.isDatabaseEnabled()) {
-            this.plugin.getDatabase().putNPCBook(npcId, side, book);
-            return;
+        try {
+            Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+            Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+            Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            if (this.plugin.isDatabaseEnabled()) {
+                this.plugin.getDatabase().putNPCBook(npcId, side, book);
+                return;
+            }
+            JsonObject bookSideObject = new JsonObject();
+            bookSideObject.add("book_content", this.distribution.convertBookToJson(book));
+            bookSideObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
+
+            String id = String.valueOf(npcId);
+
+            JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(id);
+            if (jsonNPCId == null)
+                jsonNPCId = new JsonObject();
+            jsonNPCId.add(side, bookSideObject);
+
+            this.jsonSavedBooks.add(id, jsonNPCId);
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
         }
-        JsonObject bookSideObject = new JsonObject();
-        bookSideObject.add("book_content", this.distribution.convertBookToJson(book));
-        bookSideObject.add("mc_version", new JsonPrimitive(this.distribution.getVersion()));
-
-        String id = String.valueOf(npcId);
-
-        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(id);
-        if (jsonNPCId == null)
-            jsonNPCId = new JsonObject();
-        jsonNPCId.add(side, bookSideObject);
-
-        this.jsonSavedBooks.add(id, jsonNPCId);
     }
 
     public boolean hasNPCBook(int npcId, String side) {
@@ -248,26 +257,31 @@ public class CitizensBooksAPI {
     }
 
     public ItemStack getNPCBook(int npcId, String side, ItemStack defaultStack) {
-        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
-        if (defaultStack != null)
-            Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
-                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        if (this.plugin.isDatabaseEnabled())
-            return this.plugin.getDatabase().getNPCBook(npcId, side, defaultStack);
-        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
-        if (jsonNPCId == null || jsonNPCId.isJsonNull())
+        try {
+            Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
+            Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
+            if (defaultStack != null)
+                Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                        " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            if (this.plugin.isDatabaseEnabled())
+                return this.plugin.getDatabase().getNPCBook(npcId, side, defaultStack);
+            JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
+            if (jsonNPCId == null || jsonNPCId.isJsonNull())
+                return defaultStack;
+            JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
+            if (bookSideObject == null || bookSideObject.isJsonNull())
+                return defaultStack;
+            JsonObject bookObject = bookSideObject.getAsJsonObject("book_content");
+            if (bookObject == null || bookObject.isJsonNull())
+                return defaultStack;
+            ItemStack stack = this.distribution.convertJsonToBook(bookObject);
+            if (stack == null)
+                return defaultStack;
+            return stack;
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
             return defaultStack;
-        JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
-        if (bookSideObject == null || bookSideObject.isJsonNull())
-            return defaultStack;
-        JsonObject bookObject = bookSideObject.getAsJsonObject("book_content");
-        if (bookObject == null || bookObject.isJsonNull())
-            return defaultStack;
-        ItemStack stack = this.distribution.convertJsonToBook(bookObject);
-        if (stack == null)
-            return defaultStack;
-        return stack;
+        }
     }
 
     public ItemStack getNPCBook(int npcId, String side) {
@@ -374,15 +388,25 @@ public class CitizensBooksAPI {
     }
 
     public ItemStack placeholderHook(Player player, ItemStack book) {
-        if (!this.plugin.isPlaceHolderEnabled())
+        try {
+            if (!this.plugin.isPlaceHolderEnabled())
+                return book;
+            return this.distribution.applyPlaceholders(player, book);
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
             return book;
-        return this.distribution.applyPlaceholders(player, book);
+        }
     }
 
     public ItemStack placeholderHook(Player player, ItemStack book, NPC npc) {
-        if (!this.plugin.isPlaceHolderEnabled())
+        try {
+            if (!this.plugin.isPlaceHolderEnabled())
+                return book;
+            return this.distribution.applyPlaceholders(player, book, npc);
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
             return book;
-        return this.distribution.applyPlaceholders(player, book, npc);
+        }
     }
 
     public void reloadFilters(Logger logger) {
@@ -434,8 +458,8 @@ public class CitizensBooksAPI {
         };
         try {
             Files.walkFileTree(this.filtersDirectory.toPath(), fileVisitor);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed to walk file tree", ex);
         }
         int successful = successfulFile.get();
         if (successful == 0)

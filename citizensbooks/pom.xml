@@ -182,6 +182,30 @@
         </dependency>
         <dependency>
             <groupId>ro.nicuch</groupId>
+            <artifactId>distribution-v1_8_R3</artifactId>
+            <version>distribution</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
+            <artifactId>distribution-v1_8_R2</artifactId>
+            <version>distribution</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
+            <artifactId>distribution-v1_8_R1</artifactId>
+            <version>distribution</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>ro.nicuch</groupId>
             <artifactId>distribution-core</artifactId>
             <version>distribution</version>
             <scope>compile</scope>
@@ -231,6 +255,12 @@
             <version>1.13</version>
             <scope>compile</scope>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -299,6 +329,10 @@
                                 <relocation>
                                     <pattern>me.lucko.commodore</pattern>
                                     <shadedPattern>ro.nicuch.citizensbooks.commodore</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>ro.nicuch.citizensbooks.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

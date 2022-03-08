@@ -24,6 +24,7 @@ import me.lucko.commodore.CommodoreProvider;
 import me.lucko.commodore.file.CommodoreFileFormat;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -31,7 +32,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import ro.nicuch.citizensbooks.bstats.Metrics;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
@@ -72,7 +72,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 return;
             }
             //bStats Metrics, by default enabled
-            new Metrics(this);
+            new Metrics(this, 2454);
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("LuckPerms")) {
                 this.getLogger().info("LuckPerms not found!");

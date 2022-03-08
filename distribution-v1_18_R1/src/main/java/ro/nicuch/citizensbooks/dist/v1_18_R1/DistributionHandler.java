@@ -66,76 +66,62 @@ public class DistributionHandler extends Distribution {
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     @Override
-    public JsonObject convertBookToJson(ItemStack book) {
-        try {
-            BookMeta bookMeta = (BookMeta) book.getItemMeta();
-            List<String> pages = bookMeta.hasPages() ? (List<String>) this.pagesField.get(bookMeta) : new ArrayList<>();
-            JsonArray jsonPages = new JsonArray();
-            for (String page : pages) {
-                jsonPages.add(super.gson.fromJson(page, JsonElement.class));
-            }
-            JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
-            JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
-            JsonObject jsonBook = new JsonObject();
-            jsonBook.add("author", jsonAuthor);
-            jsonBook.add("title", jsonTitle);
-            jsonBook.add("pages", jsonPages);
-            return jsonBook;
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    public JsonObject convertBookToJson(ItemStack book) throws IllegalAccessException {
+        BookMeta bookMeta = (BookMeta) book.getItemMeta();
+        List<String> pages = bookMeta.hasPages() ? (List<String>) this.pagesField.get(bookMeta) : new ArrayList<>();
+        JsonArray jsonPages = new JsonArray();
+        for (String page : pages) {
+            jsonPages.add(super.gson.fromJson(page, JsonElement.class));
         }
-        return new JsonObject();
+        JsonPrimitive jsonAuthor = new JsonPrimitive(bookMeta.hasAuthor() ? bookMeta.getAuthor() : "Server");
+        JsonPrimitive jsonTitle = new JsonPrimitive(bookMeta.hasTitle() ? bookMeta.getTitle() : "Title");
+        JsonObject jsonBook = new JsonObject();
+        jsonBook.add("author", jsonAuthor);
+        jsonBook.add("title", jsonTitle);
+        jsonBook.add("pages", jsonPages);
+        return jsonBook;
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
-    public ItemStack convertJsonToBook(JsonObject jsonBook) {
+    public ItemStack convertJsonToBook(JsonObject jsonBook) throws IllegalAccessException {
         ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
-        try {
-            BookMeta bookMeta = (BookMeta) newBook.getItemMeta();
-            JsonPrimitive jsonAuthor = jsonBook.getAsJsonPrimitive("author");
-            JsonPrimitive jsonTitle = jsonBook.getAsJsonPrimitive("title");
-            JsonArray jsonPages = jsonBook.getAsJsonArray("pages");
-            bookMeta.setAuthor(jsonAuthor.isString() ? jsonAuthor.getAsString() : "Server");
-            bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
-            List<String> pages = new ArrayList<>();
-            for (JsonElement jsonPage : jsonPages) {
-                pages.add(jsonPage.toString());
-            }
-            this.pagesField.set(bookMeta, pages);
-            newBook.setItemMeta(bookMeta);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        BookMeta bookMeta = (BookMeta) newBook.getItemMeta();
+        JsonPrimitive jsonAuthor = jsonBook.getAsJsonPrimitive("author");
+        JsonPrimitive jsonTitle = jsonBook.getAsJsonPrimitive("title");
+        JsonArray jsonPages = jsonBook.getAsJsonArray("pages");
+        bookMeta.setAuthor(jsonAuthor.isString() ? jsonAuthor.getAsString() : "Server");
+        bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
+        List<String> pages = new ArrayList<>();
+        for (JsonElement jsonPage : jsonPages) {
+            pages.add(jsonPage.toString());
         }
+        this.pagesField.set(bookMeta, pages);
+        newBook.setItemMeta(bookMeta);
         return newBook;
     }
 
     @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
-    public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) {
+    public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) throws IllegalAccessException {
         Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
-        try {
-            List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
-            String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
-            String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
-            ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
-            bookMeta.setAuthor(author);
-            bookMeta.setTitle(title);
-            this.pagesField.set(bookMeta, pages);
-            newBook.setItemMeta(bookMeta);
-            return newBook;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return book;
+        List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
+        String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
+        String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
+        ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
+        bookMeta.setAuthor(author);
+        bookMeta.setTitle(title);
+        this.pagesField.set(bookMeta, pages);
+        newBook.setItemMeta(bookMeta);
+        return newBook;
     }
 
     @Override
-    public ItemStack applyPlaceholders(Player player, ItemStack book) {
+    public ItemStack applyPlaceholders(Player player, ItemStack book) throws IllegalAccessException {
         return this.applyPlaceholders(player, book, null);
     }
 }

@@ -97,16 +97,11 @@ public class CipherUtil {
         return result.toString();
     }
 
-    public static String sha256(String original) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash = digest.digest(
-                    original.getBytes(StandardCharsets.UTF_8));
-            return toHex(encodedHash);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        return "";
+    public static String sha256(String original) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] encodedHash = digest.digest(
+                original.getBytes(StandardCharsets.UTF_8));
+        return toHex(encodedHash);
     }
 
     private final static String HEX = "0123456789ABCDEF";
