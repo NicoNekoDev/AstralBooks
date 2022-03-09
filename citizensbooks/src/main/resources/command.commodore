@@ -14,6 +14,7 @@ npcbook {
       left;
     }
   }
+  forcedecrypt;
   forceopen {
     filter brigadier:string single_word {
       player brigadier:string single_word;

@@ -23,7 +23,7 @@ jobs:
           java-version: '8'
           check-latest: true
 
-      - name: Install spigot (1.9 -> 1.16)
+      - name: Install spigot (1.8 -> 1.16)
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java8.sh

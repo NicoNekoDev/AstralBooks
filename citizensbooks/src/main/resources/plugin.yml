@@ -30,6 +30,7 @@ permissions:
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
+      npcbook.command.forcedecrypt: true
       npcbook.command.forceopen: true
       npcbook.command.actionitem.set: true
       npcbook.command.actionitem.remove: true
@@ -53,6 +54,7 @@ permissions:
       npcbook.command.filter.set: true
       npcbook.command.filter.remove: true
       npcbook.command.filter.getbook: true
+      npcbook.command.forcedecrypt: true
       npcbook.command.forceopen: true
       npcbook.command.actionitem.set: true
       npcbook.command.actionitem.remove: true
@@ -109,6 +111,8 @@ permissions:
   npcbook.command.encrypt:
     default: false
   npcbook.command.decrypt:
+    default: false
+  npcbook.command.forcedecrypt:
     default: false
   npcbook.notify:
     default: op

@@ -58,7 +58,6 @@
   </build>
   <modules>
     <module>citizensbooks</module>
-    <module>distribution-v1_8_R1</module>
     <module>distribution-v1_8_R2</module>
     <module>distribution-v1_8_R3</module>
     <module>distribution-v1_9_R1</module>

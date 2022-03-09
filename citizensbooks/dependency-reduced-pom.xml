@@ -64,6 +64,10 @@
                   <pattern>me.lucko.commodore</pattern>
                   <shadedPattern>ro.nicuch.citizensbooks.commodore</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.bstats</pattern>
+                  <shadedPattern>ro.nicuch.citizensbooks.bstats</shadedPattern>
+                </relocation>
               </relocations>
             </configuration>
           </execution>

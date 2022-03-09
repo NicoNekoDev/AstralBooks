@@ -126,7 +126,7 @@ public class CipherBookCommand implements CommandExecutor {
                     data.removeKey(PersistentKey.BOOK_PASSWORD);
                 }
 
-                this.putItemInHand(player.get(), this.api.encryptBook(data.build(), password, this.lock));
+                this.putItemInHand(player.get(), this.api.cipherBook(data.build(), password, this.lock));
                 if (this.lock)
                     sender.sendMessage(this.plugin.getMessage(Message.BOOK_ENCRYPTED));
                 else

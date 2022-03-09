@@ -47,9 +47,15 @@ import ro.nicuch.citizensbooks.item.PersistentItemData;
 import ro.nicuch.citizensbooks.utils.CipherUtil;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -91,7 +97,7 @@ public class CitizensBooksAPI {
         return new EmptyItemData(stack);
     }
 
-    public ItemStack encryptBook(ItemStack book, String password, boolean lock) {
+    public ItemStack cipherBook(ItemStack book, String password, boolean lock) {
         try {
             ItemData data = this.itemDataFactory(book);
             JsonObject bookContent = this.distribution.convertBookToJson(book);
@@ -100,12 +106,12 @@ public class CitizensBooksAPI {
                 JsonArray encryptedPages = new JsonArray();
                 for (JsonElement bookPage : bookPages) {
                     if (lock)
-                        encryptedPages.add(this.encrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+                        encryptedPages.add(this.walkEncrypt(bookPage, password));
                     else
-                        encryptedPages.add(this.decrypt(this.distribution.getGson().toJsonTree(bookPage), password));
+                        encryptedPages.add(this.walkDecrypt(bookPage, password));
                 }
                 bookContent.add("pages", encryptedPages);
-            } catch (Exception ex) {
+            } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to cipher!", ex);
             }
             return data.copyDataToStack(this.distribution.convertJsonToBook(bookContent));
@@ -115,51 +121,88 @@ public class CitizensBooksAPI {
         }
     }
 
-    private JsonElement encrypt(JsonElement jsonElement, String password) throws Exception {
-        if (jsonElement.isJsonPrimitive()) {
-            JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
-            if (primitive.isString()) {
-                return new JsonPrimitive(CipherUtil.encrypt(password, primitive.getAsString()));
-            }
-        } else if (jsonElement.isJsonObject()) {
+    private JsonElement walkEncrypt(JsonElement jsonElement, String password)
+            throws InvalidAlgorithmParameterException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (jsonElement.isJsonObject()) {
             JsonObject object = jsonElement.getAsJsonObject();
             JsonObject copy = new JsonObject();
             for (Map.Entry<String, JsonElement> elementEntry : object.entrySet()) {
-                copy.add(elementEntry.getKey(), this.encrypt(elementEntry.getValue(), password));
+                JsonElement value = elementEntry.getValue();
+                String key = elementEntry.getKey();
+                if (value.isJsonPrimitive())
+                    if (key.equalsIgnoreCase("text") || key.equalsIgnoreCase("value")) {
+                        copy.add(key, this.encryptPrimitive(value.getAsJsonPrimitive(), password));
+                    } else
+                        copy.add(key, value);
+                else
+                    copy.add(key, this.walkEncrypt(value, password));
             }
             return copy;
         } else if (jsonElement.isJsonArray()) {
             JsonArray array = jsonElement.getAsJsonArray();
             JsonArray copy = new JsonArray();
             for (JsonElement element : array) {
-                copy.add(this.encrypt(element, password));
+                if (element.isJsonPrimitive())
+                    copy.add(this.encryptPrimitive(element.getAsJsonPrimitive(), password));
+                else
+                    copy.add(this.walkEncrypt(element, password));
             }
             return copy;
         }
         return jsonElement;
     }
 
-    private JsonElement decrypt(JsonElement jsonElement, String password) throws Exception {
-        if (jsonElement.isJsonPrimitive()) {
-            JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
-            if (primitive.isString()) {
-                return new JsonPrimitive(CipherUtil.decrypt(password, primitive.getAsString()));
-            }
-        } else if (jsonElement.isJsonObject()) {
+    private JsonPrimitive encryptPrimitive(JsonPrimitive primitive, String password) throws InvalidAlgorithmParameterException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (primitive.isString()) {
+            String primitiveString = primitive.getAsString();
+            return switch (primitiveString) {
+                case "\n", "\\", "", "/" -> new JsonPrimitive(primitiveString);
+                default -> new JsonPrimitive(CipherUtil.encrypt(password, primitiveString));
+            };
+        }
+        return primitive;
+    }
+
+    private JsonElement walkDecrypt(JsonElement jsonElement, String password)
+            throws InvalidAlgorithmParameterException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (jsonElement.isJsonObject()) {
             JsonObject object = jsonElement.getAsJsonObject();
+            JsonObject copy = new JsonObject();
             for (Map.Entry<String, JsonElement> elementEntry : object.entrySet()) {
-                object.add(elementEntry.getKey(), this.decrypt(elementEntry.getValue(), password));
+                JsonElement value = elementEntry.getValue();
+                String key = elementEntry.getKey();
+                if (value.isJsonPrimitive())
+                    if (key.equalsIgnoreCase("text") || key.equalsIgnoreCase("value")) {
+                        copy.add(key, this.decryptPrimitive(value.getAsJsonPrimitive(), password));
+                    } else
+                        copy.add(key, value);
+                else
+                    copy.add(key, this.walkDecrypt(value, password));
             }
-            return object;
+            return copy;
         } else if (jsonElement.isJsonArray()) {
             JsonArray array = jsonElement.getAsJsonArray();
             JsonArray copy = new JsonArray();
             for (JsonElement element : array) {
-                copy.add(this.decrypt(element, password));
+                if (element.isJsonPrimitive())
+                    copy.add(this.decryptPrimitive(element.getAsJsonPrimitive(), password));
+                else
+                    copy.add(this.walkDecrypt(element, password));
             }
             return copy;
         }
         return jsonElement;
+    }
+
+    private JsonPrimitive decryptPrimitive(JsonPrimitive primitive, String password) throws InvalidAlgorithmParameterException, IllegalBlockSizeException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        if (primitive.isString()) {
+            String primitiveString = primitive.getAsString();
+            return switch (primitiveString) {
+                case "\n", "\\", "", "/" -> new JsonPrimitive(primitiveString);
+                default -> new JsonPrimitive(CipherUtil.decrypt(password, primitiveString));
+            };
+        }
+        return primitive;
     }
 
     public void reloadNPCBooks(Logger logger) {

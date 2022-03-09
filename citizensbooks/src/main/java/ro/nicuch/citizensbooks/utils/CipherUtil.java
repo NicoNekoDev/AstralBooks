@@ -19,27 +19,27 @@
 
 package ro.nicuch.citizensbooks.utils;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 
 public class CipherUtil {
     private static final byte[] iv = new byte[]{0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF};
     private static final IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-    public static String encrypt(String seed, String cleartext) throws Exception {
+    public static String encrypt(String seed, String cleartext)
+        // this is why I have Java
+            throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, IllegalBlockSizeException, NoSuchPaddingException, BadPaddingException, InvalidKeyException {
         byte[] rawKey = getRawKey(seed.getBytes());
         byte[] result = encrypt(rawKey, cleartext.getBytes());
         return toHex(result);
     }
 
-    public static String decrypt(String seed, String encrypted) throws Exception {
+    public static String decrypt(String seed, String encrypted)
+        // this is why I have Java
+            throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         byte[] rawKey = getRawKey(seed.getBytes());
         byte[] enc = toByte(encrypted);
         byte[] result = decrypt(rawKey, enc);
@@ -47,7 +47,7 @@ public class CipherUtil {
     }
 
 
-    private static byte[] getRawKey(byte[] seed) throws Exception {
+    private static byte[] getRawKey(byte[] seed) throws NoSuchAlgorithmException {
         KeyGenerator kgen = KeyGenerator.getInstance("AES");
         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
         sr.setSeed(seed);
@@ -57,14 +57,18 @@ public class CipherUtil {
     }
 
 
-    private static byte[] encrypt(byte[] raw, byte[] clear) throws Exception {
+    private static byte[] encrypt(byte[] raw, byte[] clear)
+        // this is why I have Java
+            throws IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
         Cipher cipher = Cipher.getInstance("AES/CFB/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
         return cipher.doFinal(clear);
     }
 
-    private static byte[] decrypt(byte[] raw, byte[] encrypted) throws Exception {
+    private static byte[] decrypt(byte[] raw, byte[] encrypted)
+        // this is why I hate Java
+            throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
         SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
         Cipher cipher = Cipher.getInstance("AES/CFB/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
@@ -90,7 +94,7 @@ public class CipherUtil {
     public static String toHex(byte[] buf) {
         if (buf == null)
             return "";
-        StringBuffer result = new StringBuffer(2 * buf.length);
+        StringBuilder result = new StringBuilder();
         for (byte b : buf) {
             appendHex(result, b);
         }
@@ -106,7 +110,7 @@ public class CipherUtil {
 
     private final static String HEX = "0123456789ABCDEF";
 
-    private static void appendHex(StringBuffer sb, byte b) {
+    private static void appendHex(StringBuilder sb, byte b) {
         sb.append(HEX.charAt((b >> 4) & 0x0f)).append(HEX.charAt(b & 0x0f));
     }
 
