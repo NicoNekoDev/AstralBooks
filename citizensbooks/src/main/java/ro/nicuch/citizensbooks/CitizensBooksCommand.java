@@ -253,37 +253,6 @@ public class CitizensBooksCommand implements TabExecutor {
                     } else
                         this.sendActionItemHelp(sender);
                 }
-                case "forcedecrypt" -> {
-                    if (!this.plugin.getSettings().getBoolean("enable_encrypted_books", false)) {
-                        sender.sendMessage(this.plugin.getMessage(Message.ENCRYPT_IS_DISABLED));
-                        break;
-                    }
-                    if (!(this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired())) {
-                        sender.sendMessage(this.plugin.getMessage(Message.NBTAPI_NOT_ENABLED));
-                        break;
-                    }
-                    if (player.isEmpty()) {
-                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
-                        break;
-                    }
-                    if (!this.api.hasPermission(sender, "npcbook.command.forcedecrypt")) {
-                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
-                        break;
-                    }
-                    if (!hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
-                        sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
-                        break;
-                    }
-                    ItemStack book = this.getItemFromHand(player.get());
-                    ItemData data = this.api.itemDataFactory(book);
-                    if (!data.hasStringKey(PersistentKey.BOOK_PASSWORD)) {
-                        sender.sendMessage(this.plugin.getMessage(Message.BOOK_ALREADY_DECRYPTED));
-                        break;
-                    }
-                    String password = data.getString(PersistentKey.BOOK_PASSWORD);
-                    this.putItemInHand(player.get(), this.api.cipherBook(data.build(), password, false));
-                    sender.sendMessage(this.plugin.getMessage(Message.BOOK_DECRYPTED));
-                }
                 case "forceopen" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.forceopen")) {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
@@ -572,8 +541,6 @@ public class CitizensBooksCommand implements TabExecutor {
                 commands.add("actionitem");
             if (this.api.hasPermission(sender, "npcbook.command.reload"))
                 commands.add("reload");
-            if (this.api.hasPermission(sender, "npcbook.command.forcedecrypt"))
-                commands.add("forcedecrypt");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             switch (args[0]) {

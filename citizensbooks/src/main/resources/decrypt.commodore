@@ -1,3 +1,0 @@
-decryptbook {
-  password brigadier:string single_word;
-}

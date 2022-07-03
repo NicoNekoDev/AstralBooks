@@ -158,18 +158,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
             PluginCommand npcBookCommand = this.getCommand("npcbook");
             if (npcBookCommand != null)
                 npcBookCommand.setExecutor(new CitizensBooksCommand(this));
-            PluginCommand encryptBookCommand = this.getCommand("encryptbook");
-            if (encryptBookCommand != null)
-                encryptBookCommand.setExecutor(new CipherBookCommand(this, true));
-            PluginCommand decryptBookCommand = this.getCommand("decryptbook");
-            if (decryptBookCommand != null)
-                decryptBookCommand.setExecutor(new CipherBookCommand(this, false));
             if (CommodoreProvider.isSupported()) {
                 this.getLogger().info("Loading Brigardier support...");
                 Commodore commodore = CommodoreProvider.getCommodore(this);
                 this.getLogger().info("  Command /npcbook: " + (this.registerCompletions(commodore, npcBookCommand, "command.commodore") ? "supported" : "unsupported"));
-                this.getLogger().info("  Command /encryptbook: " + (this.registerCompletions(commodore, encryptBookCommand, "encrypt.commodore") ? "supported" : "unsupported"));
-                this.getLogger().info("  Command /decryptbook: " + (this.registerCompletions(commodore, decryptBookCommand, "decrypt.commodore") ? "supported" : "unsupported"));
             } else
                 this.getLogger().info("Brigardier is not supported on this version!");
             //Update checker, by default enabled

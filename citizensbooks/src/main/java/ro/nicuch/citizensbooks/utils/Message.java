@@ -48,14 +48,6 @@ public enum Message {
     REMOVED_JOIN_BOOK_SUCCESSFULLY("removed_join_book_successfully", "&aYou have removed the join book!"),
     FILTER_NAME_INVALID("filter_name_invalid", "&cThe filter name should only contain letters, numbers, dashes and underscores!"),
     COMMAND_NAME_INVALID("command_name_invalid", "&cThe command name should only contain letters, numbers, dashes and underscores!"),
-    ENCRYPT_IS_DISABLED("encrypt_disabled", "&cBook encrypt is disabled!"),
-    BOOK_ENCRYPTED("encrypt_successfully", "&aBook encrypted successfully!"),
-    BOOK_DECRYPTED("decrypt_successfully", "&aBook decrypted successfully!"),
-    BOOK_DECRYPT_FAILED("decrypt_failed", "&cBook password is not correct! %tries% remaining until locked."),
-    BOOK_DECRYPTION_LOCKED("book_decryption_locked", "&cBook is now locked! Go to the book author to unlock it!"),
-    BOOK_NOT_ORIGINAL("book_not_original", "&cThe book is not an original!"),
-    BOOK_ALREADY_ENCRYPTED("book_already_encrypted", "&cBook is already encrypted!"),
-    BOOK_ALREADY_DECRYPTED("book_already_decrypted", "&cBook is already decrypted!"),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/npcbook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/npcbook npc remove [right/left]"),
@@ -73,8 +65,6 @@ public enum Message {
     USAGE_FILTER_GETBOOK("usage.filter.getbook", "&aUsage: &f/npcbook filter getbook <filter name>"),
     USAGE_ACTIONITEM_SET("usage.actionitem.set", "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"),
     USAGE_ACTIONITEM_REMOVE("usage.actionitem.remove", "&aUsage: &f/npcbook actionitem remove [right/left]"),
-    USAGE_ENCRYPT("usage.encryptbook", "&aUsage: &f/encryptbook <password>"),
-    USAGE_DECRYPT("usage.decryptbook", "&aUsage: &f/decryptbook <password>"),
 
 
     HELP_INFO("help.info", "&e<    &6Commands and Usage &f| &6Page index (%page%/3) &e    >"),

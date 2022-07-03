@@ -49,8 +49,8 @@ public class PersistentKey {
     private PersistentKey(String value, CitizensBooksPlugin plugin) {
         this.value = value;
         try {
-            this.key = Class.forName("org.bukkit.NamespacedKey").getConstructor(Plugin.class, String.class).newInstance(plugin, this.value);
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | ClassNotFoundException | InstantiationException ignore) {
+            this.key = NamespacedKey.class.getConstructor(Plugin.class, String.class).newInstance(plugin, this.value);
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | InstantiationException ignore) {
             this.key = null;
         }
     }
