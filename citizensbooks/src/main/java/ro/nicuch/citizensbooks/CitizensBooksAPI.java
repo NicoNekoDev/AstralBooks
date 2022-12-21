@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
@@ -29,7 +30,6 @@ import net.luckperms.api.context.ContextManager;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import net.milkbowl.vault.permission.Permission;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -128,8 +128,8 @@ public class CitizensBooksAPI {
     }
 
     public void removeNPCBook(int npcId, String side) {
-        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+        Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
+        Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
         if (this.plugin.isDatabaseEnabled()) {
             this.plugin.getDatabase().removeNPCBook(npcId, side);
             return;
@@ -145,11 +145,11 @@ public class CitizensBooksAPI {
 
     public void putNPCBook(int npcId, String side, ItemStack book) {
         try {
-            Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-            Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
-            Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+            Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
+            Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
+            Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                     " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-            Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+            Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                     " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
             if (this.plugin.isDatabaseEnabled()) {
                 this.plugin.getDatabase().putNPCBook(npcId, side, book);
@@ -173,23 +173,23 @@ public class CitizensBooksAPI {
     }
 
     public boolean hasNPCBook(int npcId, String side) {
-        Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-        Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
+        Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
+        Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
         if (this.plugin.isDatabaseEnabled())
             return this.plugin.getDatabase().hasNPCBook(npcId, side);
         JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
         if (jsonNPCId == null || jsonNPCId.isJsonNull())
             return false;
         JsonObject bookSideObject = jsonNPCId.getAsJsonObject(side);
-        return bookSideObject != null && bookSideObject.isJsonNull(); // we care only about side object
+        return !(bookSideObject == null || bookSideObject.isJsonNull()); // we care only about side object
     }
 
     public ItemStack getNPCBook(int npcId, String side, ItemStack defaultStack) {
         try {
-            Validate.isTrue(npcId >= 0, "NPC id is less than 0!");
-            Validate.isTrue(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
+            Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
+            Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[$side], couldn't match for String[" + side + "]!");
             if (defaultStack != null)
-                Validate.isTrue(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                Preconditions.checkArgument(defaultStack.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                         " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
             if (this.plugin.isDatabaseEnabled())
                 return this.plugin.getDatabase().getNPCBook(npcId, side, defaultStack);
@@ -232,9 +232,9 @@ public class CitizensBooksAPI {
     }
 
     public void setJoinBook(ItemStack book) {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         this.putBookInJsonFile(this.joinBookFile, book);
     }
@@ -249,9 +249,9 @@ public class CitizensBooksAPI {
     }
 
     public void putBookInJsonFile(File jsonFile, ItemStack book) throws JsonParseException {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
             JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
@@ -415,11 +415,11 @@ public class CitizensBooksAPI {
      * @return the book
      */
     public ItemStack getFilter(String filterName, ItemStack defaultItemStack) {
-        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        Preconditions.checkArgument(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled())
             return this.database.getFilterBook(filterName, new ItemStack(Material.WRITTEN_BOOK));
         return this.filters.getOrDefault(filterName, Pair.of(defaultItemStack, null)).getFirstValue();
@@ -436,11 +436,11 @@ public class CitizensBooksAPI {
      * @return if the filter has the book
      */
     public boolean hasFilter(String filterName) {
-        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        Preconditions.checkArgument(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled())
             return this.database.hasFilterBook(filterName);
         return this.filters.containsKey(filterName);
@@ -455,15 +455,15 @@ public class CitizensBooksAPI {
      * @throws IllegalArgumentException if the book is not really a book
      */
     public void createFilter(String filterName, ItemStack book) {
-        Validate.notNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.notEmpty(filterName, "The filter name is empty! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(this.isValidName(filterName), "Invalid characters found in filterName!");
+        Preconditions.checkArgument(this.isValidName(filterName), "Invalid characters found in filterName!");
         if (this.plugin.isDatabaseEnabled()) {
             this.database.putFilterBook(filterName, book);
             return;
@@ -521,9 +521,9 @@ public class CitizensBooksAPI {
      */
     public void openBook(Player player, ItemStack book) {
         player.closeInventory();
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         int slot = player.getInventory().getHeldItemSlot();
         ItemStack old = player.getInventory().getItem(slot);
@@ -560,13 +560,6 @@ public class CitizensBooksAPI {
         return user.getCachedData().getPermissionData(
                 QueryOptions.contextual(contextManager.getContext(user).orElseGet(contextManager::getStaticContext))
         ).checkPermission(permission).asBoolean();
-    }
-
-    protected Optional<Player> getPlayer(String name) {
-        Player player = Bukkit.getPlayer(name);
-        if (player == null)
-            return Optional.empty();
-        return Optional.of(player);
     }
 
     protected List<String> getPlayers() {

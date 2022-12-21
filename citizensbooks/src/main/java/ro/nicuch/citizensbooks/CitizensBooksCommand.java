@@ -279,10 +279,10 @@ public class CitizensBooksCommand implements TabExecutor {
                             if ("*".equals(args[2]) || "@a".equals(args[2]))
                                 Bukkit.getOnlinePlayers().forEach(p -> this.api.openBook(p, this.api.placeholderHook(p, this.api.getFilter(filter_name), null)));
                             else {
-                                Optional<Player> optionalPlayer = this.api.getPlayer(args[2]);
-                                if (optionalPlayer.isPresent()) {
+                                Optional<? extends Player> optionalPlayer = Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(args[2])).findFirst();
+                                if (optionalPlayer.isPresent())
                                     this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(filter_name), null));
-                                } else
+                                else
                                     sender.sendMessage(this.plugin.getMessage(Message.PLAYER_NOT_FOUND));
                             }
                         }

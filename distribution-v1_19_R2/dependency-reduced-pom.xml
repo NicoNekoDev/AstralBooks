@@ -6,7 +6,7 @@
     <version>parent</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>distribution-v1_12_R1</artifactId>
+  <artifactId>distribution-v1_19_R2</artifactId>
   <version>distribution</version>
   <build>
     <plugins>
@@ -16,6 +16,39 @@
         <configuration>
           <release>${java.version}</release>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>net.md-5</groupId>
+        <artifactId>specialsource-maven-plugin</artifactId>
+        <version>1.2.3</version>
+        <executions>
+          <execution>
+            <id>remap-obf</id>
+            <phase>package</phase>
+            <goals>
+              <goal>remap</goal>
+            </goals>
+            <configuration>
+              <srgIn>org.spigotmc:minecraft-server:1.19.3-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+              <reverse>true</reverse>
+              <remappedDependencies>org.spigotmc:spigot:1.19.3-R0.1-SNAPSHOT:jar:remapped-mojang</remappedDependencies>
+              <remappedArtifactAttached>true</remappedArtifactAttached>
+              <remappedClassifierName>remapped-obf</remappedClassifierName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>remap-spigot</id>
+            <phase>package</phase>
+            <goals>
+              <goal>remap</goal>
+            </goals>
+            <configuration>
+              <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
+              <srgIn>org.spigotmc:minecraft-server:1.19.3-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
+              <remappedDependencies>org.spigotmc:spigot:1.19.3-R0.1-SNAPSHOT:jar:remapped-obf</remappedDependencies>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
@@ -42,11 +75,13 @@
       <artifactId>distribution-core</artifactId>
       <version>distribution</version>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot</artifactId>
-      <version>1.12.2-R0.1-SNAPSHOT</version>
+      <version>1.19.3-R0.1-SNAPSHOT</version>
+      <classifier>remapped-mojang</classifier>
       <scope>provided</scope>
     </dependency>
     <dependency>

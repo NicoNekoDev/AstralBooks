@@ -19,13 +19,16 @@
 
 package ro.nicuch.citizensbooks.dist.v1_14_R1;
 
-import com.google.gson.*;
+import com.google.common.base.Preconditions;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.server.v1_14_R1.EnumHand;
 import net.minecraft.server.v1_14_R1.IChatBaseComponent;
 import net.minecraft.server.v1_14_R1.PacketPlayOutOpenBook;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftMetaBook;
@@ -102,9 +105,9 @@ public class DistributionHandler extends Distribution {
     @SuppressWarnings({"ConstantConditions", "unchecked"})
     @Override
     public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) throws IllegalAccessException {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
         List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, ((List<IChatBaseComponent>) this.pagesField.get(bookMeta)).stream().map(IChatBaseComponent.ChatSerializer::a).toList(), Optional.ofNullable(npc)) : new ArrayList<>();

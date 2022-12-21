@@ -1,6 +1,6 @@
 name: CitizensBooks
 version: ${project.version}
-author: nicuch
+author: NicoNekoDev
 main: ro.nicuch.citizensbooks.CitizensBooksPlugin
 softdepend: [ PlaceholderAPI, Citizens, LuckPerms, Vault, AuthMe, Authme, NBTAPI ]
 website: https://www.spigotmc.org/resources/citizensbooks.37465/

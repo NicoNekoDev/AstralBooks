@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks.dist.v1_8_R3;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import io.netty.buffer.Unpooled;
@@ -26,7 +27,6 @@ import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.PacketDataSerializer;
 import net.minecraft.server.v1_8_R3.PacketPlayOutCustomPayload;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftMetaBook;
@@ -105,9 +105,9 @@ public class DistributionHandler extends Distribution {
     @SuppressWarnings({"unchecked"})
     @Override
     public ItemStack applyPlaceholders(Player player, ItemStack book, NPC npc) throws IllegalAccessException {
-        Validate.notNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Validate.isTrue(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
         List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, ((List<IChatBaseComponent>) this.pagesField.get(bookMeta)).stream().map(IChatBaseComponent.ChatSerializer::a).toList(), Optional.ofNullable(npc)) : new ArrayList<>();

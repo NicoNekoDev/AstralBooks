@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 /**
- * When the player right click an NPC before the book is opened.
+ * When the player right-click an NPC before the book is opened.
  * Can also trigger PlayerEvent.
  */
 public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
@@ -78,26 +78,26 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Check if the PlaceholderAPI is gonna be used
+     * Check if the PlaceholderAPI is going to be used
      *
-     * @return if PlaceholderAPI is gonna be used
+     * @return if PlaceholderAPI is going to be used
      */
     public boolean usePlaceHolders() {
         return this.usePlaceHolders;
     }
 
     /**
-     * Set if PlaceholderAPI is gonna be used, ignored
+     * Set if PlaceholderAPI is going to be used, ignored
      * if PlaceholderAPI is disabled or not present
      *
-     * @param usePlaceHolders if PlaceholderAPI is gonna be used
+     * @param usePlaceHolders if PlaceholderAPI is going to be used
      */
     public void setPlaceHoldersUse(boolean usePlaceHolders) {
         this.usePlaceHolders = usePlaceHolders;
     }
 
     /**
-     * Set the book that's gonna be opened after
+     * Set the book that's going to be opened after
      *
      * @param book the book
      * @throws NullPointerException     if the book is null
@@ -121,7 +121,7 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Get the plugin that implemented this event. (CitizensBooks)
-     * You can access the API more easy in this way.
+     * You can access the API easier in this way.
      *
      * @return the plugin
      */

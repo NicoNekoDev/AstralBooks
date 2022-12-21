@@ -76,6 +76,7 @@
     <module>distribution-v1_18_R1</module>
     <module>distribution-v1_18_R2</module>
     <module>distribution-v1_19_R1</module>
+    <module>distribution-v1_19_R2</module>
     <module>distribution-core</module>
   </modules>
   <repositories>
@@ -102,13 +103,13 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.18.2-R0.1-SNAPSHOT</version>
+      <version>1.19.3-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>net.citizensnpcs</groupId>
       <artifactId>citizensapi</artifactId>
-      <version>2.0.29-SNAPSHOT</version>
+      <version>2.0.30-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

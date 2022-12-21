@@ -21,7 +21,7 @@ package ro.nicuch.citizensbooks;
 
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
-import me.lucko.commodore.file.CommodoreFileFormat;
+import me.lucko.commodore.file.CommodoreFileReader;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
@@ -201,7 +201,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
         try (InputStream is = this.getResource(resource)) {
             if (is == null)
                 throw new FileNotFoundException();
-            commodore.register(command, CommodoreFileFormat.parse(is), player -> this.api.hasPermission(player, "npcbook.tab.completer"));
+            commodore.register(command, CommodoreFileReader.INSTANCE.parse(is), player -> this.api.hasPermission(player, "npcbook.tab.completer"));
             return true;
         } catch (Exception ex) {
             return false;

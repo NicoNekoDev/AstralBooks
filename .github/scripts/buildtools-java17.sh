@@ -28,4 +28,5 @@ echo "[INFO] Installing spigot to maven..."
 java -jar BuildTools.jar --rev 1.17.1 --remapped
 java -jar BuildTools.jar --rev 1.18.1 --remapped
 java -jar BuildTools.jar --rev 1.18.2 --remapped
-java -jar BuildTools.jar --rev 1.19 --remapped
+java -jar BuildTools.jar --rev 1.19.2 --remapped
+java -jar BuildTools.jar --rev 1.19.3 --remapped
