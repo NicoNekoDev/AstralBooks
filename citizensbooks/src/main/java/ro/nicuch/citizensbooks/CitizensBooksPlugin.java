@@ -153,7 +153,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
             // load database, filters and npc books after dependencies
             if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
-                if (this.api.reloadFilters(this.getLogger()))
+                if (!this.api.reloadFilters(this.getLogger()))
                     throw new IllegalStateException("Failed to reload filters!");
             if (!this.api.reloadNPCBooks())
                 throw new IllegalStateException("Failed to load NPC books!");
