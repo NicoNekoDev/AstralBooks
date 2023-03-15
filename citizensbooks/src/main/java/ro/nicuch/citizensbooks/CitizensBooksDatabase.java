@@ -26,6 +26,7 @@ import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import ro.nicuch.citizensbooks.utils.Side;
 
 import java.io.File;
 import java.sql.*;
@@ -166,6 +167,7 @@ public class CitizensBooksDatabase {
                 this.filterBooks.invalidateAll();
             this.filterBooks = null;
             this.poolExecutor.shutdown();
+            //noinspection ResultOfMethodCallIgnored
             this.poolExecutor.awaitTermination(5, TimeUnit.SECONDS);
             if (this.connection != null && !this.connection.isClosed()) {
                 this.connection.close();
@@ -184,21 +186,29 @@ public class CitizensBooksDatabase {
         }
     }
 
-    public void removeNPCBook(int npcId, String side) {
-        if (!this.plugin.isCitizensEnabled())
-            throw new IllegalStateException("Citizens is not enabled!");
-        this.savedBooks.remove(Pair.of(npcId, side));
-        this.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM ? WHERE npc_id=? AND side=? AND server=?;")) {
-                statement.setString(1, this.table_prefix + "npc_books");
-                statement.setInt(2, npcId);
-                statement.setString(3, side);
-                statement.setString(4, this.serverName);
-                statement.executeUpdate();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "Failed to remove book data!", ex);
-            }
-        });
+    /**
+     * @param npcId the id of the NPC
+     * @param side  the side
+     */
+    public void removeNPCBook(int npcId, Side side) {
+        try {
+            if (!this.plugin.isCitizensEnabled())
+                throw new IllegalStateException("Citizens is not enabled!");
+            this.savedBooks.remove(Pair.of(npcId, side));
+            this.poolExecutor.submit(() -> {
+                try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM ? WHERE npc_id=? AND side=? AND server=?;")) {
+                    statement.setString(1, this.table_prefix + "npc_books");
+                    statement.setInt(2, npcId);
+                    statement.setString(3, side.toString());
+                    statement.setString(4, this.serverName);
+                    statement.executeUpdate();
+                } catch (SQLException ex) {
+                    this.plugin.getLogger().log(Level.WARNING, "Failed to remove book data!", ex);
+                }
+            });
+        } catch (Exception ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed to remove book from NPC!", ex);
+        }
     }
 
 

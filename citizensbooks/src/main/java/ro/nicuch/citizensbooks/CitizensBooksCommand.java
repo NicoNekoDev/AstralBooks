@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.item.ItemData;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
+import ro.nicuch.citizensbooks.utils.Side;
 
 import java.util.*;
 
@@ -108,8 +109,14 @@ public class CitizensBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 }
-                                this.api.putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()));
-                                this.api.saveNPCBooks(this.plugin.getLogger());
+                                if (!this.api.putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()))) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                    break;
+                                }
+                                if (!this.api.saveNPCBooks()) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                    break;
+                                }
                                 sender.sendMessage(this.plugin.getMessage(Message.SET_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
                             }
                             case "remove" -> {
@@ -132,8 +139,14 @@ public class CitizensBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 }
-                                this.api.removeNPCBook(npc.get().getId(), side);
-                                this.api.saveNPCBooks(this.plugin.getLogger());
+                                if (!this.api.removeNPCBook(npc.get().getId(), Side.fromString(side))) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                    break;
+                                }
+                                if (!this.api.saveNPCBooks()) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                    break;
+                                }
                                 sender.sendMessage(this.plugin.getMessage(Message.REMOVED_BOOK_SUCCESSFULLY).replace("%npc%", npc.get().getFullName()));
                             }
                             case "getbook" -> {
@@ -274,9 +287,11 @@ public class CitizensBooksCommand implements TabExecutor {
                                 sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
                                 break;
                             }
-                            this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.api.getFilter(filter_name), null));
+                            if (!this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.api.getFilter(filter_name), null))) {
+                                sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                            }
                         } else {
-                            if ("*".equals(args[2]) || "@a".equals(args[2]))
+                            if ("*".equals(args[2]) || "@a".equals(args[2])) //TODO broadcast books to players in another way
                                 Bukkit.getOnlinePlayers().forEach(p -> this.api.openBook(p, this.api.placeholderHook(p, this.api.getFilter(filter_name), null)));
                             else {
                                 Optional<? extends Player> optionalPlayer = Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(args[2])).findFirst();
@@ -302,15 +317,24 @@ public class CitizensBooksCommand implements TabExecutor {
                      * If config file is edited, the config is
                      * overwritten, so the edit is lost
                      */
-                    this.plugin.reloadSettings();
+                    if (!this.plugin.reloadSettings())  {
+                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     if (this.plugin.isDatabaseEnabled()) // disable the database
                         this.plugin.getDatabase().disableDatabase(this.plugin.getLogger());
                     if (!this.plugin.setDatabaseEnabled(this.plugin.getDatabase().enableDatabase(this.plugin.getLogger())))
                         // 1) try to enable database
                         // 2) set the database being enabled
                         // 3) if is disabled, load default/normal filters
-                        this.api.reloadFilters(this.plugin.getLogger()); // reload filters too
-                    this.api.reloadNPCBooks(this.plugin.getLogger());
+                        if (!this.api.reloadFilters(this.plugin.getLogger())) { // reload filters too
+                            sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                            break;
+                        }
+                    if (!this.api.reloadNPCBooks()) {
+                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
                 }
                 case "setjoin" -> {
@@ -328,7 +352,10 @@ public class CitizensBooksCommand implements TabExecutor {
                     }
                     this.api.setJoinBook(this.getItemFromHand(player.get()));
                     this.plugin.getSettings().set("join_book_last_change", System.currentTimeMillis());
-                    this.plugin.saveSettings(); //Always saved
+                    if (!this.plugin.saveSettings()) { //Always saved
+                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     sender.sendMessage(this.plugin.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
                 }
                 case "remjoin" -> {
@@ -336,9 +363,15 @@ public class CitizensBooksCommand implements TabExecutor {
                         sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    this.api.removeJoinBook();
+                    if (!this.api.removeJoinBook()) {
+                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     this.plugin.getSettings().set("join_book_last_change", 0);
-                    this.plugin.saveSettings(); //Always saved
+                    if (!this.plugin.saveSettings()) { //Always saved
+                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     sender.sendMessage(this.plugin.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));
                 }
                 case "openbook" -> {
@@ -398,7 +431,10 @@ public class CitizensBooksCommand implements TabExecutor {
                         }
                         this.plugin.getSettings().set("commands." + command_name + ".filter_name", filter_name);
                         this.plugin.getSettings().set("commands." + command_name + ".permission", args.length > 3 ? args[3] : "none"); //Optional permission
-                        this.plugin.saveSettings();
+                        if (!this.plugin.saveSettings()) {
+                            sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                            break;
+                        }
                         sender.sendMessage(this.plugin.getMessage(Message.SET_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command_name%", args[1]).replace("%filter_name%", filter_name));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_SETCMD));
@@ -415,7 +451,10 @@ public class CitizensBooksCommand implements TabExecutor {
                             break;
                         }
                         this.plugin.getSettings().set("commands." + command_name, null);
-                        this.plugin.saveSettings();
+                        if (!this.plugin.saveSettings()) {
+                            sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                            break;
+                        }
                         sender.sendMessage(this.plugin.getMessage(Message.REMOVED_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command%", command_name));
                     } else
                         sender.sendMessage(this.plugin.getMessage(Message.USAGE_REMCMD));
@@ -446,7 +485,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                         break;
                                     }
-                                    this.api.createFilter(filter_name, this.getItemFromHand((Player) sender));
+                                    if (!this.api.createFilter(filter_name, this.getItemFromHand((Player) sender))) {
+                                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                        break;
+                                    }
                                     sender.sendMessage(this.plugin.getMessage(Message.FILTER_SAVED).replace("%filter_name%", filter_name));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_SET));
@@ -462,7 +504,10 @@ public class CitizensBooksCommand implements TabExecutor {
                                         sender.sendMessage(this.plugin.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
                                         break;
                                     }
-                                    this.api.removeFilter(filter_name);
+                                    if (!this.api.removeFilter(filter_name)) {
+                                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                        break;
+                                    }
                                     sender.sendMessage(this.plugin.getMessage(Message.FILTER_REMOVED).replace("%filter_name%", filter_name));
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_REMOVE));
@@ -608,33 +653,29 @@ public class CitizensBooksCommand implements TabExecutor {
                 case "actionitem":
                 case "ai":
                     switch (args[1]) {
-                        case "set":
+                        case "set" -> {
                             if (this.api.hasPermission(sender, "npcbook.command.actionitem.set"))
                                 commands.addAll(this.api.getFilters());
-                            break;
-                        case "remove":
+                        }
+                        case "remove" -> {
                             if (this.api.hasPermission(sender, "npcbook.command.actionitem.remove"))
                                 commands.addAll(List.of("right", "left"));
-                            break;
-                        default:
-                            break;
+                        }
                     }
                 case "npc":
                     switch (args[1]) {
-                        case "set":
+                        case "set" -> {
                             if (this.api.hasPermission(sender, "npcbook.command.npc.set"))
                                 commands.addAll(List.of("right", "left"));
-                            break;
-                        case "remove":
+                        }
+                        case "remove" -> {
                             if (this.api.hasPermission(sender, "npcbook.command.npc.remove"))
                                 commands.addAll(List.of("right", "left"));
-                            break;
-                        case "getbook":
+                        }
+                        case "getbook" -> {
                             if (this.api.hasPermission(sender, "npcbook.command.npc.getbook"))
                                 commands.addAll(List.of("right", "left"));
-                            break;
-                        default:
-                            break;
+                        }
                     }
                 default:
                     break;
@@ -642,14 +683,11 @@ public class CitizensBooksCommand implements TabExecutor {
             StringUtil.copyPartialMatches(args[2], commands, completions);
         } else if (args.length == 4) {
             switch (args[0]) {
-                case "actionitem":
-                case "ai":
+                case "actionitem", "ai" -> {
                     if (this.api.hasPermission(sender, "npcbook.command.actionitem.set"))
                         if ("set".equalsIgnoreCase(args[1]))
                             commands.addAll(List.of("right", "left"));
-                    break;
-                default:
-                    break;
+                }
             }
             StringUtil.copyPartialMatches(args[3], commands, completions);
         }
@@ -677,10 +715,6 @@ public class CitizensBooksCommand implements TabExecutor {
 
     private ItemStack getItemFromHand(Player player) {
         return this.api.getDistribution().getItemInHand(player);
-    }
-
-    private void putItemInHand(Player player, ItemStack item) {
-        this.api.getDistribution().setItemInHand(player, item);
     }
 
     private void openBook(Player player, ItemStack book) {

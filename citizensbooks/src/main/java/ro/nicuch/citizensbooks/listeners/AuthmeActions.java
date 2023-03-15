@@ -26,6 +26,7 @@ import org.bukkit.event.Listener;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
+@SuppressWarnings("unused")
 public class AuthmeActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;

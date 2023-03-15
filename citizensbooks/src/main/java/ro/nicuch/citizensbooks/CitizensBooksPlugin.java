@@ -58,7 +58,8 @@ public class CitizensBooksPlugin extends JavaPlugin {
     public void onEnable() {
         try {
             this.getLogger().info("============== BEGIN LOAD ==============");
-            this.reloadSettings();
+            if (!this.reloadSettings())
+                throw new IllegalStateException("Failed to load settings!");
             if (!this.api.loadDistribution()) {
                 this.getLogger().info("Failed to load distribution... disabling the plugin!");
                 this.setEnabled(false);
@@ -152,8 +153,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
 
             // load database, filters and npc books after dependencies
             if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
-                this.api.reloadFilters(this.getLogger());
-            this.api.reloadNPCBooks(this.getLogger());
+                if (this.api.reloadFilters(this.getLogger()))
+                    throw new IllegalStateException("Failed to reload filters!");
+            if (!this.api.reloadNPCBooks())
+                throw new IllegalStateException("Failed to load NPC books!");
 
             PluginCommand npcBookCommand = this.getCommand("npcbook");
             if (npcBookCommand != null)
@@ -161,7 +164,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             if (CommodoreProvider.isSupported()) {
                 this.getLogger().info("Loading Brigardier support...");
                 Commodore commodore = CommodoreProvider.getCommodore(this);
-                this.getLogger().info("  Command /npcbook: " + (this.registerCompletions(commodore, npcBookCommand, "command.commodore") ? "supported" : "unsupported"));
+                this.getLogger().info("  Command /npcbook: " + (this.registerCompletions(commodore, npcBookCommand) ? "supported" : "unsupported"));
             } else
                 this.getLogger().info("Brigardier is not supported on this version!");
             //Update checker, by default enabled
@@ -195,10 +198,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.settings;
     }
 
-    private boolean registerCompletions(Commodore commodore, PluginCommand command, String resource) {
+    private boolean registerCompletions(Commodore commodore, PluginCommand command) {
         if (command == null)
             return false;
-        try (InputStream is = this.getResource(resource)) {
+        try (InputStream is = this.getResource("command.commodore")) {
             if (is == null)
                 throw new FileNotFoundException();
             commodore.register(command, CommodoreFileReader.INSTANCE.parse(is), player -> this.api.hasPermission(player, "npcbook.tab.completer"));
@@ -208,7 +211,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
         }
     }
 
-    public void reloadSettings() {
+    /**
+     * @return if successful
+     */
+    public boolean reloadSettings() {
         try {
             File config = new File(this.getDataFolder() + File.separator + "config.yml");
             if (!config.exists()) {
@@ -230,16 +236,23 @@ public class CitizensBooksPlugin extends JavaPlugin {
             }
             if (this.playerActionsListener != null)
                 this.playerActionsListener.onReload();
+            return true;
         } catch (Exception ex) {
             this.getLogger().log(Level.WARNING, "Couldn't reload config", ex);
+            return false;
         }
     }
 
-    public void saveSettings() {
+    /**
+     * @return if successful
+     */
+    public boolean saveSettings() {
         try {
             this.settings.save(new File(this.getDataFolder() + File.separator + "config.yml"));
+            return true;
         } catch (Exception ex) {
             this.getLogger().log(Level.WARNING, "Couldn't save config", ex);
+            return false;
         }
     }
 

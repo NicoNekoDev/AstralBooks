@@ -48,6 +48,7 @@ public enum Message {
     REMOVED_JOIN_BOOK_SUCCESSFULLY("removed_join_book_successfully", "&aYou have removed the join book!"),
     FILTER_NAME_INVALID("filter_name_invalid", "&cThe filter name should only contain letters, numbers, dashes and underscores!"),
     COMMAND_NAME_INVALID("command_name_invalid", "&cThe command name should only contain letters, numbers, dashes and underscores!"),
+    OPERATION_FAILED("operation_failed", "&cThe operation failed! Please check the console for errors!"),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/npcbook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/npcbook npc remove [right/left]"),

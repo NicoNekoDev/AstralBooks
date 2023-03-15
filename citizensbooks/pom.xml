@@ -62,10 +62,18 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.19.3-R0.1-SNAPSHOT</version>
+            <version>1.19.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- Modules -->
+        <dependency>
+            <groupId>ro.nicuch</groupId>
+            <artifactId>distribution-v1_19_R3</artifactId>
+            <version>distribution</version>
+            <scope>compile</scope>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>ro.nicuch</groupId>
             <artifactId>distribution-v1_19_R2</artifactId>

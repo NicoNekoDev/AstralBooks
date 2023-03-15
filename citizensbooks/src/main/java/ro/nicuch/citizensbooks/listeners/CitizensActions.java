@@ -32,6 +32,7 @@ import ro.nicuch.citizensbooks.events.BookNPCClickEvent;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
+@SuppressWarnings("unused")
 public class CitizensActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
@@ -84,6 +85,6 @@ public class CitizensActions implements Listener {
         ItemStack left_book = this.api.hasNPCBook(npcId, "left_side") ? this.api.getNPCBook(npcId, "left_side") : null;
         if (right_book != null) this.api.putNPCBook(cloneId, "right_side", right_book);
         if (left_book != null) this.api.putNPCBook(cloneId, "left_side", left_book);
-        this.api.saveNPCBooks(this.plugin.getLogger());
+        this.api.saveNPCBooks();
     }
 }

@@ -43,6 +43,7 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
@@ -129,6 +130,7 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
             return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
+            //noinspection ResultOfMethodCallIgnored
             this.delayedPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
     }
 

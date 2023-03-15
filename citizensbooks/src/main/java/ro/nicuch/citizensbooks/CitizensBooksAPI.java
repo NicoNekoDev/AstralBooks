@@ -44,6 +44,7 @@ import ro.nicuch.citizensbooks.item.EmptyItemData;
 import ro.nicuch.citizensbooks.item.ItemData;
 import ro.nicuch.citizensbooks.item.NBTAPIItemData;
 import ro.nicuch.citizensbooks.item.PersistentItemData;
+import ro.nicuch.citizensbooks.utils.Side;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.*;
@@ -73,7 +74,7 @@ public class CitizensBooksAPI {
         return this.distribution.noNBTAPIRequired();
     }
 
-    public CitizensBooksAPI(CitizensBooksPlugin plugin) {
+    public CitizensBooksAPI(final CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.database = this.plugin.getDatabase();
         this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
@@ -90,21 +91,25 @@ public class CitizensBooksAPI {
         return new EmptyItemData(stack);
     }
 
-    public void reloadNPCBooks(Logger logger) {
+    /**
+     *
+     * @return if successful
+     */
+    public boolean reloadNPCBooks() {
         this.jsonSavedBooks = null;
         if (this.plugin.isDatabaseEnabled())
-            return;
+            return true;
         if (!this.savedBooksFile.exists()) {
             try {
                 InputStream input = this.plugin.getResource("saved_books.json");
                 if (input == null) {
-                    logger.warning("Failed to save default saved_books.json file!");
-                    return;
+                    this.plugin.getLogger().warning("Failed to save default saved_books.json file!");
+                    return false;
                 }
                 Files.copy(input, this.savedBooksFile.toPath());
             } catch (IOException e) {
-                logger.warning("Failed to save default saved_books.json file!");
-                return;
+                this.plugin.getLogger().warning("Failed to save default saved_books.json file!");
+                return false;
             }
         }
         try (FileReader reader = new FileReader(this.savedBooksFile)) {
@@ -113,37 +118,62 @@ public class CitizensBooksAPI {
                 this.jsonSavedBooks = new JsonObject();
             }
         } catch (Exception ex) {
-            logger.log(Level.WARNING, "Failed to reload saved_books.json!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "Failed to reload saved_books.json!", ex);
+            return false;
         }
+        return true;
     }
 
-    public void saveNPCBooks(Logger logger) {
+    /**
+     * @return if successful
+     */
+    public boolean saveNPCBooks() {
         if (this.plugin.isDatabaseEnabled())
-            return;
+            return true;
         try (FileWriter writer = new FileWriter(this.savedBooksFile)) {
             this.gson.toJson(this.jsonSavedBooks, writer);
+            return true;
         } catch (Exception ex) {
-            logger.log(Level.WARNING, "Failed to save saved_books.json!", ex);
+            plugin.getLogger().log(Level.WARNING, "Failed to save saved_books.json!", ex);
+            return false;
         }
     }
 
-    public void removeNPCBook(int npcId, String side) {
-        Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
-        Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
-        if (this.plugin.isDatabaseEnabled()) {
-            this.plugin.getDatabase().removeNPCBook(npcId, side);
-            return;
+    /**
+     * \
+     *
+     * @param npcId the id of the NPC
+     * @param side  the side
+     * @return if successful
+     */
+    public boolean removeNPCBook(int npcId, Side side) {
+        try {
+            Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
+            if (this.plugin.isDatabaseEnabled()) {
+                this.plugin.getDatabase().removeNPCBook(npcId, side);
+                return true;
+            }
+            JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
+            if (jsonNPCId == null || jsonNPCId.isJsonNull())
+                return true;
+            jsonNPCId.remove(side.toString());
+            if (jsonNPCId.has("right_side") || jsonNPCId.has("left_side"))
+                return true;
+            this.jsonSavedBooks.remove(String.valueOf(npcId));
+            return true;
+        } catch (Exception ex) {
+            plugin.getLogger().log(Level.WARNING, "Failed to remove NPC.", ex);
+            return false;
         }
-        JsonObject jsonNPCId = this.jsonSavedBooks.getAsJsonObject(String.valueOf(npcId));
-        if (jsonNPCId == null || jsonNPCId.isJsonNull())
-            return;
-        jsonNPCId.remove(side);
-        if (jsonNPCId.has("right_side") || jsonNPCId.has("left_side"))
-            return;
-        this.jsonSavedBooks.remove(String.valueOf(npcId));
     }
 
-    public void putNPCBook(int npcId, String side, ItemStack book) {
+    /**
+     * @param npcId the id of the NPC
+     * @param side  if left or right click
+     * @param book  the book to put
+     * @return if successful
+     */
+    public boolean putNPCBook(int npcId, String side, ItemStack book) {
         try {
             Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
             Preconditions.checkArgument(side.equalsIgnoreCase("left_side") || side.equalsIgnoreCase("right_side"), "Wrong String[side], couldn't match for [ " + side + " ]!");
@@ -153,7 +183,7 @@ public class CitizensBooksAPI {
                     " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
             if (this.plugin.isDatabaseEnabled()) {
                 this.plugin.getDatabase().putNPCBook(npcId, side, book);
-                return;
+                return true;
             }
             JsonObject bookSideObject = new JsonObject();
             bookSideObject.add("book_content", this.distribution.convertBookToJson(book));
@@ -167,8 +197,10 @@ public class CitizensBooksAPI {
             jsonNPCId.add(side, bookSideObject);
 
             this.jsonSavedBooks.add(id, jsonNPCId);
-        } catch (IllegalAccessException ex) {
+            return true;
+        } catch (Exception ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed JSON book!", ex);
+            return false;
         }
     }
 
@@ -227,8 +259,11 @@ public class CitizensBooksAPI {
         return null;
     }
 
-    public void removeJoinBook() {
-        this.joinBookFile.delete();
+    /**
+     * @return if successful
+     */
+    public boolean removeJoinBook() {
+        return this.joinBookFile.delete();
     }
 
     public void setJoinBook(ItemStack book) {
@@ -337,21 +372,27 @@ public class CitizensBooksAPI {
         }
     }
 
-    public void reloadFilters(Logger logger) {
+    /**
+     * @param logger the logger
+     * @return if successful
+     */
+    public boolean reloadFilters(Logger logger) {
         logger.info("Loading filters...");
         this.filters.clear();
         if (!this.filtersDirectory.exists()) {
-            this.filtersDirectory.mkdirs();
+            if (!this.filtersDirectory.mkdirs())
+                return false;
             File helloWorldFile = new File(this.filtersDirectory + File.separator + "hello_world.json");
             try {
                 InputStream input = this.plugin.getResource("hello_world.json");
                 if (input == null) {
                     logger.warning("Failed to save default hello_world filter! This error could be ignored...");
-                    return;
+                    return false;
                 }
                 Files.copy(input, helloWorldFile.toPath());
             } catch (IOException e) {
                 logger.warning("Failed to save default hello_world filter! This error could be ignored...");
+                return false;
             }
         }
         AtomicInteger successfulFile = new AtomicInteger();
@@ -388,12 +429,14 @@ public class CitizensBooksAPI {
             Files.walkFileTree(this.filtersDirectory.toPath(), fileVisitor);
         } catch (IOException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to walk file tree", ex);
+            return false;
         }
         int successful = successfulFile.get();
         if (successful == 0)
-            logger.info("No filter was loaded!");
+            logger.info("No filter was found to load!");
         else
-            logger.info("Loaded " + successfulFile.get() + " filters!");
+            logger.info("Loaded " + successfulFile.get() + " filter(s)!");
+        return true;
     }
 
     public boolean isValidName(String filterName) {
@@ -451,25 +494,27 @@ public class CitizensBooksAPI {
      *
      * @param filterName filter name/id
      * @param book       the book
+     * @return if successfully
      * @throws NullPointerException     if the book is null
      * @throws IllegalArgumentException if the book is not really a book
      */
-    public void createFilter(String filterName, ItemStack book) {
-        Preconditions.checkNotNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Preconditions.checkArgument(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
-                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        Preconditions.checkArgument(this.isValidName(filterName), "Invalid characters found in filterName!");
-        if (this.plugin.isDatabaseEnabled()) {
-            this.database.putFilterBook(filterName, book);
-            return;
-        }
-        File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
-        try (FileWriter fileWriter = new FileWriter(jsonFile)) {
+    public boolean createFilter(String filterName, ItemStack book) {
+        try {
+            Preconditions.checkNotNull(filterName, "The filter name is null! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            Preconditions.checkArgument(!filterName.isEmpty(), "The filter name is empty! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                    " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+            Preconditions.checkArgument(this.isValidName(filterName), "Invalid characters found in filterName!");
+            if (this.plugin.isDatabaseEnabled()) {
+                this.database.putFilterBook(filterName, book);
+                return true;
+            }
+            File jsonFile = new File(this.filtersDirectory + File.separator + filterName + ".json");
+            FileWriter fileWriter = new FileWriter(jsonFile);
             JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
             JsonObject jsonFileObject = new JsonObject();
             jsonFileObject.add("filter_name", new JsonPrimitive(filterName));
@@ -477,8 +522,10 @@ public class CitizensBooksAPI {
             jsonFileObject.add("book_content", jsonBookContent);
             this.gson.toJson(jsonFileObject, fileWriter);
             this.filters.put(filterName, Pair.of(book, jsonFile.toPath()));
+            return true;
         } catch (Exception ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to create json file", ex);
+            return false;
         }
     }
 
@@ -489,22 +536,21 @@ public class CitizensBooksAPI {
     }
 
     /**
-     * Remove the filter
-     *
-     * @param filterName filter name/id
+     * @param filterName the filter name
+     * @return if successful
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void removeFilter(String filterName) {
+    public boolean removeFilter(String filterName) {
         if (this.plugin.isDatabaseEnabled()) {
             this.database.removeFilterBook(filterName);
-            return;
+            return true;
         }
         if (this.filters.containsKey(filterName)) {
             Pair<ItemStack, Path> link = this.filters.remove(filterName);
             File jsonFile = link.getSecondValue().toFile();
             if (jsonFile.exists())
-                jsonFile.delete();
+                return jsonFile.delete();
         }
+        return true;
     }
 
     protected void rightClick(Player player) {
@@ -518,8 +564,9 @@ public class CitizensBooksAPI {
      * @param book   the book
      * @throws NullPointerException     if the book is null
      * @throws IllegalArgumentException if the book is not really a book
+     * @return if successful
      */
-    public void openBook(Player player, ItemStack book) {
+    public boolean openBook(Player player, ItemStack book) {
         player.closeInventory();
         Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
@@ -532,12 +579,13 @@ public class CitizensBooksAPI {
         try {
             this.rightClick(player);
         } catch (Exception ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Something went wrong!", ex);
+            return false;
         }
         if (old != null)
             pi.setItem(slot, old.clone());
         else
             pi.setItem(slot, null);
+        return true;
     }
 
     public boolean hasPermission(CommandSender sender, String permission) {

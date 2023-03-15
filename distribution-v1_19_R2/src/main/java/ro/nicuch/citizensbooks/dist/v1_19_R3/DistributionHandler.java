@@ -17,7 +17,7 @@
 
  */
 
-package ro.nicuch.citizensbooks.dist.v1_19_R2;
+package ro.nicuch.citizensbooks.dist.v1_19_R3;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
