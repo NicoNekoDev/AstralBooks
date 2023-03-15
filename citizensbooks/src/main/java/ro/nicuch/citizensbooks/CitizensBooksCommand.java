@@ -19,6 +19,7 @@
 
 package ro.nicuch.citizensbooks;
 
+import io.github.NicoNekoDev.SimpleTuples.Pair;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -317,25 +318,35 @@ public class CitizensBooksCommand implements TabExecutor {
                      * If config file is edited, the config is
                      * overwritten, so the edit is lost
                      */
-                    if (!this.plugin.reloadSettings())  {
+                    if (!this.plugin.reloadSettings()) {
                         sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
                     if (this.plugin.isDatabaseEnabled()) // disable the database
                         this.plugin.getDatabase().disableDatabase(this.plugin.getLogger());
-                    if (!this.plugin.setDatabaseEnabled(this.plugin.getDatabase().enableDatabase(this.plugin.getLogger())))
+                    Optional<Pair<Integer, Integer>> reloadFiltersResponse = Optional.empty();
+                    if (!this.plugin.setDatabaseEnabled(this.plugin.getDatabase().enableDatabase())) {
                         // 1) try to enable database
                         // 2) set the database being enabled
                         // 3) if is disabled, load default/normal filters
-                        if (!this.api.reloadFilters(this.plugin.getLogger())) { // reload filters too
+                        reloadFiltersResponse = this.api.reloadFilters();
+                        if (reloadFiltersResponse.isEmpty()) { // reload filters too
                             sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
                             break;
                         }
+                    }
                     if (!this.api.reloadNPCBooks()) {
                         sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
                     sender.sendMessage(this.plugin.getMessage(Message.CONFIG_RELOADED));
+                    if (reloadFiltersResponse.isPresent()) {
+                        Pair<Integer, Integer> response = reloadFiltersResponse.get();
+                        sender.sendMessage(this.plugin.getMessage(Message.FILTERS_RELOADED)
+                                .replace("%success%", String.valueOf(response.getFirstValue()))
+                                .replace("%failed%", String.valueOf(response.getSecondValue()))
+                        );
+                    }
                 }
                 case "setjoin" -> {
                     if (player.isEmpty()) {
@@ -537,6 +548,22 @@ public class CitizensBooksCommand implements TabExecutor {
                                 } else
                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_GETBOOK));
                             }
+                            case "list" -> {
+                                if (!this.api.hasPermission(sender, "npcbook.command.filter.list")) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                    break;
+                                }
+                                int pageNum = 1;
+                                if (args.length > 2) {
+                                    try {
+                                        pageNum = Integer.parseInt(args[2]);
+                                    } catch (NumberFormatException ex) {
+                                        sender.sendMessage(this.plugin.getMessage(Message.USAGE_FILTER_LIST));
+                                        break;
+                                    }
+                                }
+                                this.sendFiltersList(sender, pageNum);
+                            }
                             default -> this.sendFilterHelp(sender);
                         }
                     } else
@@ -603,6 +630,8 @@ public class CitizensBooksCommand implements TabExecutor {
                         commands.add("remove");
                     if (this.api.hasPermission(sender, "npcbook.command.filter.getbook"))
                         commands.add("getbook");
+                    if (this.api.hasPermission(sender, "npcbook.command.filter.list"))
+                        commands.add("list");
                     break;
                 case "forceopen":
                     if (this.api.hasPermission(sender, "npcbook.command.forceopen"))
@@ -762,6 +791,7 @@ public class CitizensBooksCommand implements TabExecutor {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_LIST).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
         } else if (page == 3) {
@@ -771,9 +801,9 @@ public class CitizensBooksCommand implements TabExecutor {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
         } else {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_HELP).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
@@ -789,6 +819,7 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_LIST).split("\\$"));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }
@@ -811,6 +842,28 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
         sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+    }
+
+    private void sendFiltersList(CommandSender sender, int pageNum) {
+        LinkedList<String[]> pages = this.api.getListOfFilters();
+        if (pages.isEmpty()) {
+            sender.sendMessage(this.plugin.getMessage(Message.FILTERS_LIST_NO_FILTER_PRESENT));
+            return;
+        }
+
+        if (pages.size() < pageNum || pageNum < 1) {
+            sender.sendMessage(this.plugin.getMessage(Message.FILTERS_LIST_PAGE_NOT_FOUND).replace("%page%", String.valueOf(pageNum)));
+            return;
+        }
+        String[] page = pages.get(pageNum - 1);
+        sender.sendMessage(this.plugin.getMessage(Message.FILTERS_LIST_PRESENT));
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        for (int i = 0; i < 10; i++) {
+            String row = page[i];
+            if (row == null) continue;
+            sender.sendMessage(this.plugin.parseMessage("&c&l  " + (((pageNum - 1) * 10) + i + 1) + ") &a" + row));
+        }
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }
 }

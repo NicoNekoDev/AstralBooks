@@ -15,6 +15,7 @@ lang:
   header: "&f[&6CitizensBooks&f] &r"
   no_permission: "&cYou don't have permission!"
   config_reloaded: "&aConfig reloaded."
+  filters_reloaded: "&aLoaded %success% filter(s) while %failed% failed to load."
   set_book_successfully: "&aYou have set the book for %npc%&a!"
   set_join_book_successfully: "&aYou have set the join book!"
   removed_book_successfully: "&aYou have removed the book for %npc%&a!"
@@ -41,6 +42,9 @@ lang:
   filter_name_invalid: "&cThe filter name should only contain letters, numbers, dashes and underscores!"
   command_name_invalid: "&cThe command name should only contain letters, numbers, dashes and underscores!"
   operation_failed: "&cThe operation failed! Please check the console for errors!"
+  filters_list_page_not_found: "&cThere's no filters at page %page%"
+  filters_list_present: "&aHere's the list of filters present:"
+  filter_list_no_filter_present: "&cThere is not filter present/installed!"
   usage:
     help: "&aUsage: &f/npcbook help [page]"
     openbook: "&aUsage: &f/npcbook openbook"
@@ -54,6 +58,7 @@ lang:
       set: "&aUsage: &f/npcbook filter set <filter name>"
       remove: "&aUsage: &f/npcbook filter remove <filter name>"
       getbook: "&aUsage: &f/npcbook filter getbook <filter name>"
+      list: "&aUsage: &f/npcbook filter list [page]"
     actionitem:
       set: "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"
       remove: "&aUsage: &f/npcbook actionitem remove [right/left]"
@@ -78,6 +83,7 @@ lang:
       set: "&f/npcbook filter set <filter name> $ &9Create a filter with the given name."
       remove: "&f/npcbook filter remove <filter name> $ &9Remove a filter with the given name."
       getbook: "&f/npcbook filter getbook <filter name> $ &9Get the book of the filter with the given name."
+      list: "&f/npcbook filter list [page] $ &9List the filters present/installed."
     actionitem:
       set: "&f/npcbook actionitem set <filter name> [right/left] $ &9Put a filter on the item you hold."
       remove: "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold."

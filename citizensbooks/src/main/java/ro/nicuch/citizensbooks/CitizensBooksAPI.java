@@ -53,7 +53,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -74,6 +73,21 @@ public class CitizensBooksAPI {
         return this.distribution.noNBTAPIRequired();
     }
 
+    public LinkedList<String[]> getListOfFilters() {
+        LinkedList<String[]> resultedFilters = new LinkedList<>();
+        LinkedList<String> sortedFilters = new LinkedList<>(filters.keySet());
+        String pooledResult;
+        while ((pooledResult = sortedFilters.poll()) != null) {
+            String[] page = new String[10];
+            page[0] = pooledResult;
+            for (int n = 1; n < 10; n++) {
+                page[n] = sortedFilters.poll();
+            }
+            resultedFilters.add(page);
+        }
+        return resultedFilters;
+    }
+
     public CitizensBooksAPI(final CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.database = this.plugin.getDatabase();
@@ -92,7 +106,6 @@ public class CitizensBooksAPI {
     }
 
     /**
-     *
      * @return if successful
      */
     public boolean reloadNPCBooks() {
@@ -373,45 +386,49 @@ public class CitizensBooksAPI {
     }
 
     /**
-     * @param logger the logger
      * @return if successful
      */
-    public boolean reloadFilters(Logger logger) {
-        logger.info("Loading filters...");
+    public Optional<Pair<Integer, Integer>> reloadFilters() {
+        this.plugin.getLogger().info("Loading filters...");
         this.filters.clear();
         if (!this.filtersDirectory.exists()) {
             if (!this.filtersDirectory.mkdirs())
-                return false;
+                return Optional.empty();
             File helloWorldFile = new File(this.filtersDirectory + File.separator + "hello_world.json");
             try {
                 InputStream input = this.plugin.getResource("hello_world.json");
                 if (input == null) {
-                    logger.warning("Failed to save default hello_world filter! This error could be ignored...");
-                    return false;
+                    this.plugin.getLogger().warning("Failed to save default hello_world filter! This error could be ignored...");
+                    return Optional.empty();
                 }
                 Files.copy(input, helloWorldFile.toPath());
             } catch (IOException e) {
-                logger.warning("Failed to save default hello_world filter! This error could be ignored...");
-                return false;
+                this.plugin.getLogger().warning("Failed to save default hello_world filter! This error could be ignored...");
+                return Optional.empty();
             }
         }
         AtomicInteger successfulFile = new AtomicInteger();
+        AtomicInteger failedFile = new AtomicInteger();
         FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
                 File jsonFile = path.toFile();
-                if (!jsonFile.getName().toLowerCase().endsWith(".json"))
+                if (!jsonFile.getName().toLowerCase().endsWith(".json")) {
+                    failedFile.incrementAndGet();
                     return FileVisitResult.CONTINUE; // don't log non json files
+                }
                 try (FileReader fileReader = new FileReader(jsonFile)) {
                     JsonObject jsonObject = CitizensBooksAPI.this.gson.fromJson(fileReader, JsonObject.class);
                     JsonPrimitive jsonFilterName = jsonObject.getAsJsonPrimitive("filter_name");
                     if (!jsonFilterName.isString()) {
-                        logger.warning("Failed to load " + jsonFile.getName() + " because it doesn't have a filter name!");
+                        CitizensBooksAPI.this.plugin.getLogger().warning("Failed to load " + jsonFile.getName() + " because it doesn't have a filter name!");
+                        failedFile.incrementAndGet();
                         return FileVisitResult.CONTINUE;
                     }
                     String filterName = jsonFilterName.getAsString();
                     if (!isValidName(filterName)) {
-                        logger.warning("Failed to load " + jsonFile.getName() + " because it doesn't have a valid filter name!");
+                        CitizensBooksAPI.this.plugin.getLogger().warning("Failed to load " + jsonFile.getName() + " because it doesn't have a valid filter name!");
+                        failedFile.incrementAndGet();
                         return FileVisitResult.CONTINUE;
                     }
                     JsonObject jsonBookContent = jsonObject.getAsJsonObject("book_content");
@@ -419,7 +436,8 @@ public class CitizensBooksAPI {
                     CitizensBooksAPI.this.filters.put(filterName, Pair.of(book, jsonFile.toPath()));
                     successfulFile.incrementAndGet();
                 } catch (Exception ex) {
-                    logger.warning("Failed to load " + jsonFile.getName());
+                    CitizensBooksAPI.this.plugin.getLogger().warning("Failed to load " + jsonFile.getName());
+                    failedFile.incrementAndGet();
                     return FileVisitResult.CONTINUE;
                 }
                 return FileVisitResult.CONTINUE;
@@ -429,14 +447,13 @@ public class CitizensBooksAPI {
             Files.walkFileTree(this.filtersDirectory.toPath(), fileVisitor);
         } catch (IOException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to walk file tree", ex);
-            return false;
+            return Optional.empty();
         }
-        int successful = successfulFile.get();
-        if (successful == 0)
-            logger.info("No filter was found to load!");
+        if (successfulFile.get() == 0)
+            this.plugin.getLogger().info("No filter was found to load!");
         else
-            logger.info("Loaded " + successfulFile.get() + " filter(s)!");
-        return true;
+            this.plugin.getLogger().info("Loaded " + successfulFile.get() + " filter(s) while " + failedFile.get() + " failed to load!");
+        return Optional.of(Pair.of(successfulFile.get(), failedFile.get()));
     }
 
     public boolean isValidName(String filterName) {
@@ -562,9 +579,9 @@ public class CitizensBooksAPI {
      *
      * @param player the player
      * @param book   the book
+     * @return if successful
      * @throws NullPointerException     if the book is null
      * @throws IllegalArgumentException if the book is not really a book
-     * @return if successful
      */
     public boolean openBook(Player player, ItemStack book) {
         player.closeInventory();

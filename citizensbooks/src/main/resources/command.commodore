@@ -51,6 +51,9 @@ npcbook {
     getbook {
       name brigadier:string single_word;
     }
+    list {
+      page brigadier:integer;
+    }
   }
   remcmd {
     command brigadier:string single_word;

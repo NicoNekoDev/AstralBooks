@@ -55,11 +55,11 @@ public class CitizensBooksDatabase {
         this.plugin = plugin;
     }
 
-    public boolean enableDatabase(Logger logger) {
+    public boolean enableDatabase() {
         try {
             YamlConfiguration settings = this.plugin.getSettings();
             if ("mysql".equalsIgnoreCase(settings.getString("database.type", "json"))) {
-                logger.info("Loading MySQL database...");
+                plugin.getLogger().info("Loading MySQL database...");
                 String user = settings.getString("database.mysql.user", "user");
                 String pass = settings.getString("database.mysql.password", "password");
                 String ip = settings.getString("database.mysql.ip", "localhost");
@@ -75,13 +75,13 @@ public class CitizensBooksDatabase {
                 this.serverName = settings.getString("database.mysql.server_name", "default");
                 this.connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
                 this.isMySQL = true;
-                logger.info("Connected to MySQL database!");
+                plugin.getLogger().info("Connected to MySQL database!");
             } else if ("sqlite".equalsIgnoreCase(settings.getString("database.type", "json"))) {
-                logger.info("Loading SQLite database...");
+                plugin.getLogger().info("Loading SQLite database...");
                 String file = settings.getString("database.sqlite.file_name", "storage.db");
                 this.connection = DriverManager.getConnection("jdbc:sqlite:" + this.plugin.getDataFolder() + File.separator + file);
                 this.isMySQL = false;
-                logger.info("Connected to SQLite database!");
+                plugin.getLogger().info("Connected to SQLite database!");
             } else
                 return false;
             try (PreparedStatement statement = this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS ? (filter_name VARCHAR(255) PRIMARY KEY,filter_book TEXT);")) {
@@ -149,9 +149,9 @@ public class CitizensBooksDatabase {
                         });
             }
             if (this.filters.isEmpty())
-                logger.info("No filter was loaded!");
+                plugin.getLogger().info("No filter was loaded!");
             else
-                logger.info("Loaded " + this.filters.size() + " filters!");
+                plugin.getLogger().info("Loaded " + this.filters.size() + " filters!");
             return true;
         } catch (SQLException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to connect to database!", ex);

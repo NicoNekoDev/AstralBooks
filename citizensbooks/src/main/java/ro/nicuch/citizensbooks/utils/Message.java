@@ -23,6 +23,7 @@ public enum Message {
     HEADER("header", "&f[&6CitizensBooks&f] &r"),
     NO_PERMISSION("no_permission", "&cYou don't have permission!"),
     CONFIG_RELOADED("config_reloaded", "&aConfig reloaded."),
+    FILTERS_RELOADED("filters_reloaded", "&aLoaded %success% filter(s) while %failed% failed to load."),
     SET_BOOK_SUCCESSFULLY("set_book_successfully", "&aYou have set the book for %npc%&a!"),
     REMOVED_BOOK_SUCCESSFULLY("removed_book_successfully", "&aYou have removed the book for %npc%&a!"),
     NO_NPC_SELECTED("no_npc_selected", "&cYou need to have an NPC selected!"),
@@ -49,6 +50,9 @@ public enum Message {
     FILTER_NAME_INVALID("filter_name_invalid", "&cThe filter name should only contain letters, numbers, dashes and underscores!"),
     COMMAND_NAME_INVALID("command_name_invalid", "&cThe command name should only contain letters, numbers, dashes and underscores!"),
     OPERATION_FAILED("operation_failed", "&cThe operation failed! Please check the console for errors!"),
+    FILTERS_LIST_PAGE_NOT_FOUND("filters_list_page_not_found", "&cThere's no filters at page %page%"),
+    FILTERS_LIST_PRESENT("filters_list_present", "&aHere's the list of filters present:"),
+    FILTERS_LIST_NO_FILTER_PRESENT("filter_list_no_filter_present", "&cThere is not filter present/installed!"),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/npcbook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/npcbook npc remove [right/left]"),
@@ -64,6 +68,7 @@ public enum Message {
     USAGE_FILTER_SET("usage.filter.set", "&aUsage: &f/npcbook filter set <filter name>"),
     USAGE_FILTER_REMOVE("usage.filter.remove", "&aUsage: &f/npcbook filter remove <filter name>"),
     USAGE_FILTER_GETBOOK("usage.filter.getbook", "&aUsage: &f/npcbook filter getbook <filter name>"),
+    USAGE_FILTER_LIST("usage.filter.list", "&aUsage: &f/npcbook filter list [page]"),
     USAGE_ACTIONITEM_SET("usage.actionitem.set", "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"),
     USAGE_ACTIONITEM_REMOVE("usage.actionitem.remove", "&aUsage: &f/npcbook actionitem remove [right/left]"),
 
@@ -86,6 +91,7 @@ public enum Message {
     HELP_FILTER_SET("help.filter.set", "&f/npcbook filter set <filter name> $ &9Set a filter by the given name."),
     HELP_FILTER_REMOVE("help.filter.remove", "&f/npcbook filter remove <filter name> [right/left] $ &9Remove a filter by the given name."),
     HELP_FILTER_GETBOOK("help.filter.getbook", "&f/npcbook filter getbook <filter name> $ &9Get the book of filter by the given name."),
+    HELP_FILTER_LIST("help.filter.list", "&f/npcbook filter list [page] $ &9List the filters present/installed."),
     HELP_ACTIONITEM_SET("help.actionitem.set", "&f/npcbook actionitem set <filter name> [right/left] $ &9Put a filter on the item you hold."),
     HELP_ACTIONITEM_REMOVE("help.actionitem.remove", "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold.");
 

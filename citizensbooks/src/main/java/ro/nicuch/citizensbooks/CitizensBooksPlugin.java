@@ -152,8 +152,8 @@ public class CitizensBooksPlugin extends JavaPlugin {
             }
 
             // load database, filters and npc books after dependencies
-            if (!this.setDatabaseEnabled(this.database.enableDatabase(this.getLogger())))
-                if (!this.api.reloadFilters(this.getLogger()))
+            if (!this.setDatabaseEnabled(this.database.enableDatabase()))
+                if (this.api.reloadFilters().isEmpty())
                     throw new IllegalStateException("Failed to reload filters!");
             if (!this.api.reloadNPCBooks())
                 throw new IllegalStateException("Failed to load NPC books!");
@@ -297,12 +297,15 @@ public class CitizensBooksPlugin extends JavaPlugin {
     }
 
     public String getMessage(Message msg) {
-        return ChatColor.translateAlternateColorCodes('&',
-                this.settings.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
-                + ChatColor.translateAlternateColorCodes('&', this.settings.getString(msg.getPath(), msg.getDefault()));
+        return this.parseMessage(this.settings.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
+                + this.parseMessage(this.settings.getString(msg.getPath(), msg.getDefault()));
     }
 
     public String getMessageNoHeader(Message msg) {
-        return ChatColor.translateAlternateColorCodes('&', this.settings.getString(msg.getPath(), msg.getPath()));
+        return this.parseMessage(this.settings.getString(msg.getPath(), msg.getPath()));
+    }
+
+    public String parseMessage(String msg) {
+        return ChatColor.translateAlternateColorCodes('&', msg);
     }
 }
