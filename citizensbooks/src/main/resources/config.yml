@@ -45,6 +45,8 @@ lang:
   filters_list_page_not_found: "&cThere's no filters at page %page%"
   filters_list_present: "&aHere's the list of filters present:"
   filter_list_no_filter_present: "&cThere is not filter present/installed!"
+  opened_books_for_player: "&aYou've successfully opened a book for %success% player(s). There was %failed% failed attempts."
+  opened_book_for_player: "&aYou've successfully opened a book for %player%."
   usage:
     help: "&aUsage: &f/npcbook help [page]"
     openbook: "&aUsage: &f/npcbook openbook"

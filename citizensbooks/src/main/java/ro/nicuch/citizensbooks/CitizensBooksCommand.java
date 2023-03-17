@@ -288,16 +288,31 @@ public class CitizensBooksCommand implements TabExecutor {
                                 sender.sendMessage(this.plugin.getMessage(Message.USAGE_FORCEOPEN));
                                 break;
                             }
-                            if (!this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.api.getFilter(filter_name), null))) {
+                            if (!this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.api.getFilter(filter_name), null)))
                                 sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
-                            }
+                            else
+                                sender.sendMessage(this.plugin.getMessage(Message.OPENED_BOOK_FOR_PLAYER)
+                                        .replace("%player%", sender.getName()));
                         } else {
-                            if ("*".equals(args[2]) || "@a".equals(args[2])) //TODO broadcast books to players in another way
-                                Bukkit.getOnlinePlayers().forEach(p -> this.api.openBook(p, this.api.placeholderHook(p, this.api.getFilter(filter_name), null)));
-                            else {
+                            if ("*".equals(args[2]) || "@a".equals(args[2])) {
+                                int failedReceiver = 0;
+                                int successfulReceiver = 0;
+                                for (Player receiver : Bukkit.getOnlinePlayers())
+                                    if (!this.api.openBook(receiver, this.api.placeholderHook(receiver, this.api.getFilter(filter_name), null)))
+                                        failedReceiver++;
+                                    else
+                                        successfulReceiver++;
+                                sender.sendMessage(this.plugin.getMessage(Message.OPENED_BOOK_FOR_PLAYERS)
+                                        .replace("%success%", successfulReceiver + "")
+                                        .replace("%failed%", failedReceiver + ""));
+                            } else {
                                 Optional<? extends Player> optionalPlayer = Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(args[2])).findFirst();
                                 if (optionalPlayer.isPresent())
-                                    this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(filter_name), null));
+                                    if (!this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.api.getFilter(filter_name), null)))
+                                        sender.sendMessage(this.plugin.getMessage(Message.OPERATION_FAILED));
+                                    else
+                                        sender.sendMessage(this.plugin.getMessage(Message.OPENED_BOOK_FOR_PLAYER)
+                                                .replace("%player%", optionalPlayer.get().getName()));
                                 else
                                     sender.sendMessage(this.plugin.getMessage(Message.PLAYER_NOT_FOUND));
                             }

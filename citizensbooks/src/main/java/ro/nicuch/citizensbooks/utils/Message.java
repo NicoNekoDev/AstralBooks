@@ -53,6 +53,8 @@ public enum Message {
     FILTERS_LIST_PAGE_NOT_FOUND("filters_list_page_not_found", "&cThere's no filters at page %page%"),
     FILTERS_LIST_PRESENT("filters_list_present", "&aHere's the list of filters present:"),
     FILTERS_LIST_NO_FILTER_PRESENT("filter_list_no_filter_present", "&cThere is not filter present/installed!"),
+    OPENED_BOOK_FOR_PLAYERS("opened_books_for_player", "&aYou've successfully opened a book for %success% player(s). There was %failed% failed attempts."),
+    OPENED_BOOK_FOR_PLAYER("opened_book_for_player", "&aYou've successfully opened a book for %player%."),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/npcbook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/npcbook npc remove [right/left]"),
