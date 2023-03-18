@@ -28,8 +28,21 @@ import java.lang.reflect.InvocationTargetException;
 public class PersistentKey {
     public static PersistentKey ITEM_RIGHT_KEY = null;
     public static PersistentKey ITEM_LEFT_KEY = null;
+    //
     public static PersistentKey BOOK_PASSWORD = null;
     public static PersistentKey BOOK_PASSWORD_FAILS = null;
+    //
+    public static PersistentKey CHUNK_TAG = null;
+    //
+    public static PersistentKey ENTITY_LEFT_BOOK = null;
+    public static PersistentKey ENTITY_RIGHT_BOOK = null;
+    //
+    public static PersistentKey BLOCK_LOCATION_X = null;
+    public static PersistentKey BLOCK_LOCATION_Y = null;
+    public static PersistentKey BLOCK_LOCATION_Z = null;
+    //
+    public static PersistentKey BLOCK_LEFT_BOOK = null;
+    public static PersistentKey BLOCK_RIGHT_BOOK = null;
 
     public static boolean init(CitizensBooksPlugin plugin) {
         try {
@@ -37,6 +50,9 @@ public class PersistentKey {
             ITEM_LEFT_KEY = new PersistentKey("LeftBookValue", plugin);
             BOOK_PASSWORD = new PersistentKey("BookPassword", plugin);
             BOOK_PASSWORD_FAILS = new PersistentKey("BookPasswordFails", plugin);
+            CHUNK_TAG = new PersistentKey("BooksOnChunk", plugin);
+            ENTITY_LEFT_BOOK = new PersistentKey("EntityLeftBook", plugin);
+            ENTITY_RIGHT_BOOK = new PersistentKey("EntityRightBook", plugin);
             return true;
         } catch (Exception ex) {
             return false;

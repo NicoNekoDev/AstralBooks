@@ -29,12 +29,15 @@ import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.server.v1_16_R2.EnumHand;
 import net.minecraft.server.v1_16_R2.IChatBaseComponent;
 import net.minecraft.server.v1_16_R2.PacketPlayOutOpenBook;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R2.inventory.CraftMetaBook;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import ro.nicuch.citizensbooks.dist.Distribution;
 
 import java.lang.reflect.Field;
@@ -46,9 +49,19 @@ public class DistributionHandler extends Distribution {
     private final Field pagesField;
 
     public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
-        super("1_16_R2", papiStr, papiStrList, true);
+        super("1_16_R2", papiStr, papiStrList, true, true);
         this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
         this.pagesField.setAccessible(true);
+    }
+
+    @Override
+    public PersistentDataContainer getChunkDataContainer(Chunk chunk) {
+        return chunk.getPersistentDataContainer();
+    }
+
+    @Override
+    public PersistentDataContainer getEntityDataContainer(Entity entity) {
+        return entity.getPersistentDataContainer();
     }
 
     public void sendRightClick(Player player) {

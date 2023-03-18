@@ -23,8 +23,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import net.citizensnpcs.api.npc.NPC;
+import org.bukkit.Chunk;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +36,7 @@ public abstract class Distribution {
     protected final Gson gson = new Gson();
     private final String version;
     private boolean noNBTAPIRequired = false;
+    private boolean persistentDataContainerEnabled = false;
     protected final TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr;
     protected final TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList;
 
@@ -47,12 +51,29 @@ public abstract class Distribution {
         this.noNBTAPIRequired = noNBTAPIRequired;
     }
 
+    public Distribution(final String version, TripletFunction<Player, String, Optional<NPC>, String> papiReplaceStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiReplaceStrList, boolean noNBTAPIRequired, boolean persistentDataContainerEnabled) {
+        this(version, papiReplaceStr, papiReplaceStrList, noNBTAPIRequired);
+        this.persistentDataContainerEnabled = noNBTAPIRequired;
+    }
+
     public final boolean noNBTAPIRequired() {
         return this.noNBTAPIRequired;
     }
 
+    public final boolean isPersistentDataContainerEnabled() {
+        return this.persistentDataContainerEnabled;
+    }
+
     public final String getVersion() {
         return this.version;
+    }
+
+    public PersistentDataContainer getEntityDataContainer(Entity entity) {
+        return null;
+    }
+
+    public PersistentDataContainer getChunkDataContainer(Chunk chunk) {
+        return null;
     }
 
     public abstract void sendRightClick(Player player);

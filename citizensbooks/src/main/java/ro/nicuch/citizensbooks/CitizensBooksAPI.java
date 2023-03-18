@@ -31,7 +31,9 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.query.QueryOptions;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -61,6 +63,8 @@ public class CitizensBooksAPI {
     private final CitizensBooksDatabase database;
     private Distribution distribution = null;
     private final Map<String, Pair<ItemStack, Path>> filters = new HashMap<>();
+    private final Map<Chunk, Set<Block>> blocksPairedToChunk = new HashMap<>();
+    private final Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
     private final File filtersDirectory;
     private final Pattern filterNamePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final File joinBookFile;
@@ -71,6 +75,78 @@ public class CitizensBooksAPI {
 
     public boolean noNBTAPIRequired() {
         return this.distribution.noNBTAPIRequired();
+    }
+
+    public void deployBooksForChunk(Chunk chunk, Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks) {
+        this.clickableBlocks.putAll(clickableBlocks);
+        this.blocksPairedToChunk.put(chunk, clickableBlocks.keySet());
+    }
+
+    public void concentrateBooksForChunk(Chunk chunk) {
+        Set<Block> blocksToRemove = this.blocksPairedToChunk.remove(chunk);
+        if (blocksToRemove != null)
+            for (Block block : blocksToRemove)
+                this.clickableBlocks.remove(block);
+    }
+
+    public Set<Block> getBlocksPairedToChunk(Chunk chunk) {
+        return this.blocksPairedToChunk.get(chunk);
+    }
+
+    public Map<Block, Pair<ItemStack, ItemStack>> getBlocksEntriesPairedToChunk(Chunk chunk) {
+        Map<Block, Pair<ItemStack, ItemStack>> reducedMap = new HashMap<>();
+        for (Block block : this.blocksPairedToChunk.get(chunk)) {
+            reducedMap.put(block, this.clickableBlocks.get(block));
+        }
+        return reducedMap;
+    }
+
+    public Map<Block, Pair<ItemStack, ItemStack>> getClickableBlocks() {
+        return this.clickableBlocks;
+    }
+
+    public ItemStack getBookOfBlock(Block block, Side side) {
+        return switch (side) {
+            case LEFT -> clickableBlocks.get(block).getFirstValue();
+            case RIGHT -> clickableBlocks.get(block).getSecondValue();
+        };
+    }
+
+    public void removeBookOfBlock(Block block) {
+        this.removeBookOfBlock(block, null);
+    }
+
+    public void removeBookOfBlock(Block block, Side side) {
+        if (side == null) {
+            clickableBlocks.remove(block);
+            return;
+        }
+        switch (side) {
+            case LEFT -> {
+                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                if (pair == null || pair.getSecondValue() == null) break;
+                clickableBlocks.put(block, Pair.of(null, pair.getSecondValue()));
+            }
+            case RIGHT -> {
+                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                if (pair == null || pair.getFirstValue() == null) break;
+                clickableBlocks.put(block, Pair.of(pair.getFirstValue(), null));
+            }
+        }
+    }
+
+    public void putBookOnBlock(Block block, ItemStack book, Side side) {
+        switch (side) {
+            case LEFT -> {
+                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                clickableBlocks.put(block, Pair.of(book, pair == null ? null : pair.getSecondValue()));
+            }
+            case RIGHT -> {
+                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                clickableBlocks.put(block, Pair.of(pair == null ? null : pair.getFirstValue(), book));
+            }
+        }
+        this.blocksPairedToChunk.computeIfAbsent(block.getChunk(), k -> new HashSet<>()).add(block);
     }
 
     public LinkedList<String[]> getListOfFilters() {
