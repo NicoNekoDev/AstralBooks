@@ -17,65 +17,52 @@
 
  */
 
-package ro.nicuch.citizensbooks.item;
+package ro.nicuch.citizensbooks.persistent.entity;
 
-import de.tr7zw.nbtapi.NBTItem;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Entity;
+import org.bukkit.persistence.PersistentDataType;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 
-public class NBTAPIItemData implements ItemData {
-    private final ItemStack itemStack;
-    private final NBTItem item;
+public class PersistentEntityData implements EntityData {
+    private final Entity entity;
 
-    public NBTAPIItemData(ItemStack item) {
-        this.itemStack = item;
-        this.item = new NBTItem(item);
+    public PersistentEntityData(Entity entity) {
+        this.entity = entity;
     }
 
     @Override
     public boolean hasStringKey(PersistentKey key) {
-        return this.item.hasKey(key.getValue());
+        return this.entity.getPersistentDataContainer().has(key.getKey(), PersistentDataType.STRING);
     }
 
     @Override
     public void putString(PersistentKey key, String value) {
-        this.item.setString(key.getValue(), value);
+        this.entity.getPersistentDataContainer().set(key.getKey(), PersistentDataType.STRING, value);
     }
 
     @Override
     public String getString(PersistentKey key) {
-        return this.item.getString(key.getValue());
+        return this.entity.getPersistentDataContainer().get(key.getKey(), PersistentDataType.STRING);
     }
 
     @Override
     public boolean hasIntKey(PersistentKey key) {
-        return this.item.hasKey(key.getValue());
+        return this.entity.getPersistentDataContainer().has(key.getKey(), PersistentDataType.INTEGER);
     }
 
     @Override
     public void putInt(PersistentKey key, int value) {
-        this.item.setInteger(key.getValue(), value);
+        this.entity.getPersistentDataContainer().set(key.getKey(), PersistentDataType.INTEGER, value);
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public int getInt(PersistentKey key) {
-        return this.item.getInteger(key.getValue());
+        return this.entity.getPersistentDataContainer().get(key.getKey(), PersistentDataType.INTEGER);
     }
 
     @Override
     public void removeKey(PersistentKey key) {
-        this.item.removeKey(key.getValue());
-    }
-
-    @Override
-    public ItemStack build() {
-        this.item.applyNBT(this.itemStack);
-        return this.itemStack;
-    }
-
-    @Override
-    public ItemStack copyDataToStack(ItemStack stack) {
-        this.item.applyNBT(stack);
-        return stack;
+        this.entity.getPersistentDataContainer().remove(key.getKey());
     }
 }

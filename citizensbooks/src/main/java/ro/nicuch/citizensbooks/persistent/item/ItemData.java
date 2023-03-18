@@ -17,7 +17,7 @@
 
  */
 
-package ro.nicuch.citizensbooks.item;
+package ro.nicuch.citizensbooks.persistent.item;
 
 import org.bukkit.inventory.ItemStack;
 import ro.nicuch.citizensbooks.utils.PersistentKey;

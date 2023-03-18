@@ -198,6 +198,10 @@ public class CitizensBooksPlugin extends JavaPlugin {
         return this.settings;
     }
 
+    public PlayerActions getPlayerActionsListener() {
+        return this.playerActionsListener;
+    }
+
     private boolean registerCompletions(Commodore commodore, PluginCommand command) {
         if (command == null)
             return false;

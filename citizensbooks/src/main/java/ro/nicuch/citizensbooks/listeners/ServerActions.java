@@ -6,7 +6,6 @@ import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -79,15 +78,11 @@ public class ServerActions implements Listener {
                         this.distribution.convertBookToJson(pair.getSecondValue()).toString());
                 blocksToBooksPairs.add(blockToBookPair);
             }
-            chunkPersistentDataContainer.set(PersistentKey.CHUNK_TAG.getKey(), new BlocksToBooksPairsDataType(), new BlocksToBooksPairs());
+            if (!blocksToBooksPairs.isEmpty())
+                chunkPersistentDataContainer.set(PersistentKey.CHUNK_TAG.getKey(), new BlocksToBooksPairsDataType(), blocksToBooksPairs);
             this.api.concentrateBooksForChunk(chunk);
         } catch (Exception ex) {
             plugin.getLogger().log(Level.WARNING, "Chunk unload failed!", ex);
         }
-    }
-
-    @EventHandler
-    public void onBlockBreak(BlockBreakEvent event) {
-        this.api.removeBookOfBlock(event.getBlock());
     }
 }

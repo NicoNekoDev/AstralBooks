@@ -34,7 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import ro.nicuch.citizensbooks.item.ItemData;
+import ro.nicuch.citizensbooks.persistent.item.ItemData;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 import ro.nicuch.citizensbooks.utils.Side;
@@ -68,6 +68,125 @@ public class CitizensBooksCommand implements TabExecutor {
                         }
                     } else
                         this.sendHelp(sender, 0);
+                }
+                case "interaction" -> {
+                    if (!this.api.hasPermission(sender, "npcbook.command.interaction")) {
+                        sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                        break;
+                    }
+                    if (player.isEmpty()) {
+                        sender.sendMessage(this.plugin.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
+                        break;
+                    }
+                    String side = "right_side";
+                    if (args.length > 1) {
+                        switch (args[1]) {
+                            case "set" -> {
+                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.set.block")) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                    break;
+                                }
+                                if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
+                                    break;
+                                }
+                                ItemStack book = this.getItemFromHand(player.get());
+                                if (args.length > 2) {
+                                    switch (args[2]) {
+                                        case "block" -> {
+                                            if (!this.api.hasPermission(sender, "npcbook.command.interaction.set.block")) {
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                                break;
+                                            }
+                                            if (args.length > 3) {
+                                                if ("right".equalsIgnoreCase(args[2]))
+                                                    side = "right_side";
+                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                    side = "left_side";
+                                                else {
+                                                    sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_SET_BLOCK));
+                                                    break;
+                                                }
+                                            }
+                                            this.plugin.getPlayerActionsListener().setBookBlockOperator(player.get(), book, Side.fromString(side));
+                                            sender.sendMessage(this.plugin.getMessage(Message.BOOK_APPLY_TO_BLOCK_TIMEOUT));
+                                        }
+                                        case "entity" -> {
+                                            if (!this.api.hasPermission(sender, "npcbook.command.interaction.set.entity")) {
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                                break;
+                                            }
+                                            if (args.length > 3) {
+                                                if ("right".equalsIgnoreCase(args[2]))
+                                                    side = "right_side";
+                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                    side = "left_side";
+                                                else {
+                                                    sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_SET_ENTITY));
+                                                    break;
+                                                }
+                                            }
+                                            this.plugin.getPlayerActionsListener().setBookEntityOperator(player.get(), book, Side.fromString(side));
+                                            sender.sendMessage(this.plugin.getMessage(Message.BOOK_APPLY_TO_ENTITY_TIMEOUT));
+                                        }
+                                        default -> this.sendInteractionSetHelp(sender);
+                                    }
+                                } else
+                                    this.sendInteractionSetHelp(sender);
+                            }
+                            case "remove" -> {
+                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.remove.block")) {
+                                    sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                    break;
+                                }
+                                if (args.length > 2) {
+                                    switch (args[2]) {
+                                        case "block" -> {
+                                            if (!this.api.hasPermission(sender, "npcbook.command.interaction.remove.block")) {
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                                break;
+                                            }
+                                            if (args.length > 3) {
+                                                if ("right".equalsIgnoreCase(args[2]))
+                                                    side = "right_side";
+                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                    side = "left_side";
+                                                else {
+                                                    sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_REMOVE_BLOCK));
+                                                    break;
+                                                }
+                                            }
+                                            this.plugin.getPlayerActionsListener().setBookBlockOperator(player.get(), null, Side.fromString(side));
+                                            sender.sendMessage(this.plugin.getMessage(Message.BOOK_REMOVE_FROM_BLOCK_TIMEOUT));
+                                        }
+                                        case "entity" -> {
+                                            if (!this.api.hasPermission(sender, "npcbook.command.interaction.remove.entity")) {
+                                                sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
+                                                break;
+                                            }
+                                            if (args.length > 3) {
+                                                if ("right".equalsIgnoreCase(args[2]))
+                                                    side = "right_side";
+                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                    side = "left_side";
+                                                else {
+                                                    sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_REMOVE_ENTITY));
+                                                    break;
+                                                }
+                                            }
+                                            this.plugin.getPlayerActionsListener().setBookEntityOperator(player.get(), null, Side.fromString(side));
+                                            sender.sendMessage(this.plugin.getMessage(Message.BOOK_REMOVE_FROM_ENTITY_TIMEOUT));
+                                        }
+                                        default -> this.sendInteractionRemoveHelp(sender);
+                                    }
+                                } else
+                                    this.sendInteractionRemoveHelp(sender);
+                            }
+                            default -> this.sendInteractionHelp(sender);
+                        }
+                    } else
+                        this.sendInteractionHelp(sender);
+
                 }
                 case "npc" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.npc")) {
@@ -180,7 +299,8 @@ public class CitizensBooksCommand implements TabExecutor {
                             }
                             default -> this.sendNpcHelp(sender);
                         }
-                    }
+                    } else
+                        this.sendNpcHelp(sender);
                 }
                 case "actionitem", "ai" -> {
                     if (!this.api.hasPermission(sender, "npcbook.command.actionitem")) {
@@ -796,13 +916,12 @@ public class CitizensBooksCommand implements TabExecutor {
     }
 
     private void sendHelp(CommandSender sender, int page) {
-        if (page < 1 || page > 3) page = 1;
+        if (page < 1 || page > 4) page = 1;
         sender.sendMessage("");
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INFO).replace("%page%", page + ""));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         if (page == 2) {
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_REMOVE).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
@@ -816,13 +935,19 @@ public class CitizensBooksCommand implements TabExecutor {
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMJOIN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_SETCMD).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_REMCMD).split("\\$"));
-            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
-        } else {
+        } else if (page == 4) {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_FORCEOPEN).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_HELP).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_RELOAD).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
             sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
+        } else {
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_BLOCK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_ENTITY).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_BLOCK).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
+            sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ABOUT).split("\\$"));
         }
         sender.sendMessage("");
     }
@@ -856,6 +981,38 @@ public class CitizensBooksCommand implements TabExecutor {
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
         sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+    }
+
+    private void sendInteractionSetHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
+        sender.sendMessage("");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_BLOCK).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_ENTITY).split("\\$"));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+    }
+
+    private void sendInteractionRemoveHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
+        sender.sendMessage("");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_BLOCK).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+    }
+
+    private void sendInteractionHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_ARGUMENTS));
+        sender.sendMessage("");
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_BLOCK).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_SET_ENTITY).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_BLOCK).split("\\$"));
+        sender.sendMessage(this.plugin.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }

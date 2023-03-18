@@ -13,4 +13,8 @@ public class BlocksToBooksPairs {
     public void add(BlockToBookPair blockToBookPair) {
         this.list.add(blockToBookPair);
     }
+
+    public boolean isEmpty() {
+        return this.list.isEmpty();
+    }
 }

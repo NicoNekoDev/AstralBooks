@@ -17,13 +17,14 @@
 
  */
 
-package ro.nicuch.citizensbooks.item;
+package ro.nicuch.citizensbooks.persistent.item;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import ro.nicuch.citizensbooks.persistent.NBTDataType;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 
 public class PersistentItemData implements ItemData {
@@ -89,7 +90,7 @@ public class PersistentItemData implements ItemData {
         PersistentDataContainer container = this.meta.getPersistentDataContainer();
         try {
             for (NamespacedKey key : container.getKeys()) {
-                for (DataType type : DataType.values()) {
+                for (NBTDataType type : NBTDataType.values()) {
                     if (container.has(key, type.getType())) {
                         stackContainer.set(key, type.getType(), container.get(key, type.getType()));
                         break;
@@ -101,31 +102,5 @@ public class PersistentItemData implements ItemData {
         }
         stack.setItemMeta(stackMeta);
         return stack;
-    }
-
-    @SuppressWarnings("rawtypes")
-    public enum DataType {
-        BYTE(PersistentDataType.BYTE),
-        BYTE_ARRAY(PersistentDataType.BYTE_ARRAY),
-        INTEGER(PersistentDataType.INTEGER),
-        INTEGER_ARRAY(PersistentDataType.INTEGER_ARRAY),
-        LONG(PersistentDataType.LONG),
-        LONG_ARRAY(PersistentDataType.LONG_ARRAY),
-        DOUBLE(PersistentDataType.DOUBLE),
-        FLOAT(PersistentDataType.FLOAT),
-        SHORT(PersistentDataType.SHORT),
-        TAG_CONTAINER(PersistentDataType.TAG_CONTAINER),
-        TAG_CONTAINER_ARRAY(PersistentDataType.TAG_CONTAINER_ARRAY),
-        STRING(PersistentDataType.STRING);
-
-        final PersistentDataType type;
-
-        DataType(PersistentDataType type) {
-            this.type = type;
-        }
-
-        public PersistentDataType getType() {
-            return this.type;
-        }
     }
 }

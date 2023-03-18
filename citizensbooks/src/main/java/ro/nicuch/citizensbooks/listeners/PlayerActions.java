@@ -19,11 +19,15 @@
 
 package ro.nicuch.citizensbooks.listeners;
 
+import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -34,10 +38,13 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
-import ro.nicuch.citizensbooks.item.ItemData;
+import ro.nicuch.citizensbooks.persistent.item.ItemData;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
+import ro.nicuch.citizensbooks.utils.Side;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -48,12 +55,26 @@ public class PlayerActions implements Listener {
     private final CitizensBooksPlugin plugin;
     private final CitizensBooksAPI api;
     private BukkitTask pullTask;
-    private final DelayQueue<DelayedPlayer> delayedPlayers = new DelayQueue<>();
+    private final DelayQueue<DelayedPlayer> delayedJoinBookPlayers = new DelayQueue<>();
+    private final DelayQueue<DelayedPlayer> delayedInteractionBookBlockOperators = new DelayQueue<>();
+    private final Map<Player, Pair<ItemStack, Side>> interactionBookBlockOperatorsMap = new HashMap<>();
+    private final DelayQueue<DelayedPlayer> delayedInteractionBookEntityOperators = new DelayQueue<>();
+    private final Map<Player, Pair<ItemStack, Side>> interactionBookEntityOperatorsMap = new HashMap<>();
 
     public PlayerActions(CitizensBooksPlugin plugin) {
         this.plugin = plugin;
         this.api = this.plugin.getAPI();
         this.onReload();
+    }
+
+    public void setBookBlockOperator(Player player, ItemStack book, Side side) {
+        this.delayedInteractionBookBlockOperators.add(new DelayedPlayer(player, 1000 * 60)); // 1 minute
+        this.interactionBookBlockOperatorsMap.put(player, Pair.of(book, side));
+    }
+
+    public void setBookEntityOperator(Player player, ItemStack book, Side side) {
+        this.delayedInteractionBookEntityOperators.add(new DelayedPlayer(player, 1000 * 60)); // 1 minute
+        this.interactionBookEntityOperatorsMap.put(player, Pair.of(book, side));
     }
 
     public void onDisable() {
@@ -67,10 +88,19 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getSettings().getBoolean("join_book_enabled", false))
             return;
         this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            DelayedPlayer delayedInteractionBookBlockOperator = null;
+            while (this.delayedInteractionBookBlockOperators.poll() != null)
+                //noinspection DataFlowIssue
+                this.interactionBookBlockOperatorsMap.remove(delayedInteractionBookBlockOperator.getPlayer());
+            DelayedPlayer delayedInteractionBookEntityOperator = null;
+            while (this.delayedInteractionBookEntityOperators.poll() != null)
+                //noinspection DataFlowIssue
+                this.interactionBookEntityOperatorsMap.remove(delayedInteractionBookEntityOperator.getPlayer());
+            //
             boolean needSave = false;
-            DelayedPlayer delayedPlayer = this.delayedPlayers.poll();
-            while (delayedPlayer != null) {
-                Player player = delayedPlayer.getPlayer();
+            DelayedPlayer delayedJoinPlayer = this.delayedJoinBookPlayers.poll();
+            while (delayedJoinPlayer != null) {
+                Player player = delayedJoinPlayer.getPlayer();
                 if (!this.plugin.getSettings().getBoolean("join_book_always_show", false)) {
                     if (this.plugin.getSettings().isLong("join_book_last_seen_by_players." + player.getUniqueId()))
                         if (this.plugin.getSettings().getLong("join_book_last_seen_by_players." + player.getUniqueId(), 0) >= this.plugin.getSettings().getLong("join_book_last_change", 0))
@@ -79,11 +109,57 @@ public class PlayerActions implements Listener {
                     needSave = true;
                 }
                 this.api.openBook(player, this.api.placeholderHook(player, this.api.getJoinBook(), null));
-                delayedPlayer = this.delayedPlayers.poll();
+                delayedJoinPlayer = this.delayedJoinBookPlayers.poll();
             }
             if (!needSave) // save outside the while loop, only if needed
                 this.plugin.saveSettings();
         }, 1L, 1L);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent event) {
+        this.api.removeBookOfBlock(event.getBlock());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getClickedBlock() == null)
+            return;
+        Block block = event.getClickedBlock();
+        ItemStack book = switch (event.getAction()) {
+            case LEFT_CLICK_BLOCK -> this.api.getBookOfBlock(block, Side.LEFT);
+            case RIGHT_CLICK_BLOCK -> this.api.getBookOfBlock(block, Side.RIGHT);
+            default -> null;
+        };
+        if (book == null) {
+            if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+                return;
+            if (!this.interactionBookBlockOperatorsMap.containsKey(event.getPlayer()))
+                return;
+            Pair<ItemStack, Side> pair = this.interactionBookBlockOperatorsMap.remove(event.getPlayer());
+            if (pair.getFirstValue() == null) {
+                this.api.removeBookOfBlock(block, pair.getSecondValue());
+                event.getPlayer().sendMessage(this.plugin.getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK)
+                        .replace("player", event.getPlayer().getName())
+                        .replace("block_x", block.getX() + "")
+                        .replace("block_y", block.getY() + "")
+                        .replace("block_z", block.getZ() + "")
+                        .replace("world", block.getWorld().getName())
+                        .replace("type", block.getType().name())
+                );
+            }
+            this.api.putBookOnBlock(block, pair.getFirstValue(), pair.getSecondValue());
+            event.getPlayer().sendMessage(this.plugin.getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
+                    .replace("player", event.getPlayer().getName())
+                    .replace("block_x", block.getX() + "")
+                    .replace("block_y", block.getY() + "")
+                    .replace("block_z", block.getZ() + "")
+                    .replace("world", block.getWorld().getName())
+                    .replace("type", block.getType().name())
+            );
+            return;
+        }
+        this.api.openBook(event.getPlayer(), book);
     }
 
     @EventHandler
@@ -120,9 +196,9 @@ public class PlayerActions implements Listener {
             int delay = this.plugin.getSettings().getInt("join_book_delay", 0);
             if (delay <= 0)
                 delay = 0;
-            this.delayedPlayers.offer(new DelayedPlayer(player, delay * 50L)); // delay (ticks) * 50 (milliseconds)
+            this.delayedJoinBookPlayers.offer(new DelayedPlayer(player, delay * 50L)); // delay (ticks) * 50 (milliseconds)
         } else
-            this.delayedPlayers.offer(new DelayedPlayer(player, 0));
+            this.delayedJoinBookPlayers.offer(new DelayedPlayer(player, 0));
     }
 
     @EventHandler
@@ -131,7 +207,7 @@ public class PlayerActions implements Listener {
             return;
         if (this.plugin.getSettings().getBoolean("join_book_enable_delay", false))
             //noinspection ResultOfMethodCallIgnored
-            this.delayedPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
+            this.delayedJoinBookPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
     }
 
     @EventHandler(priority = EventPriority.LOW)

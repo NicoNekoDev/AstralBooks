@@ -53,6 +53,11 @@ public class PersistentKey {
             CHUNK_TAG = new PersistentKey("BooksOnChunk", plugin);
             ENTITY_LEFT_BOOK = new PersistentKey("EntityLeftBook", plugin);
             ENTITY_RIGHT_BOOK = new PersistentKey("EntityRightBook", plugin);
+            BLOCK_LOCATION_X = new PersistentKey("BookBlockXCoord", plugin);
+            BLOCK_LOCATION_Y = new PersistentKey("BookBlockYCoord", plugin);
+            BLOCK_LOCATION_Z = new PersistentKey("BookBlockZCoord", plugin);
+            BLOCK_LEFT_BOOK = new PersistentKey("BookBlockLeft", plugin);
+            BLOCK_RIGHT_BOOK = new PersistentKey("BookBlockRight", plugin);
             return true;
         } catch (Exception ex) {
             return false;
@@ -66,7 +71,8 @@ public class PersistentKey {
         this.value = value;
         try {
             this.key = NamespacedKey.class.getConstructor(Plugin.class, String.class).newInstance(plugin, this.value);
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | InstantiationException ignore) {
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException |
+                 InstantiationException ignore) {
             this.key = null;
         }
     }

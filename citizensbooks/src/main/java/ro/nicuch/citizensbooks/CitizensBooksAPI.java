@@ -35,6 +35,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -42,10 +43,15 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.nicuch.citizensbooks.dist.Distribution;
-import ro.nicuch.citizensbooks.item.EmptyItemData;
-import ro.nicuch.citizensbooks.item.ItemData;
-import ro.nicuch.citizensbooks.item.NBTAPIItemData;
-import ro.nicuch.citizensbooks.item.PersistentItemData;
+import ro.nicuch.citizensbooks.persistent.entity.EmptyEntityData;
+import ro.nicuch.citizensbooks.persistent.entity.EntityData;
+import ro.nicuch.citizensbooks.persistent.entity.NBTAPIEntityData;
+import ro.nicuch.citizensbooks.persistent.entity.PersistentEntityData;
+import ro.nicuch.citizensbooks.persistent.item.EmptyItemData;
+import ro.nicuch.citizensbooks.persistent.item.ItemData;
+import ro.nicuch.citizensbooks.persistent.item.NBTAPIItemData;
+import ro.nicuch.citizensbooks.persistent.item.PersistentItemData;
+import ro.nicuch.citizensbooks.utils.PersistentKey;
 import ro.nicuch.citizensbooks.utils.Side;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
@@ -72,6 +78,14 @@ public class CitizensBooksAPI {
     private JsonObject jsonSavedBooks = new JsonObject();
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    public CitizensBooksAPI(final CitizensBooksPlugin plugin) {
+        this.plugin = plugin;
+        this.database = this.plugin.getDatabase();
+        this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
+        this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+        this.savedBooksFile = new File(plugin.getDataFolder() + File.separator + "saved_books.json");
+    }
 
     public boolean noNBTAPIRequired() {
         return this.distribution.noNBTAPIRequired();
@@ -112,6 +126,34 @@ public class CitizensBooksAPI {
         };
     }
 
+    public ItemStack getBookOfEntity(Entity entity, Side side) {
+        try {
+            String stringJsonBook = switch (side) {
+                case RIGHT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_RIGHT_BOOK);
+                case LEFT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_LEFT_BOOK);
+            };
+            return this.distribution.convertJsonToBook(this.distribution.getGson().fromJson(stringJsonBook, JsonObject.class));
+        } catch (IllegalAccessException ignored) {
+            return null;
+        }
+    }
+
+    public void removeBookOfEntity(Entity entity) {
+        this.removeBookOfEntity(entity, null);
+    }
+
+    public void removeBookOfEntity(Entity entity, Side side) {
+        if (side == null) {
+            this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_LEFT_BOOK);
+            this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_RIGHT_BOOK);
+            return;
+        }
+        switch (side) {
+            case LEFT -> this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_LEFT_BOOK);
+            case RIGHT -> this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_RIGHT_BOOK);
+        }
+    }
+
     public void removeBookOfBlock(Block block) {
         this.removeBookOfBlock(block, null);
     }
@@ -132,6 +174,18 @@ public class CitizensBooksAPI {
                 if (pair == null || pair.getFirstValue() == null) break;
                 clickableBlocks.put(block, Pair.of(pair.getFirstValue(), null));
             }
+        }
+    }
+
+    public void putBookOnEntity(Entity entity, ItemStack book, Side side) {
+        try {
+            String stringJsonBook = this.distribution.convertBookToJson(book).toString();
+            switch (side) {
+                case LEFT -> this.entityDataFactory(entity).putString(PersistentKey.ENTITY_LEFT_BOOK, stringJsonBook);
+                case RIGHT -> this.entityDataFactory(entity).putString(PersistentKey.ENTITY_RIGHT_BOOK, stringJsonBook);
+            }
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed to put book on entity!", ex);
         }
     }
 
@@ -164,14 +218,6 @@ public class CitizensBooksAPI {
         return resultedFilters;
     }
 
-    public CitizensBooksAPI(final CitizensBooksPlugin plugin) {
-        this.plugin = plugin;
-        this.database = this.plugin.getDatabase();
-        this.filtersDirectory = new File(plugin.getDataFolder() + File.separator + "filters");
-        this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
-        this.savedBooksFile = new File(plugin.getDataFolder() + File.separator + "saved_books.json");
-    }
-
     public ItemData itemDataFactory(ItemStack stack) {
         if (this.noNBTAPIRequired()) {
             return new PersistentItemData(stack);
@@ -179,6 +225,15 @@ public class CitizensBooksAPI {
             return new NBTAPIItemData(stack);
         }
         return new EmptyItemData(stack);
+    }
+
+    public EntityData entityDataFactory(Entity entity) {
+        if (this.noNBTAPIRequired()) {
+            return new PersistentEntityData(entity);
+        } else if (this.plugin.isNBTAPIEnabled()) {
+            return new NBTAPIEntityData(entity);
+        }
+        return new EmptyEntityData();
     }
 
     /**

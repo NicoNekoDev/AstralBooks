@@ -55,6 +55,14 @@ public enum Message {
     FILTERS_LIST_NO_FILTER_PRESENT("filter_list_no_filter_present", "&cThere is not filter present/installed!"),
     OPENED_BOOK_FOR_PLAYERS("opened_books_for_player", "&aYou've successfully opened a book for %success% player(s). There was %failed% failed attempts."),
     OPENED_BOOK_FOR_PLAYER("opened_book_for_player", "&aYou've successfully opened a book for %player%."),
+    BOOK_APPLY_TO_BLOCK_TIMEOUT("book_apply_to_block_timeout", "&aYou have 1 minute to apply the book! Right click the block you want to apply the book!"),
+    BOOK_APPLY_TO_ENTITY_TIMEOUT("book_apply_to_entity_timeout", "&aYou have 1 minute to apply the book! Right click the entity you want to apply the book!"),
+    BOOK_REMOVE_FROM_BLOCK_TIMEOUT("book_remove_from_block_timeout", "&aYou have 1 minute to remove the book! Right click the block you want the book to get removed!"),
+    BOOK_REMOVE_FROM_ENTITY_TIMEOUT("book_remove_from_entity_timeout", "&aYou have 1 minute to remove the book! Right click the entity you want the book to get removed!"),
+    BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK("book_applied_successfully_to_block", "&aThe book have been applied to block! (%block_x%, %block_y%, %block_z%)"),
+    BOOK_APPLIED_SUCCESSFULLY_TO_ENTITY("book_applied_successfully_to_entity", "&aThe book have been applied to entity! (%type%)"),
+    BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK("book_removed_successfully_from_block", "&aThe book have been removed from block! (%block_x%, %block_y%, %block_z%)"),
+    BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY("book_removed_successfully_from_entity", "&aThe book have been removed from entity! (%type%)"),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/npcbook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/npcbook npc remove [right/left]"),
@@ -73,7 +81,10 @@ public enum Message {
     USAGE_FILTER_LIST("usage.filter.list", "&aUsage: &f/npcbook filter list [page]"),
     USAGE_ACTIONITEM_SET("usage.actionitem.set", "&aUsage: &f/npcbook actionitem set <filter name> [right/left]"),
     USAGE_ACTIONITEM_REMOVE("usage.actionitem.remove", "&aUsage: &f/npcbook actionitem remove [right/left]"),
-
+    USAGE_INTERACTION_SET_BLOCK("usage.interaction.block", "&aUsage: &f/npcbook interaction set block [right/left]"),
+    USAGE_INTERACTION_SET_ENTITY("usage.interaction.block", "&aUsage: &f/npcbook interaction set entity [right/left]"),
+    USAGE_INTERACTION_REMOVE_BLOCK("usage.interaction.block", "&aUsage: &f/npcbook interaction remove block [right/left]"),
+    USAGE_INTERACTION_REMOVE_ENTITY("usage.interaction.block", "&aUsage: &f/npcbook interaction remove entity [right/left]"),
 
     HELP_INFO("help.info", "&e<    &6Commands and Usage &f| &6Page index (%page%/3) &e    >"),
     HELP_ARGUMENTS("help.arguments", "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"),
@@ -95,7 +106,11 @@ public enum Message {
     HELP_FILTER_GETBOOK("help.filter.getbook", "&f/npcbook filter getbook <filter name> $ &9Get the book of filter by the given name."),
     HELP_FILTER_LIST("help.filter.list", "&f/npcbook filter list [page] $ &9List the filters present/installed."),
     HELP_ACTIONITEM_SET("help.actionitem.set", "&f/npcbook actionitem set <filter name> [right/left] $ &9Put a filter on the item you hold."),
-    HELP_ACTIONITEM_REMOVE("help.actionitem.remove", "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold.");
+    HELP_ACTIONITEM_REMOVE("help.actionitem.remove", "&f/npcbook actionitem remove [right/left] $ &9Remove the filter from the item you hold."),
+    HELP_INTERACTION_SET_BLOCK("help.interaction.set.block", "&f/npcbook interaction set block [right/left] $ &9Apply a book on a block."),
+    HELP_INTERACTION_SET_ENTITY("help.interaction.set.block", "&f/npcbook interaction set entity [right/left] $ &9Apply a book on an entity."),
+    HELP_INTERACTION_REMOVE_BLOCK("help.interaction.set.block", "&f/npcbook interaction remove block [right/left] $ &9Remove a book from a block."),
+    HELP_INTERACTION_REMOVE_ENTITY("help.interaction.set.block", "&f/npcbook interaction remove entity [right/left] $ &9Remove a book from an entity.");
 
     private final String key, def;
 
