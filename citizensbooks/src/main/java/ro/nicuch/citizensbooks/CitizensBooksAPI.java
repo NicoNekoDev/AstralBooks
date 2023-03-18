@@ -93,7 +93,7 @@ public class CitizensBooksAPI {
 
     public void deployBooksForChunk(Chunk chunk, Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks) {
         this.clickableBlocks.putAll(clickableBlocks);
-        this.blocksPairedToChunk.put(chunk, clickableBlocks.keySet());
+        this.blocksPairedToChunk.put(chunk, new HashSet<>(clickableBlocks.keySet()));
     }
 
     public void concentrateBooksForChunk(Chunk chunk) {
@@ -109,9 +109,11 @@ public class CitizensBooksAPI {
 
     public Map<Block, Pair<ItemStack, ItemStack>> getBlocksEntriesPairedToChunk(Chunk chunk) {
         Map<Block, Pair<ItemStack, ItemStack>> reducedMap = new HashMap<>();
-        for (Block block : this.blocksPairedToChunk.get(chunk)) {
-            reducedMap.put(block, this.clickableBlocks.get(block));
-        }
+        Set<Block> blocks = this.blocksPairedToChunk.get(chunk);
+        if (blocks != null)
+            for (Block block : blocks) {
+                reducedMap.put(block, this.clickableBlocks.get(block));
+            }
         return reducedMap;
     }
 
@@ -120,9 +122,12 @@ public class CitizensBooksAPI {
     }
 
     public ItemStack getBookOfBlock(Block block, Side side) {
+        Pair<ItemStack, ItemStack> pairBook = clickableBlocks.get(block);
+        if (pairBook == null)
+            return null;
         return switch (side) {
-            case LEFT -> clickableBlocks.get(block).getFirstValue();
-            case RIGHT -> clickableBlocks.get(block).getSecondValue();
+            case LEFT -> pairBook.getFirstValue();
+            case RIGHT -> pairBook.getSecondValue();
         };
     }
 
@@ -132,6 +137,8 @@ public class CitizensBooksAPI {
                 case RIGHT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_RIGHT_BOOK);
                 case LEFT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_LEFT_BOOK);
             };
+            if (stringJsonBook == null)
+                return null;
             return this.distribution.convertJsonToBook(this.distribution.getGson().fromJson(stringJsonBook, JsonObject.class));
         } catch (IllegalAccessException ignored) {
             return null;

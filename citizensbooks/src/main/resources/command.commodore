@@ -2,6 +2,28 @@ npcbook {
   help {
     page brigadier:integer;
   }
+  interaction {
+      set {
+        block {
+          right;
+          left;
+        }
+        entity {
+          right;
+          left;
+        }
+      }
+      remove {
+        block {
+          right;
+          left;
+        }
+        entity {
+          right;
+          left;
+        }
+      }
+    }
   actionitem {
     set {
       filter brigadier:string single_word {

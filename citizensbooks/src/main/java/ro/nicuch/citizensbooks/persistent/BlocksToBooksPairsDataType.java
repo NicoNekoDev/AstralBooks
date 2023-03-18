@@ -31,8 +31,8 @@ public class BlocksToBooksPairsDataType implements PersistentDataType<Persistent
             newContainer.set(PersistentKey.BLOCK_LOCATION_X.getKey(), PersistentDataType.INTEGER, complexPart.x());
             newContainer.set(PersistentKey.BLOCK_LOCATION_Y.getKey(), PersistentDataType.INTEGER, complexPart.y());
             newContainer.set(PersistentKey.BLOCK_LOCATION_Z.getKey(), PersistentDataType.INTEGER, complexPart.z());
-            newContainer.set(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING, complexPart.leftBook());
-            newContainer.set(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING, complexPart.rightBook());
+            newContainer.set(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING, complexPart.leftBook() != null ? complexPart.leftBook() : "");
+            newContainer.set(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING, complexPart.rightBook() != null ? complexPart.rightBook() : "");
             list.add(newContainer);
         }
         return list.toArray(new PersistentDataContainer[0]);

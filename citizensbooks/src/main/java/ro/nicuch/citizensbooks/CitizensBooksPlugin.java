@@ -35,6 +35,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
+import ro.nicuch.citizensbooks.listeners.ServerActions;
 import ro.nicuch.citizensbooks.utils.Message;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
@@ -53,6 +54,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
     private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI, useDatabase;
     public final int configVersion = 9;
     private PlayerActions playerActionsListener;
+    private ServerActions serverActionsListener;
 
     @Override
     public void onEnable() {
@@ -123,6 +125,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.usePlaceholderAPI = true;
             }
             manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
+            manager.registerEvents((this.serverActionsListener = new ServerActions(this)), this);
             if (!manager.isPluginEnabled("Citizens"))
                 this.getLogger().info("Citizens not found!");
             else {
@@ -182,6 +185,8 @@ public class CitizensBooksPlugin extends JavaPlugin {
     public void onDisable() {
         if (this.playerActionsListener != null)
             this.playerActionsListener.onDisable();
+        if (this.serverActionsListener != null)
+            this.serverActionsListener.onDisable();
         if (this.isDatabaseEnabled())
             this.database.disableDatabase(this.getLogger());
     }

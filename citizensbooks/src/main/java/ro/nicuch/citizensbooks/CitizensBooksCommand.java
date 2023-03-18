@@ -82,7 +82,7 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
-                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.set.block")) {
+                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.set")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
@@ -99,9 +99,9 @@ public class CitizensBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("right".equalsIgnoreCase(args[2]))
+                                                if ("right".equalsIgnoreCase(args[3]))
                                                     side = "right_side";
-                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = "left_side";
                                                 else {
                                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_SET_BLOCK));
@@ -117,9 +117,9 @@ public class CitizensBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("right".equalsIgnoreCase(args[2]))
+                                                if ("right".equalsIgnoreCase(args[3]))
                                                     side = "right_side";
-                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = "left_side";
                                                 else {
                                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_SET_ENTITY));
@@ -135,7 +135,7 @@ public class CitizensBooksCommand implements TabExecutor {
                                     this.sendInteractionSetHelp(sender);
                             }
                             case "remove" -> {
-                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.remove.block")) {
+                                if (!this.api.hasPermission(sender, "npcbook.command.interaction.remove")) {
                                     sender.sendMessage(this.plugin.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
@@ -147,9 +147,9 @@ public class CitizensBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("right".equalsIgnoreCase(args[2]))
+                                                if ("right".equalsIgnoreCase(args[3]))
                                                     side = "right_side";
-                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = "left_side";
                                                 else {
                                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_REMOVE_BLOCK));
@@ -165,9 +165,9 @@ public class CitizensBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("right".equalsIgnoreCase(args[2]))
+                                                if ("right".equalsIgnoreCase(args[3]))
                                                     side = "right_side";
-                                                else if ("left".equalsIgnoreCase(args[2]))
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = "left_side";
                                                 else {
                                                     sender.sendMessage(this.plugin.getMessage(Message.USAGE_INTERACTION_REMOVE_ENTITY));
@@ -748,9 +748,17 @@ public class CitizensBooksCommand implements TabExecutor {
                 commands.add("actionitem");
             if (this.api.hasPermission(sender, "npcbook.command.reload"))
                 commands.add("reload");
+            if (this.api.hasPermission(sender, "npcbook.command.interaction"))
+                commands.add("interaction");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             switch (args[0]) {
+                case "interaction":
+                    if (this.api.hasPermission(sender, "npcbook.command.interaction.set"))
+                        commands.add("set");
+                    if (this.api.hasPermission(sender, "npcbook.command.interaction.remove"))
+                        commands.add("remove");
+                    break;
                 case "actionitem":
                 case "ai":
                     if (this.api.hasPermission(sender, "npcbook.command.actionitem.set"))
@@ -796,6 +804,21 @@ public class CitizensBooksCommand implements TabExecutor {
             StringUtil.copyPartialMatches(args[1], commands, completions);
         } else if (args.length == 3) {
             switch (args[0]) {
+                case "interaction":
+                    switch (args[1]) {
+                        case "set" -> {
+                            if (this.api.hasPermission(sender, "npcbook.command.interaction.set.block"))
+                                commands.add("block");
+                            if (this.api.hasPermission(sender, "npcbook.command.interaction.set.entity"))
+                                commands.add("entity");
+                        }
+                        case "remove" -> {
+                            if (this.api.hasPermission(sender, "npcbook.command.interaction.remove.block"))
+                                commands.add("block");
+                            if (this.api.hasPermission(sender, "npcbook.command.interaction.remove.entity"))
+                                commands.add("entity");
+                        }
+                    }
                 case "filter":
                     if (args[1].equals("remove") || args[1].equals("getbook")) {
                         if (this.api.hasPermission(sender, "npcbook.command.filter.remove")
@@ -851,6 +874,34 @@ public class CitizensBooksCommand implements TabExecutor {
                     if (this.api.hasPermission(sender, "npcbook.command.actionitem.set"))
                         if ("set".equalsIgnoreCase(args[1]))
                             commands.addAll(List.of("right", "left"));
+                }
+                case "interaction" -> {
+                    switch (args[1]) {
+                        case "set" -> {
+                            switch (args[2]) {
+                                case "block" -> {
+                                    if (this.api.hasPermission(sender, "npcbook.command.interaction.set.block"))
+                                        commands.addAll(List.of("right", "left"));
+                                }
+                                case "entity" -> {
+                                    if (this.api.hasPermission(sender, "npcbook.command.interaction.set.entity"))
+                                        commands.addAll(List.of("right", "left"));
+                                }
+                            }
+                        }
+                        case "remove" -> {
+                            switch (args[2]) {
+                                case "block" -> {
+                                    if (this.api.hasPermission(sender, "npcbook.command.interaction.remove.block"))
+                                        commands.addAll(List.of("right", "left"));
+                                }
+                                case "entity" -> {
+                                    if (this.api.hasPermission(sender, "npcbook.command.interaction.remove.entity"))
+                                        commands.addAll(List.of("right", "left"));
+                                }
+                            }
+                        }
+                    }
                 }
             }
             StringUtil.copyPartialMatches(args[3], commands, completions);
