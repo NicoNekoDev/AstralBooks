@@ -68,10 +68,19 @@ public class ServerActions implements Listener {
             if (chunkPersistentDataContainer.has(PersistentKey.CHUNK_TAG.getKey(), PersistentDataType.TAG_CONTAINER_ARRAY)) {
                 BlocksToBooksPairs blocksDataContainers = chunkPersistentDataContainer.get(PersistentKey.CHUNK_TAG.getKey(), new BlocksToBooksPairsDataType());
                 for (BlockToBookPair blockDataContainer : blocksDataContainers.getList()) {
-                    ItemStack leftBook = blockDataContainer.leftBook() != null ? this.distribution.convertJsonToBook(
-                            this.distribution.getGson().fromJson(blockDataContainer.leftBook(), JsonObject.class)) : null;
-                    ItemStack rightBook = blockDataContainer.rightBook() != null ? this.distribution.convertJsonToBook(
-                            this.distribution.getGson().fromJson(blockDataContainer.rightBook(), JsonObject.class)) : null;
+
+                    String leftBookJson = blockDataContainer.leftBook();
+                    ItemStack leftBook = (leftBookJson == null || leftBookJson.isEmpty()) ?
+                            null :
+                            this.distribution.convertJsonToBook(
+                                    this.distribution.getGson().fromJson(leftBookJson, JsonObject.class));
+
+                    String rightBookJson = blockDataContainer.rightBook();
+                    ItemStack rightBook = (rightBookJson == null || rightBookJson.isEmpty()) ?
+                            null :
+                            this.distribution.convertJsonToBook(
+                                    this.distribution.getGson().fromJson(rightBookJson, JsonObject.class));
+
                     Block block = chunk.getWorld().getBlockAt(blockDataContainer.x(), blockDataContainer.y(), blockDataContainer.z());
                     chunkBlocks.put(block, Pair.of(leftBook, rightBook));
                 }

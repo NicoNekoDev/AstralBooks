@@ -44,7 +44,7 @@ public class BlocksToBooksPairsDataType implements PersistentDataType<Persistent
     public BlocksToBooksPairs fromPrimitive(@NotNull PersistentDataContainer @NotNull [] primitive, @NotNull PersistentDataAdapterContext persistentDataAdapterContext) {
         BlocksToBooksPairs blocksToBooksPairs = new BlocksToBooksPairs();
         for (PersistentDataContainer primitivePart : primitive) {
-            int blockX = 0, blockY = 0, blockZ = 0;
+            int blockX, blockY, blockZ;
             String leftBook = null;
             String rightBook = null;
             if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_X.getKey(), PersistentDataType.INTEGER))
@@ -57,7 +57,7 @@ public class BlocksToBooksPairsDataType implements PersistentDataType<Persistent
             blockY = primitivePart.get(PersistentKey.BLOCK_LOCATION_Y.getKey(), PersistentDataType.INTEGER);
             blockZ = primitivePart.get(PersistentKey.BLOCK_LOCATION_Z.getKey(), PersistentDataType.INTEGER);
             if (primitivePart.has(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING))
-                leftBook = primitivePart.get(PersistentKey.ENTITY_LEFT_BOOK.getKey(), PersistentDataType.STRING);
+                leftBook = primitivePart.get(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING);
             if (primitivePart.has(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING))
                 rightBook = primitivePart.get(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING);
             blocksToBooksPairs.add(new BlockToBookPair(blockX, blockY, blockZ, leftBook, rightBook));
