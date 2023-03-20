@@ -52,7 +52,7 @@ public class UpdateChecker implements Listener {
                     this.plugin.getLogger().info("https://www.spigotmc.org/resources/citizensbooks." + resourceId + "/");
                     Bukkit.getScheduler().runTask(
                             this.plugin, () -> Bukkit.getOnlinePlayers().stream()
-                                    .filter(player -> this.plugin.getAPI().hasPermission(player, "npcbook.notify") || player.isOp()).forEach(player -> player.sendMessage(this.plugin.getMessage(Message.NEW_VERSION_AVAILABLE)
+                                    .filter(player -> this.plugin.getAPI().hasPermission(player, "npcbook.notify") || player.isOp()).forEach(player -> player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NEW_VERSION_AVAILABLE)
                                             .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
                 });
             } else
@@ -90,14 +90,14 @@ public class UpdateChecker implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        if (!this.plugin.getSettings().getBoolean("update_check", true))
+        if (!this.plugin.getSettings().isUpdateCheck())
             return;
         Player player = event.getPlayer();
         if (this.plugin.getAPI().hasPermission(player, "npcbook.notify"))
             return;
         if (!updateAvailable)
             return;
-        player.sendMessage(this.plugin.getMessage(Message.NEW_VERSION_AVAILABLE)
+        player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NEW_VERSION_AVAILABLE)
                 .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }

@@ -31,6 +31,7 @@ import net.citizensnpcs.api.event.NPCRightClickEvent;
 import ro.nicuch.citizensbooks.events.BookNPCClickEvent;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
+import ro.nicuch.citizensbooks.utils.Side;
 
 @SuppressWarnings("unused")
 public class CitizensActions implements Listener {
@@ -44,10 +45,10 @@ public class CitizensActions implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void rightClick(NPCRightClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.api.hasNPCBook(npcId, "right_side"))
+        if (!this.plugin.getStorage().hasNPCBook(npcId, Side.RIGHT))
             return;
-        ItemStack book = this.api.getNPCBook(npcId, "right_side", new ItemStack(Material.WRITTEN_BOOK));
-        BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.RIGHT);
+        ItemStack book = this.plugin.getStorage().getNPCBook(npcId, Side.RIGHT, new ItemStack(Material.WRITTEN_BOOK));
+        BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, Side.RIGHT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
             return;
@@ -62,10 +63,10 @@ public class CitizensActions implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void leftCLick(NPCLeftClickEvent event) {
         int npcId = event.getNPC().getId();
-        if (!this.api.hasNPCBook(npcId, "left_side"))
+        if (!this.plugin.getStorage().hasNPCBook(npcId, Side.LEFT))
             return;
-        ItemStack book = this.api.getNPCBook(npcId, "left_side", new ItemStack(Material.WRITTEN_BOOK));
-        BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, BookNPCClickEvent.ClickType.LEFT);
+        ItemStack book = this.plugin.getStorage().getNPCBook(npcId, Side.LEFT, new ItemStack(Material.WRITTEN_BOOK));
+        BookNPCClickEvent e = new BookNPCClickEvent(event.getClicker(), event.getNPC(), book, Side.LEFT);
         this.plugin.getServer().getPluginManager().callEvent(e);
         if (e.isCancelled())
             return;
@@ -81,10 +82,9 @@ public class CitizensActions implements Listener {
     public void clone(NPCCloneEvent event) {
         int npcId = event.getNPC().getId();
         int cloneId = event.getClone().getId();
-        ItemStack right_book = this.api.hasNPCBook(npcId, "right_side") ? this.api.getNPCBook(npcId, "right_side") : null;
-        ItemStack left_book = this.api.hasNPCBook(npcId, "left_side") ? this.api.getNPCBook(npcId, "left_side") : null;
-        if (right_book != null) this.api.putNPCBook(cloneId, "right_side", right_book);
-        if (left_book != null) this.api.putNPCBook(cloneId, "left_side", left_book);
-        this.api.saveNPCBooks();
+        ItemStack right_book = this.plugin.getStorage().hasNPCBook(npcId, Side.RIGHT) ? this.plugin.getStorage().getNPCBook(npcId, Side.RIGHT) : null;
+        ItemStack left_book = this.plugin.getStorage().hasNPCBook(npcId, Side.LEFT) ? this.plugin.getStorage().getNPCBook(npcId, Side.LEFT) : null;
+        if (right_book != null) this.plugin.getStorage().putNPCBook(cloneId, Side.RIGHT, right_book);
+        if (left_book != null) this.plugin.getStorage().putNPCBook(cloneId, Side.LEFT, left_book);
     }
 }

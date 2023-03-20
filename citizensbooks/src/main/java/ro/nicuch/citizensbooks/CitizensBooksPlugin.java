@@ -19,14 +19,15 @@
 
 package ro.nicuch.citizensbooks;
 
+import lombok.Getter;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import me.lucko.commodore.file.CommodoreFileReader;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -36,46 +37,34 @@ import ro.nicuch.citizensbooks.listeners.AuthmeActions;
 import ro.nicuch.citizensbooks.listeners.CitizensActions;
 import ro.nicuch.citizensbooks.listeners.PlayerActions;
 import ro.nicuch.citizensbooks.listeners.ServerActions;
-import ro.nicuch.citizensbooks.utils.Message;
+import ro.nicuch.citizensbooks.settings.PluginSettings;
+import ro.nicuch.citizensbooks.storage.StorageConfiguration;
 import ro.nicuch.citizensbooks.utils.PersistentKey;
 import ro.nicuch.citizensbooks.utils.UpdateChecker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 
 public class CitizensBooksPlugin extends JavaPlugin {
-    private Permission vaultPerms;
-    private LuckPerms luckPerms;
-    private final CitizensBooksDatabase database = new CitizensBooksDatabase(this);
-    private final CitizensBooksAPI api = new CitizensBooksAPI(this);
-    private YamlConfiguration settings;
-    private boolean usePlaceholderAPI, useAuthMe, useCitizens, useLuckPerms, useVault, useNBTAPI, useDatabase;
-    public final int configVersion = 9;
-    private PlayerActions playerActionsListener;
-    private ServerActions serverActionsListener;
+    private final File settingsFile = new File(getDataFolder(), "settings.yml");
+    @Getter private Permission vaultPerms;
+    @Getter private LuckPerms luckPerms;
+    @Getter private final CitizensBooksAPI API = new CitizensBooksAPI(this);
+    @Getter private PluginSettings settings;
+    @Getter private final StorageConfiguration storage = new StorageConfiguration(this);
+    @Getter private boolean PlaceholderAPIEnabled, AuthMeEnabled, CitizensEnabled, LuckPermsEnabled, VaultEnabled, NBTAPIEnabled;
+    @Getter private PlayerActions playerActionsListener;
+    @Getter private ServerActions serverActionsListener;
 
     @Override
     public void onEnable() {
         try {
             this.getLogger().info("============== BEGIN LOAD ==============");
-            if (!this.reloadSettings())
-                throw new IllegalStateException("Failed to load settings!");
-            if (!this.api.loadDistribution()) {
-                this.getLogger().info("Failed to load distribution... disabling the plugin!");
-                this.setEnabled(false);
-                this.getLogger().info("============== END LOAD ==============");
-                return;
-            }
-            if (!PersistentKey.init(this)) {
-                this.getLogger().info("Failed to load PersistentKey!");
-                this.setEnabled(false);
-                this.getLogger().info("============== END LOAD ==============");
-                return;
-            }
-            //bStats Metrics, by default enabled
-            new Metrics(this, 2454);
             PluginManager manager = this.getServer().getPluginManager();
             if (!manager.isPluginEnabled("LuckPerms")) {
                 this.getLogger().info("LuckPerms not found!");
@@ -85,7 +74,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                     this.getLogger().info("Vault found, try hooking!");
                     RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
                     if (provider != null) {
-                        this.useVault = true;
+                        this.VaultEnabled = true;
                         this.vaultPerms = provider.getProvider();
                     } else
                         this.getLogger().info("Failed to hook into Vault!");
@@ -97,7 +86,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                     if (plugin.getDescription().getVersion().startsWith("5")) {
                         RegisteredServiceProvider<LuckPerms> provider = this.getServer().getServicesManager().getRegistration(LuckPerms.class);
                         if (provider != null) {
-                            this.useLuckPerms = true;
+                            this.LuckPermsEnabled = true;
                             this.luckPerms = provider.getProvider();
                             if (manager.isPluginEnabled("Vault"))
                                 this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
@@ -109,7 +98,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
                             RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
                             if (provider != null) {
                                 this.getLogger().info("Vault found instead! Try hooking!");
-                                this.useVault = true;
+                                this.VaultEnabled = true;
                                 this.vaultPerms = provider.getProvider();
                             } else // do we need it?
                                 this.getLogger().info("Failed to hook into Vault!");
@@ -122,44 +111,57 @@ public class CitizensBooksPlugin extends JavaPlugin {
                 this.getLogger().info("PlaceholderAPI not found!");
             else {
                 this.getLogger().info("PlaceholderAPI found, try hooking!");
-                this.usePlaceholderAPI = true;
+                this.PlaceholderAPIEnabled = true;
             }
-            manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
-            manager.registerEvents((this.serverActionsListener = new ServerActions(this)), this);
             if (!manager.isPluginEnabled("Citizens"))
                 this.getLogger().info("Citizens not found!");
             else {
                 this.getLogger().info("Citizens found, try hooking!");
                 manager.registerEvents(new CitizensActions(this), this);
-                this.useCitizens = true;
+                this.CitizensEnabled = true;
             }
             if (!manager.isPluginEnabled("Authme"))
                 this.getLogger().info("Authme not found!");
             else {
                 this.getLogger().info("Authme found, try hooking!");
                 manager.registerEvents(new AuthmeActions(this), this);
-                this.useAuthMe = true;
+                this.AuthMeEnabled = true;
             }
             if (!manager.isPluginEnabled("NBTAPI"))
-                if (this.api.noNBTAPIRequired())
+                if (this.API.noNBTAPIRequired())
                     this.getLogger().info("NBTAPI not found, but support for it it's not required!");
                 else
                     this.getLogger().info("NBTAPI not found!");
             else {
-                if (this.api.noNBTAPIRequired()) {
+                if (this.API.noNBTAPIRequired()) {
                     this.getLogger().info("NBTAPI found, but support for it it's not required!");
                 } else {
                     this.getLogger().info("NBTAPI found, try hooking!");
-                    this.useNBTAPI = true;
+                    this.NBTAPIEnabled = true;
                 }
             }
 
-            // load database, filters and npc books after dependencies
-            if (!this.setDatabaseEnabled(this.database.enableDatabase()))
-                if (this.api.reloadFilters().isEmpty())
-                    throw new IllegalStateException("Failed to reload filters!");
-            if (!this.api.reloadNPCBooks())
-                throw new IllegalStateException("Failed to load NPC books!");
+            if (!this.API.loadDistribution()) {
+                this.getLogger().info("Failed to load distribution... disabling the plugin!");
+                this.setEnabled(false);
+                this.getLogger().info("============== END LOAD ==============");
+                return;
+            }
+            if (!PersistentKey.init(this)) {
+                this.getLogger().info("Failed to load PersistentKey!");
+                this.setEnabled(false);
+                this.getLogger().info("============== END LOAD ==============");
+                return;
+            }
+
+            if (!this.reloadPlugin())
+                throw new IllegalStateException("Failed to load settings!");
+
+            if (this.settings.isMetricsEnabled())
+                new Metrics(this, 2454);
+
+            manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
+            manager.registerEvents((this.serverActionsListener = new ServerActions(this)), this);
 
             PluginCommand npcBookCommand = this.getCommand("npcbook");
             if (npcBookCommand != null)
@@ -171,7 +173,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             } else
                 this.getLogger().info("Brigardier is not supported on this version!");
             //Update checker, by default enabled
-            if (this.settings.getBoolean("update_check", true))
+            if (this.settings.isUpdateCheck())
                 manager.registerEvents(new UpdateChecker(this), this);
             this.getLogger().info("============== END LOAD ==============");
         } catch (Exception ex) {
@@ -187,24 +189,7 @@ public class CitizensBooksPlugin extends JavaPlugin {
             this.playerActionsListener.onDisable();
         if (this.serverActionsListener != null)
             this.serverActionsListener.onDisable();
-        if (this.isDatabaseEnabled())
-            this.database.disableDatabase(this.getLogger());
-    }
-
-    public CitizensBooksDatabase getDatabase() {
-        return this.database;
-    }
-
-    public CitizensBooksAPI getAPI() {
-        return this.api;
-    }
-
-    public YamlConfiguration getSettings() {
-        return this.settings;
-    }
-
-    public PlayerActions getPlayerActionsListener() {
-        return this.playerActionsListener;
+        this.storage.unload();
     }
 
     private boolean registerCompletions(Commodore commodore, PluginCommand command) {
@@ -213,108 +198,43 @@ public class CitizensBooksPlugin extends JavaPlugin {
         try (InputStream is = this.getResource("command.commodore")) {
             if (is == null)
                 throw new FileNotFoundException();
-            commodore.register(command, CommodoreFileReader.INSTANCE.parse(is), player -> this.api.hasPermission(player, "npcbook.tab.completer"));
+            commodore.register(command, CommodoreFileReader.INSTANCE.parse(is), player -> this.API.hasPermission(player, "npcbook.tab.completer"));
             return true;
         } catch (Exception ex) {
             return false;
         }
     }
 
-    /**
-     * @return if successful
-     */
-    public boolean reloadSettings() {
+    public boolean reloadPlugin() {
         try {
-            File config = new File(this.getDataFolder() + File.separator + "config.yml");
-            if (!config.exists()) {
-                this.saveResource("config.yml", false);
-                this.getLogger().info("A new config.yml was created!");
-            }
-            this.settings = YamlConfiguration.loadConfiguration(config);
-            //Load config.yml first
-            if (this.settings.isInt("version") && this.settings.getInt("version") != this.configVersion) {
-                boolean renamed = config.renameTo(new File(
-                        this.getDataFolder() + File.separator + "config_" + System.currentTimeMillis() + ".yml"));
-                if (renamed) {
-                    this.getLogger().info("A new config.yml was generated!");
-                    this.saveResource("config.yml", true);
-                    //Load again the config
-                    this.settings = YamlConfiguration.loadConfiguration(config);
-                } else
-                    this.getLogger().info("Failed to generate a new config!");
-            }
-            if (this.playerActionsListener != null)
-                this.playerActionsListener.onReload();
-            return true;
-        } catch (Exception ex) {
-            this.getLogger().log(Level.WARNING, "Couldn't reload config", ex);
+            FileConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
+            config.options().setHeader(
+                    List.of("---------------------------------------------------------------------#",
+                            "     _____ _ _   _                     ____              _           #",
+                            "    / ____(_) | (_)                   |  _ \\            | |          #",
+                            "   | |     _| |_ _ _______ _ __  ___  | |_) | ___   ___ | | _____    #",
+                            "#   | |    | | __| |_  / _ \\ '_ \\/ __| |  _ < / _ \\ / _ \\| |/ / __|   #",
+                            "   | |____| | |_| |/ /  __/ | | \\__ \\ | |_) | (_) | (_) |   <\\__ \\   #",
+                            "    \\_____|_|\\__|_/___\\___|_| |_|___/ |____/ \\___/ \\___/|_|\\_\\___/   #",
+                            "                                                                     #",
+                            "---------------------------------------------------------------------#")
+            );
+            this.settings = new PluginSettings();
+            this.settings.load(config);
+            config.save(settingsFile);
+        } catch (IOException e) {
+            this.getLogger().severe("Failed to load settings!");
             return false;
         }
-    }
-
-    /**
-     * @return if successful
-     */
-    public boolean saveSettings() {
         try {
-            this.settings.save(new File(this.getDataFolder() + File.separator + "config.yml"));
-            return true;
-        } catch (Exception ex) {
-            this.getLogger().log(Level.WARNING, "Couldn't save config", ex);
+            this.storage.unload();
+            this.storage.load(this.settings.getStorageSettings());
+        } catch (SQLException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not load storage!", ex);
             return false;
         }
-    }
-
-    public LuckPerms getLuckPermissions() {
-        return this.luckPerms;
-    }
-
-    public boolean isLuckPermsEnabled() {
-        return this.useLuckPerms;
-    }
-
-    public Permission getVaultPermissions() {
-        return this.vaultPerms;
-    }
-
-    public boolean isVaultEnabled() {
-        return this.useVault;
-    }
-
-    public boolean isPlaceHolderEnabled() {
-        return this.usePlaceholderAPI;
-    }
-
-    public boolean isAuthmeEnabled() {
-        return this.useAuthMe;
-    }
-
-    public boolean isCitizensEnabled() {
-        return this.useCitizens;
-    }
-
-    public boolean isNBTAPIEnabled() {
-        return this.useNBTAPI;
-    }
-
-    public boolean isDatabaseEnabled() {
-        return this.useDatabase;
-    }
-
-    public boolean setDatabaseEnabled(boolean enabled) {
-        return (this.useDatabase = enabled);
-    }
-
-    public String getMessage(Message msg) {
-        return this.parseMessage(this.settings.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
-                + this.parseMessage(this.settings.getString(msg.getPath(), msg.getDefault()));
-    }
-
-    public String getMessageNoHeader(Message msg) {
-        return this.parseMessage(this.settings.getString(msg.getPath(), msg.getPath()));
-    }
-
-    public String parseMessage(String msg) {
-        return ChatColor.translateAlternateColorCodes('&', msg);
+        if (this.playerActionsListener != null)
+            this.playerActionsListener.onReload();
+        return true;
     }
 }

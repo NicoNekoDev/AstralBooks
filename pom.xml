@@ -76,6 +76,13 @@
             <version>2.0.30-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.26</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <modules>

@@ -29,6 +29,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
+import ro.nicuch.citizensbooks.utils.Side;
 
 /**
  * When the player right-click an NPC before the book is opened.
@@ -41,19 +42,19 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
     private ItemStack book;
     private boolean usePlaceHolders = true;
     private boolean cancel;
-    private final ClickType clickType;
+    private final Side side;
 
     /**
      * @param player the player
      * @param npc    the NPC
      * @param book   the book
-     * @param clickType the click type
+     * @param side the click side
      * @throws NullPointerException if book is null.
      */
-    public BookNPCClickEvent(Player player, NPC npc, ItemStack book, ClickType clickType) {
+    public BookNPCClickEvent(Player player, NPC npc, ItemStack book, Side side) {
         super(player);
         this.npc = npc;
-        this.clickType = clickType;
+        this.side = side;
         if ((this.book = book) == null)
             throw new NullPointerException("ItemStack can't be null!");
         this.plugin = (CitizensBooksPlugin) Bukkit.getPluginManager().getPlugin("CitizensBooks");
@@ -115,8 +116,8 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
      *
      * @return the click type (right or left click)
      */
-    public ClickType getClickType() {
-        return this.clickType;
+    public Side getClickedSide() {
+        return this.side;
     }
 
     /**
@@ -156,9 +157,5 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return handlers;
-    }
-
-    public enum ClickType {
-        LEFT, RIGHT
     }
 }

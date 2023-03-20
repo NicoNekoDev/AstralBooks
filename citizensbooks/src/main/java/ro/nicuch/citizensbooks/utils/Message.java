@@ -23,7 +23,6 @@ public enum Message {
     HEADER("header", "&f[&6CitizensBooks&f] &r"),
     NO_PERMISSION("no_permission", "&cYou don't have permission!"),
     CONFIG_RELOADED("config_reloaded", "&aConfig reloaded."),
-    FILTERS_RELOADED("filters_reloaded", "&aLoaded %success% filter(s) while %failed% failed to load."),
     SET_BOOK_SUCCESSFULLY("set_book_successfully", "&aYou have set the book for %npc%&a!"),
     REMOVED_BOOK_SUCCESSFULLY("removed_book_successfully", "&aYou have removed the book for %npc%&a!"),
     NO_NPC_SELECTED("no_npc_selected", "&cYou need to have an NPC selected!"),
@@ -120,10 +119,6 @@ public enum Message {
     }
 
     public final String getPath() {
-        return "lang." + this.key;
-    }
-
-    public final String getPathStripped() {
         return this.key;
     }
 
