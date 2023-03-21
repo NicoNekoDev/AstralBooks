@@ -47,7 +47,7 @@
               <relocations>
                 <relocation>
                   <pattern>me.lucko.commodore</pattern>
-                  <shadedPattern>ro.nicuch.citizensbooks.commodore</shadedPattern>
+                  <shadedPattern>ro.nicuch.astralbooks.commodore</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

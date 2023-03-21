@@ -1,104 +1,104 @@
-name: CitizensBooks
+name: AstralBooks
 version: ${project.version}
 author: NicoNekoDev
-main: ro.nicuch.citizensbooks.CitizensBooksPlugin
+main: ro.nicuch.astralbooks.AstralBooksPlugin
 softdepend: [ PlaceholderAPI, Citizens, LuckPerms, Vault, AuthMe, Authme, NBTAPI ]
 website: https://www.spigotmc.org/resources/citizensbooks.37465/
 api-version: 1.13
 commands:
-  npcbook:
-    description: Basic CitizensBooks command.
-    permission: npcbook.command.*
+  abook:
+    description: Basic AstralBooks command.
+    permission: astralbooks.command.*
 permissions:
-  npcbook.*:
+  astralbooks.*:
     children:
-      npcbook.command.help: true
-      npcbook.command.npc.set: true
-      npcbook.command.npc.remove: true
-      npcbook.command.npc.getbook: true
-      npcbook.command.openbook: true
-      npcbook.command.closebook: true
-      npcbook.command.reload: true
-      npcbook.command.setcmd: true
-      npcbook.command.remcmd: true
-      npcbook.command.filter.set: true
-      npcbook.command.filter.remove: true
-      npcbook.command.filter.getbook: true
-      npcbook.command.forcedecrypt: true
-      npcbook.command.forceopen: true
-      npcbook.command.actionitem.set: true
-      npcbook.command.actionitem.remove: true
-      npcbook.command.setjoin: true
-      npcbook.command.remjoin: true
-      npcbook.nojoinbook: true
-      npcbook.notify: true
-  npcbook.command.*:
+      astralbooks.command.help: true
+      astralbooks.command.npc.set: true
+      astralbooks.command.npc.remove: true
+      astralbooks.command.npc.getbook: true
+      astralbooks.command.openbook: true
+      astralbooks.command.closebook: true
+      astralbooks.command.reload: true
+      astralbooks.command.setcmd: true
+      astralbooks.command.remcmd: true
+      astralbooks.command.filter.set: true
+      astralbooks.command.filter.remove: true
+      astralbooks.command.filter.getbook: true
+      astralbooks.command.forcedecrypt: true
+      astralbooks.command.forceopen: true
+      astralbooks.command.actionitem.set: true
+      astralbooks.command.actionitem.remove: true
+      astralbooks.command.setjoin: true
+      astralbooks.command.remjoin: true
+      astralbooks.nojoinbook: true
+      astralbooks.notify: true
+  astralbooks.command.*:
     children:
-      npcbook.command.help: true
-      npcbook.command.npc.set: true
-      npcbook.command.npc.remove: true
-      npcbook.command.npc.getbook: true
-      npcbook.command.openbook: true
-      npcbook.command.closebook: true
-      npcbook.command.reload: true
-      npcbook.command.setcmd: true
-      npcbook.command.remcmd: true
-      npcbook.command.filter.set: true
-      npcbook.command.filter.remove: true
-      npcbook.command.filter.getbook: true
-      npcbook.command.forcedecrypt: true
-      npcbook.command.forceopen: true
-      npcbook.command.actionitem.set: true
-      npcbook.command.actionitem.remove: true
-      npcbook.command.setjoin: true
-      npcbook.command.remjoin: true
-  npcbook.command.filter.*:
+      astralbooks.command.help: true
+      astralbooks.command.npc.set: true
+      astralbooks.command.npc.remove: true
+      astralbooks.command.npc.getbook: true
+      astralbooks.command.openbook: true
+      astralbooks.command.closebook: true
+      astralbooks.command.reload: true
+      astralbooks.command.setcmd: true
+      astralbooks.command.remcmd: true
+      astralbooks.command.filter.set: true
+      astralbooks.command.filter.remove: true
+      astralbooks.command.filter.getbook: true
+      astralbooks.command.forcedecrypt: true
+      astralbooks.command.forceopen: true
+      astralbooks.command.actionitem.set: true
+      astralbooks.command.actionitem.remove: true
+      astralbooks.command.setjoin: true
+      astralbooks.command.remjoin: true
+  astralbooks.command.filter.*:
     children:
-      npcbook.command.filter.set: true
-      npcbook.command.filter.remove: true
-      npcbook.command.filter.getbook: true
-  npcbook.command.actionitem.*:
+      astralbooks.command.filter.set: true
+      astralbooks.command.filter.remove: true
+      astralbooks.command.filter.getbook: true
+  astralbooks.command.actionitem.*:
     children:
-      npcbook.command.actionitem.set: true
-      npcbook.command.actionitem.remove: true
-  npcbook.command.npc.*:
+      astralbooks.command.actionitem.set: true
+      astralbooks.command.actionitem.remove: true
+  astralbooks.command.npc.*:
     children:
-      npcbook.command.npc.set: true
-      npcbook.command.npc.remove: true
-      npcbook.command.npc.getbook: true
-  npcbook.command.help:
+      astralbooks.command.npc.set: true
+      astralbooks.command.npc.remove: true
+      astralbooks.command.npc.getbook: true
+  astralbooks.command.help:
     default: false
-  npcbook.command.npc.set:
+  astralbooks.command.npc.set:
     default: false
-  npcbook.command.npc.remove:
+  astralbooks.command.npc.remove:
     default: false
-  npcbook.command.npc.getbook:
+  astralbooks.command.npc.getbook:
     default: false
-  npcbook.command.openbook:
+  astralbooks.command.openbook:
     default: false
-  npcbook.command.reload:
+  astralbooks.command.reload:
     default: false
-  npcbook.command.setcmd:
+  astralbooks.command.setcmd:
     default: false
-  npcbook.command.remcmd:
+  astralbooks.command.remcmd:
     default: false
-  npcbook.command.filter.set:
+  astralbooks.command.filter.set:
     default: false
-  npcbook.command.filter.remove:
+  astralbooks.command.filter.remove:
     default: false
-  npcbook.command.filter.getbook:
+  astralbooks.command.filter.getbook:
     default: false
-  npcbook.command.actionitem.set:
+  astralbooks.command.actionitem.set:
     default: false
-  npcbook.command.actionitem.remove:
+  astralbooks.command.actionitem.remove:
     default: false
-  npcbook.command.setjoin:
+  astralbooks.command.setjoin:
     default: false
-  npcbook.command.remjoin:
+  astralbooks.command.remjoin:
     default: false
-  npcbook.command.closebook:
+  astralbooks.command.closebook:
     default: false
-  npcbook.notify:
+  astralbooks.notify:
     default: op
-  npcbook.nojoinbook:
+  astralbooks.nojoinbook:
     default: false
