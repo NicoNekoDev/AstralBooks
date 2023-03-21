@@ -32,8 +32,8 @@
     </properties>
 
     <parent>
-        <artifactId>citizensbooks-parent</artifactId>
-        <groupId>ro.nicuch</groupId>
+        <artifactId>astralbooks-parent</artifactId>
+        <groupId>ro.niconeko</groupId>
         <version>parent</version>
     </parent>
 
@@ -46,7 +46,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>ro.nicuch</groupId>
+            <groupId>ro.niconeko</groupId>
             <artifactId>distribution-core</artifactId>
             <version>distribution</version>
             <scope>provided</scope>

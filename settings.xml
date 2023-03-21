@@ -35,7 +35,7 @@
                 </repository>
                 <repository>
                     <id>github</id>
-                    <url>https://maven.pkg.github.com/NicoNekoDev/CitizensBooks</url>
+                    <url>https://maven.pkg.github.com/NicoNekoDev/AstralBooks</url>
                     <snapshots>
                         <enabled>true</enabled>
                     </snapshots>

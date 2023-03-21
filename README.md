@@ -1,8 +1,8 @@
-CitizensBooks
+AstralBooks
 ===========
 
 ## Building
-CitizensBooks uses Maven to handle dependencies.
+AstralBooks uses Maven to handle dependencies.
 
 #### Requirements
 * Java 8 JDK or newer
@@ -11,7 +11,7 @@ CitizensBooks uses Maven to handle dependencies.
 
 #### Compiling From Source
 ```sh
-git clone https://github.com/nicuch/CitizensBooks.git
+git clone https://github.com/niconeko/AstralBooks.git
 mvn clean package
 ```
 
@@ -26,8 +26,8 @@ mvn clean package
 
 <dependencies>
   <dependency>
-    <groupId>ro.nicuch</groupId>
-    <artifactId>CitizensBooks</artifactId>
+    <groupId>ro.niconeko</groupId>
+    <artifactId>AstralBooks</artifactId>
     <version>LATEST</version>
   </dependency>
 </dependencies>
@@ -44,8 +44,8 @@ mvn clean package
 
 <dependencies>
   <dependency>
-    <groupId>com.github.nicuch</groupId>
-    <artifactId>CitizensBooks</artifactId>
+    <groupId>com.github.niconeko</groupId>
+    <artifactId>AstralBooks</artifactId>
     <version>master-SNAPSHOT</version>
   </dependency>
 </dependencies>

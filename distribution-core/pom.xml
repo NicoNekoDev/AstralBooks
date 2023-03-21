@@ -28,8 +28,8 @@
     <packaging>jar</packaging>
 
     <parent>
-        <artifactId>citizensbooks-parent</artifactId>
-        <groupId>ro.nicuch</groupId>
+        <artifactId>astralbooks-parent</artifactId>
+        <groupId>ro.niconeko</groupId>
         <version>parent</version>
     </parent>
 

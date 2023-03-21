@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help us improve
 title: "[Bug]"
 labels: bug
-assignees: nicuch
+assignees: NicoNekoDev
 
 ---
 
@@ -24,9 +24,9 @@ Don't put anything inside this block, as it won't be included.
 6.  Delete this line and all above lines before posting your issue!       -->
 
 ### Information
-Full output of `/npcbook about`:
+Full output of `/abook about`:
 Server log (upload `logs/latest.log` to [Gist](https://gist.github.com/)):
-CitizensBooks config (upload `plugins/CitizensBooks/config.yml` to [Gist](https://gist.github.com/)): 
+AstralBooks config (upload `plugins/AstralBooks/config.yml` to [Gist](https://gist.github.com/)): 
 
 ### Details
 Describe your issue here.

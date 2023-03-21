@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ro.nicuch</groupId>
-  <artifactId>citizensbooks-parent</artifactId>
+  <groupId>ro.niconeko</groupId>
+  <artifactId>astralbooks-parent</artifactId>
   <packaging>pom</packaging>
   <version>parent</version>
   <build>
@@ -47,7 +47,7 @@
               <relocations>
                 <relocation>
                   <pattern>me.lucko.commodore</pattern>
-                  <shadedPattern>ro.nicuch.astralbooks.commodore</shadedPattern>
+                  <shadedPattern>ro.niconeko.astralbooks.commodore</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -57,7 +57,7 @@
     </plugins>
   </build>
   <modules>
-    <module>citizensbooks</module>
+    <module>astralbooks</module>
     <module>distribution-v1_8_R2</module>
     <module>distribution-v1_8_R3</module>
     <module>distribution-v1_9_R1</module>
@@ -124,7 +124,7 @@
     <repository>
       <id>github</id>
       <name>GitHub NicoNekoDev Packages</name>
-      <url>https://maven.pkg.github.com/NicoNekoDev/CitizensBooks</url>
+      <url>https://maven.pkg.github.com/NicoNekoDev/AstralBooks</url>
     </repository>
   </distributionManagement>
   <properties>
