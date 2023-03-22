@@ -97,10 +97,6 @@ public class PlayerActions implements Listener {
                 DelayedPlayer delayedJoinPlayer;
                 while ((delayedJoinPlayer = this.delayedJoinBookPlayers.poll()) != null) {
                     Player player = delayedJoinPlayer.getPlayer();
-                    System.out.println(player.getName());
-                    System.out.println(this.plugin.getStorage().hasJoinBookLastSeen(player));
-                    System.out.println(this.plugin.getStorage().getJoinBookLastSeen(player));
-                    System.out.println(this.plugin.getStorage().getJoinBookLastChange());
                     if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
                         if (this.plugin.getStorage().hasJoinBookLastSeen(player))
                             if (this.plugin.getStorage().getJoinBookLastSeen(player) >= this.plugin.getStorage().getJoinBookLastChange())
