@@ -2,13 +2,13 @@ package ro.niconeko.astralbooks.storage.settings;
 
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
-import ro.niconeko.astralbooks.settings.SettingsSerializer;
-import ro.niconeko.astralbooks.utils.SettingsUtil;
+import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.settings.Settings;
 
 import java.util.List;
 import java.util.Optional;
 
-public class StorageMySQLSettings implements SettingsSerializer {
+public class StorageMySQLSettings extends Settings {
     @Getter private String host = "localhost";
     @Getter private int port = 3306;
     @Getter private String database = "citizensbooks";
@@ -18,15 +18,19 @@ public class StorageMySQLSettings implements SettingsSerializer {
     @Getter private String tablePrefix = "cbooks_";
     @Getter private String serverName = "default";
 
+    public StorageMySQLSettings(AstralBooksPlugin plugin) {
+        super(plugin);
+    }
+
     @Override
     public void load(ConfigurationSection section) {
-        this.host = SettingsUtil.getOrSetStringFunction(section, "host", this.host);
-        this.port = SettingsUtil.getOrSetIntFunction(section, "port", this.port);
-        this.database = SettingsUtil.getOrSetStringFunction(section, "database", this.database);
-        this.username = SettingsUtil.getOrSetStringFunction(section, "username", this.username);
-        this.password = SettingsUtil.getOrSetStringFunction(section, "password", this.password);
-        this.SSLEnabled = SettingsUtil.getOrSetBooleanFunction(section, "ssl_enabled", this.SSLEnabled, Optional.of(List.of("If SSL encryption is enabled.")));
-        this.tablePrefix = SettingsUtil.getOrSetStringFunction(section, "table_prefix", this.tablePrefix, Optional.of(List.of("The prefix for the table name.")));
-        this.serverName = SettingsUtil.getOrSetStringFunction(section, "server_name", this.serverName, Optional.of(List.of("Use this if you have multiple servers using the same database.")));
+        this.host = super.getOrSetStringFunction(section, "host", this.host);
+        this.port = super.getOrSetIntFunction(section, "port", this.port);
+        this.database = super.getOrSetStringFunction(section, "database", this.database);
+        this.username = super.getOrSetStringFunction(section, "username", this.username);
+        this.password = super.getOrSetStringFunction(section, "password", this.password);
+        this.SSLEnabled = super.getOrSetBooleanFunction(section, "ssl_enabled", this.SSLEnabled, Optional.of(List.of("If SSL encryption is enabled.")));
+        this.tablePrefix = super.getOrSetStringFunction(section, "table_prefix", this.tablePrefix, Optional.of(List.of("The prefix for the table name.")));
+        this.serverName = super.getOrSetStringFunction(section, "server_name", this.serverName, Optional.of(List.of("Use this if you have multiple servers using the same database.")));
     }
 }

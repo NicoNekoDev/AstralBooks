@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -54,29 +53,36 @@ import ro.niconeko.astralbooks.persistent.item.EmptyItemData;
 import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.persistent.item.NBTAPIItemData;
 import ro.niconeko.astralbooks.persistent.item.PersistentItemData;
+import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("RegExpRedundantEscape")
 public class AstralBooksAPI {
     private final AstralBooksPlugin plugin;
     private Distribution distribution = null;
     private final Map<Chunk, Set<Block>> blocksPairedToChunk = new HashMap<>();
     private final Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
     private final Pattern namePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
-    private final File joinBookFile;
+    private final Pattern permissionPattern = Pattern.compile("^[a-zA-Z0-9\\._-]+$");
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public AstralBooksAPI(final AstralBooksPlugin plugin) {
         this.plugin = plugin;
-        this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+    }
+
+    public void importStorage(StorageType type) {
+
     }
 
     public boolean noNBTAPIRequired() {
@@ -220,54 +226,6 @@ public class AstralBooksAPI {
         return new EmptyEntityData();
     }
 
-    public ItemStack getJoinBook() {
-        if (this.joinBookFile.exists()) {
-            try {
-                return this.getBookFromJsonFile(this.joinBookFile);
-            } catch (JsonParseException ex) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @return if successful
-     */
-    public boolean removeJoinBook() {
-        return this.joinBookFile.delete();
-    }
-
-    public void setJoinBook(ItemStack book) {
-        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with AstralBooks," +
-                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
-        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with AstralBooks," +
-                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
-        this.putBookInJsonFile(this.joinBookFile, book);
-    }
-
-    public ItemStack getBookFromJsonFile(File jsonFile) throws JsonParseException {
-        try (FileReader fileReader = new FileReader(jsonFile)) {
-            JsonObject jsonBookContent = GSON.fromJson(fileReader, JsonObject.class);
-            return this.distribution.convertJsonToBook(jsonBookContent);
-        } catch (Exception ex) {
-            throw new JsonParseException("Failed to parse the json file " + jsonFile.getName());
-        }
-    }
-
-    public void putBookInJsonFile(File jsonFile, ItemStack book) throws JsonParseException {
-        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with AstralBooks," +
-                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
-        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with AstralBooks," +
-                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
-        try (FileWriter fileWriter = new FileWriter(jsonFile)) {
-            JsonObject jsonBookContent = this.distribution.convertBookToJson(book);
-            GSON.toJson(jsonBookContent, fileWriter);
-        } catch (Exception ex) {
-            throw new JsonParseException("Failed to put the book the json file " + jsonFile.getName());
-        }
-    }
-
     public boolean loadDistribution() {
         // Copyright (c) mbax - Thank you for the great 'modular project' tutorial!
         String packageName = Bukkit.getServer().getClass().getPackage().getName();
@@ -275,7 +233,7 @@ public class AstralBooksAPI {
 
         this.plugin.getLogger().info("Your server is running version " + version + "!");
         try {
-            final Class<?> clazz = Class.forName("ro.niconeko.AstralBooks.dist." + version + ".DistributionHandler");
+            final Class<?> clazz = Class.forName("ro.niconeko.astralbooks.dist." + version + ".DistributionHandler");
             if (Distribution.class.isAssignableFrom(clazz)) {
                 this.plugin.getLogger().info("Loading support for version " + version + "...");
                 TripletFunction<Player, String, Optional<NPC>, String> papiString = (player, arg, optionalNPC) -> {
@@ -350,6 +308,14 @@ public class AstralBooksAPI {
         if (filterName.isEmpty())
             return false;
         return this.namePattern.matcher(filterName).matches();
+    }
+
+    public boolean isValidPermission(String permission) {
+        if (permission == null)
+            return false;
+        if (permission.isEmpty())
+            return false;
+        return this.permissionPattern.matcher(permission).matches();
     }
 
     public Distribution getDistribution() {

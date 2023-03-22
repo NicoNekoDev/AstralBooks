@@ -4,6 +4,7 @@ import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.AbstractStorage;
+import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
@@ -16,7 +17,7 @@ public class SQLiteStorage extends AbstractStorage {
     private Connection connection;
 
     public SQLiteStorage(AstralBooksPlugin plugin) {
-        super(plugin);
+        super(plugin, StorageType.SQLITE);
     }
 
     protected boolean load(StorageSettings settings) throws SQLException {
@@ -33,20 +34,18 @@ public class SQLiteStorage extends AbstractStorage {
             this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'commands' table!", ex);
             return false;
         }
-        if (this.plugin.isCitizensEnabled()) {
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS 'npc_books' (
-                    npc_id INT NOT NULL,
-                    side VARCHAR(32) NOT NULL DEFAULT 'right_side',
-                    npc_book TEXT,
-                    PRIMARY KEY (npc_id, side)
-                    );
-                    """)) {
-                statement.executeUpdate();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'npcbooks' table!", ex);
-                return false;
-            }
+        try (PreparedStatement statement = this.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS 'npc_books' (
+                npc_id INT NOT NULL,
+                side VARCHAR(32) NOT NULL DEFAULT 'right_side',
+                npc_book TEXT,
+                PRIMARY KEY (npc_id, side)
+                );
+                """)) {
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'npcbooks' table!", ex);
+            return false;
         }
         try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_name FROM 'filters';")) {
             try (ResultSet preload = statement.executeQuery()) {
@@ -62,12 +61,10 @@ public class SQLiteStorage extends AbstractStorage {
                 }
             }
         }
-        if (this.plugin.isCitizensEnabled()) {
-            try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_id, side FROM 'npc_books';")) {
-                try (ResultSet preload = statement.executeQuery()) {
-                    while (preload.next()) {
-                        super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
-                    }
+        try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_id, side FROM 'npc_books';")) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
                 }
             }
         }
@@ -131,7 +128,6 @@ public class SQLiteStorage extends AbstractStorage {
 
     @Override
     protected void removeNPCBookStack(int npcId, Side side) {
-        if (!this.plugin.isCitizensEnabled()) throw new IllegalStateException("Citizens is not enabled!");
         super.cache.npcs.remove(Pair.of(npcId, side));
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM 'npc_books' WHERE npc_id=? AND side=?;")) {
@@ -174,7 +170,6 @@ public class SQLiteStorage extends AbstractStorage {
 
     @Override
     protected void putNPCBookStack(int npcId, Side side, ItemStack book) {
-        if (!this.plugin.isCitizensEnabled()) throw new IllegalStateException("Citizens is not enabled!");
         Pair<Integer, Side> pairKey = Pair.of(npcId, side);
         super.cache.npcs.add(pairKey);
         super.cache.npcBooks.put(pairKey, book);

@@ -4,6 +4,7 @@ import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.AbstractStorage;
+import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageMySQLSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
@@ -18,7 +19,7 @@ public class MySQLStorage extends AbstractStorage {
     private String serverName = "";
 
     public MySQLStorage(AstralBooksPlugin plugin) {
-        super(plugin);
+        super(plugin, StorageType.MYSQL);
     }
 
     protected boolean load(StorageSettings settings) throws SQLException {
@@ -46,22 +47,20 @@ public class MySQLStorage extends AbstractStorage {
             this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'commands' table!", ex);
             return false;
         }
-        if (this.plugin.isCitizensEnabled()) {
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS ? (
-                    npc_id INT NOT NULL,
-                    side VARCHAR(32) NOT NULL DEFAULT 'right_side',
-                    server VARCHAR(255) DEFAULT 'default',
-                    npc_book TEXT,
-                    CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
-                    );
-                    """)) {
-                statement.setString(1, this.tablePrefix + "npc_books");
-                statement.executeUpdate();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'npcbooks' table!", ex);
-                return false;
-            }
+        try (PreparedStatement statement = this.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS ? (
+                npc_id INT NOT NULL,
+                side VARCHAR(32) NOT NULL DEFAULT 'right_side',
+                server VARCHAR(255) DEFAULT 'default',
+                npc_book TEXT,
+                CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
+                );
+                """)) {
+            statement.setString(1, this.tablePrefix + "npc_books");
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'npcbooks' table!", ex);
+            return false;
         }
         try (PreparedStatement statement = this.connection.prepareStatement("SELECT filter_name FROM ?;")) {
             statement.setString(1, this.tablePrefix + "filters");
@@ -79,13 +78,11 @@ public class MySQLStorage extends AbstractStorage {
                 }
             }
         }
-        if (this.plugin.isCitizensEnabled()) {
-            try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_id, side FROM ?;")) {
-                statement.setString(1, this.tablePrefix + "npc_books");
-                try (ResultSet preload = statement.executeQuery()) {
-                    while (preload.next()) {
-                        super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
-                    }
+        try (PreparedStatement statement = this.connection.prepareStatement("SELECT npc_id, side FROM ?;")) {
+            statement.setString(1, this.tablePrefix + "npc_books");
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
                 }
             }
         }
@@ -153,8 +150,6 @@ public class MySQLStorage extends AbstractStorage {
 
     @Override
     protected void removeNPCBookStack(int npcId, Side side) {
-        if (!this.plugin.isCitizensEnabled())
-            throw new IllegalStateException("Citizens is not enabled!");
         super.cache.npcs.remove(Pair.of(npcId, side));
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = this.connection.prepareStatement("DELETE FROM ? WHERE npc_id=? AND side=? AND server=?;")) {
@@ -201,8 +196,6 @@ public class MySQLStorage extends AbstractStorage {
 
     @Override
     protected void putNPCBookStack(int npcId, Side side, ItemStack book) {
-        if (!this.plugin.isCitizensEnabled())
-            throw new IllegalStateException("Citizens is not enabled!");
         Pair<Integer, Side> pairKey = Pair.of(npcId, side);
         super.cache.npcs.add(pairKey);
         super.cache.npcBooks.put(pairKey, book);

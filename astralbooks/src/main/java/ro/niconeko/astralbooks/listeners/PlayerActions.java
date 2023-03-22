@@ -20,6 +20,7 @@
 package ro.niconeko.astralbooks.listeners;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -63,7 +64,6 @@ public class PlayerActions implements Listener {
     public PlayerActions(AstralBooksPlugin plugin) {
         this.plugin = plugin;
         this.api = this.plugin.getAPI();
-        this.onReload();
     }
 
     public void setBookBlockOperator(Player player, ItemStack book, Side side) {
@@ -82,34 +82,35 @@ public class PlayerActions implements Listener {
     }
 
     public void onReload() {
-        if (this.pullTask != null)
+        if (this.pullTask != null && !this.pullTask.isCancelled())
             this.pullTask.cancel();
-        if (!this.plugin.getSettings().isJoinBookEnabled())
-            return;
         this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
-            DelayedPlayer delayedInteractionBookBlockOperator = null;
-            while (this.delayedInteractionBookBlockOperators.poll() != null)
-                //noinspection DataFlowIssue
+            DelayedPlayer delayedInteractionBookBlockOperator;
+            while ((delayedInteractionBookBlockOperator = this.delayedInteractionBookBlockOperators.poll()) != null) {
                 this.interactionBookBlockOperatorsMap.remove(delayedInteractionBookBlockOperator.getPlayer());
-            DelayedPlayer delayedInteractionBookEntityOperator = null;
-            while (this.delayedInteractionBookEntityOperators.poll() != null)
-                //noinspection DataFlowIssue
+            }
+            DelayedPlayer delayedInteractionBookEntityOperator;
+            while ((delayedInteractionBookEntityOperator = this.delayedInteractionBookEntityOperators.poll()) != null)
                 this.interactionBookEntityOperatorsMap.remove(delayedInteractionBookEntityOperator.getPlayer());
             //
-            DelayedPlayer delayedJoinPlayer = this.delayedJoinBookPlayers.poll();
-            while (delayedJoinPlayer != null) {
-                Player player = delayedJoinPlayer.getPlayer();
-                if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
-                    if (this.plugin.getSettings().getJoinBookLastSeenByPlayers().isLong("join_book_last_seen_by_players." + player.getUniqueId()))
-                        if (this.plugin.getSettings().getJoinBookLastSeenByPlayers().getLong("join_book_last_seen_by_players." + player.getUniqueId(), 0)
-                                >= this.plugin.getSettings().getJoinBookLastSeenByPlayers().getLong("join_book_last_change", 0))
-                            continue;
-                    this.plugin.getSettings().getJoinBookLastSeenByPlayers().set("join_book_last_seen_by_players." + player.getUniqueId(), System.currentTimeMillis());
+            if (this.plugin.getSettings().isJoinBookEnabled()) {
+                DelayedPlayer delayedJoinPlayer;
+                while ((delayedJoinPlayer = this.delayedJoinBookPlayers.poll()) != null) {
+                    Player player = delayedJoinPlayer.getPlayer();
+                    System.out.println(player.getName());
+                    System.out.println(this.plugin.getStorage().hasJoinBookLastSeen(player));
+                    System.out.println(this.plugin.getStorage().getJoinBookLastSeen(player));
+                    System.out.println(this.plugin.getStorage().getJoinBookLastChange());
+                    if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
+                        if (this.plugin.getStorage().hasJoinBookLastSeen(player))
+                            if (this.plugin.getStorage().getJoinBookLastSeen(player) >= this.plugin.getStorage().getJoinBookLastChange())
+                                continue;
+                        this.plugin.getStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
+                    }
+                    this.api.openBook(player, this.api.placeholderHook(player, this.plugin.getStorage().getJoinBook(), null));
                 }
-                this.api.openBook(player, this.api.placeholderHook(player, this.api.getJoinBook(), null));
-                delayedJoinPlayer = this.delayedJoinBookPlayers.poll();
             }
-        }, 1L, 1L);
+        }, 20L, 20L);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -185,6 +186,13 @@ public class PlayerActions implements Listener {
             return;
         Entity entity = event.getRightClicked();
         if (this.interactionBookEntityOperatorsMap.containsKey(event.getPlayer()) && !event.getPlayer().isSneaking()) {
+            if (this.plugin.isCitizensEnabled()) {
+                if (CitizensAPI.getNPCRegistry().isNPC(entity)) {
+                    event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.ENTITY_IS_NPC));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
             Pair<ItemStack, Side> pair = this.interactionBookEntityOperatorsMap.remove(event.getPlayer());
             if (pair.getFirstValue() == null) {
                 this.api.removeBookOfEntity(entity, pair.getSecondValue());
@@ -217,6 +225,9 @@ public class PlayerActions implements Listener {
             }
         }
         if (!(itemInPlayerHand.getType() != Material.AIR && event.getPlayer().isSneaking())) {
+            if (this.plugin.isCitizensEnabled())
+                if (CitizensAPI.getNPCRegistry().isNPC(entity))
+                    return;
             ItemStack book = this.api.getBookOfEntity(entity, Side.RIGHT);
             if (book == null)
                 return;
@@ -243,6 +254,9 @@ public class PlayerActions implements Listener {
                 }
             }
             if (!(itemInPlayerHand.getType() != Material.AIR && player.isSneaking())) {
+                if (this.plugin.isCitizensEnabled())
+                    if (CitizensAPI.getNPCRegistry().isNPC(entity))
+                        return;
                 ItemStack book = this.api.getBookOfEntity(entity, Side.LEFT);
                 if (book == null)
                     return;
@@ -278,7 +292,7 @@ public class PlayerActions implements Listener {
             return;
         if (!this.plugin.getSettings().isJoinBookEnabled())
             return;
-        if (this.api.getJoinBook() == null)
+        if (!this.plugin.getStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
         if (this.api.hasPermission(player, "astralbooks.nojoinbook"))

@@ -40,17 +40,17 @@ public class AuthmeActions implements Listener {
     public void onLogin(LoginEvent event) {
         if (!this.plugin.getSettings().isJoinBookEnabled())
             return;
-        if (this.api.getJoinBook() == null)
+        if (!this.plugin.getStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
         if (this.api.hasPermission(player, "astralbooks.nojoinbook"))
             return;
         if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
-            if (this.plugin.getSettings().getJoinBookLastSeenByPlayers().isLong("join_book_last_seen_by_players." + player.getUniqueId()))
-                if (this.plugin.getSettings().getJoinBookLastSeenByPlayers().getLong("join_book_last_seen_by_players." + player.getUniqueId(), 0) >= this.plugin.getSettings().getJoinBookLastSeenByPlayers().getLong("join_book_last_change", 0))
+            if (this.plugin.getStorage().hasJoinBookLastSeen(player))
+                if (this.plugin.getStorage().getJoinBookLastSeen(player) >= this.plugin.getStorage().getJoinBookLastChange())
                     return;
-            this.plugin.getSettings().getJoinBookLastSeenByPlayers().set("join_book_last_seen_by_players." + player.getUniqueId(), System.currentTimeMillis());
+            this.plugin.getStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
         }
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.api.getJoinBook(), null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.plugin.getStorage().getJoinBook(), null));
     }
 }

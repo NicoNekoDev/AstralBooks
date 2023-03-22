@@ -31,6 +31,8 @@ import net.citizensnpcs.api.event.NPCRightClickEvent;
 import ro.niconeko.astralbooks.events.BookNPCClickEvent;
 import ro.niconeko.astralbooks.AstralBooksAPI;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.persistent.item.ItemData;
+import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 
 @SuppressWarnings("unused")
@@ -44,6 +46,19 @@ public class CitizensActions implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void rightClick(NPCRightClickEvent event) {
+        ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
+        if (itemInPlayerHand.getType() != Material.AIR) {
+            if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+                ItemData data = this.api.itemDataFactory(itemInPlayerHand);
+                String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
+                if (filterName != null && !filterName.isEmpty() && this.plugin.getStorage().hasFilterBook(filterName)) {
+                    ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+                    this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
         int npcId = event.getNPC().getId();
         if (!this.plugin.getStorage().hasNPCBook(npcId, Side.RIGHT))
             return;
@@ -62,6 +77,19 @@ public class CitizensActions implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void leftCLick(NPCLeftClickEvent event) {
+        ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
+        if (itemInPlayerHand.getType() != Material.AIR) {
+            if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+                ItemData data = this.api.itemDataFactory(itemInPlayerHand);
+                String filterName = data.getString(PersistentKey.ITEM_LEFT_KEY);
+                if (filterName != null && !filterName.isEmpty() && this.plugin.getStorage().hasFilterBook(filterName)) {
+                    ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+                    this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
         int npcId = event.getNPC().getId();
         if (!this.plugin.getStorage().hasNPCBook(npcId, Side.LEFT))
             return;

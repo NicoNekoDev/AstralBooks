@@ -39,6 +39,7 @@ public enum Message {
     SET_CUSTOM_COMMAND_SUCCESSFULLY("set_custom_command_successfully", "&aCommand %command% has been set!"),
     REMOVED_CUSTOM_COMMAND_SUCCESSFULLY("removed_custom_command_successfully", "&aCommand %command% has been removed!"),
     CONSOLE_CANNOT_USE_COMMAND("console_cannot_use_command", "&cYou have to be a player if you want to use this command!"),
+    PLAYER_CANNOT_USE_COMMAND("player_cannot_use_command", "&cConsole command only!"),
     NEW_VERSION_AVAILABLE("new_version_available", "&aA new version of AstralBooks is available!"),
     FILTER_APPLIED_TO_ITEM("filter_applied_to_item", "&aFilter %filter_name% has been applied to your holding item."),
     FILTER_REMOVED_FROM_ITEM("filter_removed_from_item", "&aThe filter has been removed from your holding item."),
@@ -48,6 +49,7 @@ public enum Message {
     REMOVED_JOIN_BOOK_SUCCESSFULLY("removed_join_book_successfully", "&aYou have removed the join book!"),
     FILTER_NAME_INVALID("filter_name_invalid", "&cThe filter name should only contain letters, numbers, dashes and underscores!"),
     COMMAND_NAME_INVALID("command_name_invalid", "&cThe command name should only contain letters, numbers, dashes and underscores!"),
+    PERMISSION_INVALID("permission_invalid", "&cThe permission should only contain letters, numbers, dots, dashes and underscores!"),
     OPERATION_FAILED("operation_failed", "&cThe operation failed! Please check the console for errors!"),
     FILTERS_LIST_PAGE_NOT_FOUND("filters_list_page_not_found", "&cThere's no filters at page %page%"),
     FILTERS_LIST_PRESENT("filters_list_present", "&aHere's the list of filters present:"),
@@ -62,6 +64,7 @@ public enum Message {
     BOOK_APPLIED_SUCCESSFULLY_TO_ENTITY("book_applied_successfully_to_entity", "&aThe book have been applied to entity! (%type%)"),
     BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK("book_removed_successfully_from_block", "&aThe book have been removed from block! (%block_x%, %block_y%, %block_z%)"),
     BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY("book_removed_successfully_from_entity", "&aThe book have been removed from entity! (%type%)"),
+    ENTITY_IS_NPC("entity_is_npc", "&cThe entity is an Citizens NPC. Use &f/abook npc &cto set a book for this type of entity!"),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/abook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/abook npc remove [right/left]"),

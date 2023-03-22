@@ -30,6 +30,7 @@ import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftMetaBook;
 import org.bukkit.entity.Entity;
@@ -100,18 +101,24 @@ public class DistributionHandler extends Distribution {
     public ItemStack convertJsonToBook(JsonObject jsonBook) throws IllegalAccessException {
         ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta bookMeta = (BookMeta) newBook.getItemMeta();
-        JsonPrimitive jsonAuthor = jsonBook.getAsJsonPrimitive("author");
-        JsonPrimitive jsonTitle = jsonBook.getAsJsonPrimitive("title");
-        JsonArray jsonPages = jsonBook.getAsJsonArray("pages");
-        bookMeta.setAuthor(jsonAuthor.isString() ? jsonAuthor.getAsString() : "Server");
-        bookMeta.setTitle(jsonTitle.isString() ? jsonTitle.getAsString() : "Title");
+        JsonElement jsonAuthor = jsonBook.get("author");
+        JsonElement jsonTitle = jsonBook.get("title");
+        JsonElement jsonPages = jsonBook.get("pages");
+        bookMeta.setAuthor(jsonAuthor != null && jsonAuthor.isJsonPrimitive() ? jsonAuthor.getAsString() : "Server");
+        bookMeta.setTitle(jsonTitle != null && jsonTitle.isJsonPrimitive() ? jsonTitle.getAsString() : "Title");
         List<String> pages = new ArrayList<>();
-        for (JsonElement jsonPage : jsonPages) {
-            pages.add(jsonPage.toString());
-        }
+        if (jsonPages != null && jsonPages.isJsonArray())
+            for (JsonElement jsonPage : ((JsonArray) jsonPages)) {
+                pages.add(jsonPage.toString());
+            }
         this.pagesField.set(bookMeta, pages);
         newBook.setItemMeta(bookMeta);
         return newBook;
+    }
+
+    @Override
+    public void setConfigComment(ConfigurationSection config, String path, Optional<List<String>> comments) {
+        comments.ifPresent(strings -> config.setComments(path, strings));
     }
 
     @SuppressWarnings({"ConstantConditions", "unchecked"})

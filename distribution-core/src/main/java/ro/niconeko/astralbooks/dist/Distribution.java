@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Chunk;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -66,6 +67,10 @@ public abstract class Distribution {
 
     public final String getVersion() {
         return this.version;
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public void setConfigComment(ConfigurationSection config, String path, Optional<List<String>> comments) {
     }
 
     public PersistentDataContainer getEntityDataContainer(Entity entity) {

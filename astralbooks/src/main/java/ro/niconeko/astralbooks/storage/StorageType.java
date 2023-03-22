@@ -14,10 +14,10 @@ public enum StorageType {
         return this.type;
     }
 
-    public static StorageType fromString(String side) {
-        if (side.equalsIgnoreCase("mysql"))
+    public static StorageType fromString(String type) {
+        if (type.equalsIgnoreCase("mysql"))
             return MYSQL;
-        else if (side.equalsIgnoreCase("sqlite"))
+        else if (type.equalsIgnoreCase("sqlite"))
             return SQLITE;
         return JSON;
     }

@@ -2,26 +2,30 @@ package ro.niconeko.astralbooks.settings;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.utils.Message;
-import ro.niconeko.astralbooks.utils.SettingsUtil;
 
-public class MessageSettings implements SettingsSerializer {
+public class MessageSettings extends Settings {
     private ConfigurationSection section = new YamlConfiguration();
+
+    public MessageSettings(AstralBooksPlugin plugin) {
+        super(plugin);
+    }
 
     @Override
     public void load(ConfigurationSection section) {
         this.section = section;
         for (Message msg : Message.values()) {
-            SettingsUtil.getOrSetStringFunction(section, msg.getPath(), msg.getDefault());
+            super.getOrSetStringFunction(section, msg.getPath(), msg.getDefault());
         }
     }
 
     public String getMessage(Message msg) {
-        return SettingsUtil.parseMessage(this.section.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
-                + SettingsUtil.parseMessage(this.section.getString(msg.getPath(), msg.getDefault()));
+        return super.parseMessage(this.section.getString(Message.HEADER.getPath(), Message.HEADER.getDefault()))
+                + super.parseMessage(this.section.getString(msg.getPath(), msg.getDefault()));
     }
 
     public String getMessageNoHeader(Message msg) {
-        return SettingsUtil.parseMessage(this.section.getString(msg.getPath(), msg.getPath()));
+        return super.parseMessage(this.section.getString(msg.getPath(), msg.getPath()));
     }
 }

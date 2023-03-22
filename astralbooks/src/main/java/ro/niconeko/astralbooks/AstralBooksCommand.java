@@ -34,9 +34,9 @@ import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.settings.MessageSettings;
+import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
-import ro.niconeko.astralbooks.utils.SettingsUtil;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.util.*;
@@ -53,6 +53,8 @@ public class AstralBooksCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         Optional<Player> player = this.isPlayer(sender) ? Optional.of((Player) sender) : Optional.empty();
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
+        Side side;
+        PersistentKey action;
         if (args.length > 0) {
             switch (args[0]) {
                 case "help" -> {
@@ -70,6 +72,33 @@ public class AstralBooksCommand implements TabExecutor {
                     } else
                         this.sendHelp(sender, 0);
                 }
+                case "convert" -> {
+                    if (player.isPresent()) {
+                        sender.sendMessage(messageSettings.getMessage(Message.PLAYER_CANNOT_USE_COMMAND));
+                        break;
+                    }
+                    if (args.length > 1) {
+                        StorageType type = switch (args[1]) {
+                            case "mysql" -> StorageType.MYSQL;
+                            case "sqlite" -> StorageType.SQLITE;
+                            case "json" -> StorageType.JSON;
+                            default -> null;
+                        };
+                        if (type == null) {
+                            sender.sendMessage("Argument: mysql, sqlite, json");
+                            break;
+                        }
+                        sender.sendMessage("Conversion begins...");
+                        if (!this.plugin.getStorage().convertFrom(type)) {
+                            sender.sendMessage("Conversion failed!");
+                            break;
+                        }
+                        sender.sendMessage("Reloading plugin...");
+                        this.plugin.reloadPlugin();
+                        sender.sendMessage("Done! :)");
+                    } else
+                        sender.sendMessage("Argument: mysql, sqlite, json");
+                }
                 case "interaction" -> {
                     if (!this.api.hasPermission(sender, "astralbooks.command.interaction")) {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
@@ -79,7 +108,6 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    Side side = Side.RIGHT;
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -96,13 +124,15 @@ public class AstralBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("left".equalsIgnoreCase(args[3]))
+                                                if ("right".equalsIgnoreCase(args[3]))
+                                                    side = Side.RIGHT;
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = Side.LEFT;
                                                 else {
                                                     sender.sendMessage(messageSettings.getMessage(Message.USAGE_INTERACTION_SET_BLOCK));
                                                     break;
                                                 }
-                                            }
+                                            } else side = Side.RIGHT;
                                             if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
                                                 sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                                 break;
@@ -116,13 +146,15 @@ public class AstralBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("left".equalsIgnoreCase(args[3]))
+                                                if ("right".equalsIgnoreCase(args[3]))
+                                                    side = Side.RIGHT;
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = Side.LEFT;
                                                 else {
                                                     sender.sendMessage(messageSettings.getMessage(Message.USAGE_INTERACTION_SET_ENTITY));
                                                     break;
                                                 }
-                                            }
+                                            } else side = Side.RIGHT;
                                             if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
                                                 sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                                 break;
@@ -148,13 +180,15 @@ public class AstralBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("left".equalsIgnoreCase(args[3]))
+                                                if ("right".equalsIgnoreCase(args[3]))
+                                                    side = Side.RIGHT;
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = Side.LEFT;
                                                 else {
                                                     sender.sendMessage(messageSettings.getMessage(Message.USAGE_INTERACTION_REMOVE_BLOCK));
                                                     break;
                                                 }
-                                            }
+                                            } else side = Side.RIGHT;
                                             this.plugin.getPlayerActionsListener().setBookBlockOperator(player.get(), null, side);
                                             sender.sendMessage(messageSettings.getMessage(Message.BOOK_REMOVE_FROM_BLOCK_TIMEOUT));
                                         }
@@ -164,13 +198,15 @@ public class AstralBooksCommand implements TabExecutor {
                                                 break;
                                             }
                                             if (args.length > 3) {
-                                                if ("left".equalsIgnoreCase(args[3]))
+                                                if ("right".equalsIgnoreCase(args[3]))
+                                                    side = Side.RIGHT;
+                                                else if ("left".equalsIgnoreCase(args[3]))
                                                     side = Side.LEFT;
                                                 else {
                                                     sender.sendMessage(messageSettings.getMessage(Message.USAGE_INTERACTION_REMOVE_ENTITY));
                                                     break;
                                                 }
-                                            }
+                                            } else side = Side.RIGHT;
                                             this.plugin.getPlayerActionsListener().setBookEntityOperator(player.get(), null, side);
                                             sender.sendMessage(messageSettings.getMessage(Message.BOOK_REMOVE_FROM_ENTITY_TIMEOUT));
                                         }
@@ -199,7 +235,6 @@ public class AstralBooksCommand implements TabExecutor {
                         break;
                     }
                     Optional<NPC> npc;
-                    String side = "right_side";
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -218,15 +253,15 @@ public class AstralBooksCommand implements TabExecutor {
                                 }
                                 if (args.length > 2) {
                                     if ("right".equalsIgnoreCase(args[2]))
-                                        side = "right_side";
+                                        side = Side.RIGHT;
                                     else if ("left".equalsIgnoreCase(args[2]))
-                                        side = "left_side";
+                                        side = Side.LEFT;
                                     else {
                                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_NPC_SET).replace("%npc%", npc.get().getFullName()));
                                         break;
                                     }
-                                }
-                                if (!this.plugin.getStorage().putNPCBook(npc.get().getId(), Side.fromString(side), this.getItemFromHand(player.get()))) {
+                                } else side = Side.RIGHT;
+                                if (!this.plugin.getStorage().putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()))) {
                                     sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     break;
                                 }
@@ -244,15 +279,15 @@ public class AstralBooksCommand implements TabExecutor {
                                 }
                                 if (args.length > 2) {
                                     if ("right".equalsIgnoreCase(args[2]))
-                                        side = "right_side";
+                                        side = Side.RIGHT;
                                     else if ("left".equalsIgnoreCase(args[2]))
-                                        side = "left_side";
+                                        side = Side.LEFT;
                                     else {
                                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_NPC_REMOVE).replace("%npc%", npc.get().getFullName()));
                                         break;
                                     }
-                                }
-                                if (!this.plugin.getStorage().removeNPCBook(npc.get().getId(), Side.fromString(side))) {
+                                } else side = Side.RIGHT;
+                                if (!this.plugin.getStorage().removeNPCBook(npc.get().getId(), side)) {
                                     sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     break;
                                 }
@@ -270,19 +305,20 @@ public class AstralBooksCommand implements TabExecutor {
                                 }
                                 if (args.length > 2) {
                                     if ("right".equalsIgnoreCase(args[2]))
-                                        side = "right_side";
+                                        side = Side.RIGHT;
                                     else if ("left".equalsIgnoreCase(args[2]))
-                                        side = "left_side";
+                                        side = Side.LEFT;
                                     else {
                                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_NPC_GETBOOK).replace("%npc%", npc.get().getFullName()));
                                         break;
                                     }
-                                }
-                                if (!this.plugin.getStorage().hasNPCBook(npc.get().getId(), Side.valueOf(side))) {
+                                } else
+                                    side = Side.RIGHT;
+                                if (!this.plugin.getStorage().hasNPCBook(npc.get().getId(), side)) {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_BOOK_FOR_NPC).replace("%npc%", npc.get().getFullName()));
                                     break;
                                 }
-                                ItemStack book = this.plugin.getStorage().getNPCBook(npc.get().getId(), Side.valueOf(side), new ItemStack(Material.WRITTEN_BOOK));
+                                ItemStack book = this.plugin.getStorage().getNPCBook(npc.get().getId(), side, new ItemStack(Material.WRITTEN_BOOK));
                                 player.get().getInventory().addItem(book);
                                 sender.sendMessage(messageSettings.getMessage(Message.BOOK_RECEIVED));
                             }
@@ -304,7 +340,6 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    PersistentKey action = null;
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -335,7 +370,7 @@ public class AstralBooksCommand implements TabExecutor {
                                             sender.sendMessage(messageSettings.getMessage(Message.USAGE_ACTIONITEM_SET).replace("%filter_name%", filter_name));
                                             break;
                                         }
-                                    }
+                                    } else action = PersistentKey.ITEM_RIGHT_KEY;
                                     ItemStack item = this.getItemFromHand(player.get());
                                     ItemData data = this.api.itemDataFactory(item);
                                     data.putString(action, filter_name);
@@ -363,7 +398,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_ACTIONITEM_SET));
                                         break;
                                     }
-                                }
+                                } else action = PersistentKey.ITEM_RIGHT_KEY;
                                 ItemStack item = this.getItemFromHand(player.get());
                                 ItemData data = this.api.itemDataFactory(item);
                                 if (data.hasStringKey(action))
@@ -461,8 +496,10 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
-                    this.api.setJoinBook(this.getItemFromHand(player.get()));
-                    this.plugin.getSettings().setJoinBookLastChange(System.currentTimeMillis());
+                    if (!this.plugin.getStorage().setJoinBook(this.getItemFromHand(player.get()))) {
+                        sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     sender.sendMessage(messageSettings.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
                 }
                 case "remjoin" -> {
@@ -470,11 +507,10 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.api.removeJoinBook()) {
+                    if (!this.plugin.getStorage().removeJoinBook()) {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
-                    this.plugin.getSettings().setJoinBookLastChange(0);
                     sender.sendMessage(messageSettings.getMessage(Message.REMOVED_JOIN_BOOK_SUCCESSFULLY));
                 }
                 case "openbook" -> {
@@ -524,19 +560,24 @@ public class AstralBooksCommand implements TabExecutor {
                     if (args.length > 2) {
                         String command_name = args[1];
                         if (!this.api.isValidName(command_name)) {
-                            sender.sendMessage(messageSettings.getMessage(Message.COMMAND_NAME_INVALID).replace("%invalid_command_name%", command_name));
+                            sender.sendMessage(messageSettings.getMessage(Message.COMMAND_NAME_INVALID).replace("%invalid_command%", command_name));
                             break;
                         }
                         String filter_name = args[2];
                         if (!this.api.isValidName(filter_name)) {
-                            sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
+                            sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                             break;
                         }
-                        if (!this.plugin.getStorage().putCommandFilter(command_name, filter_name, args.length > 3 ? args[3] : "none")) {
+                        String permission = args.length > 3 ? args[3] : "none";
+                        if (!this.api.isValidPermission(permission)) {
+                            sender.sendMessage(messageSettings.getMessage(Message.PERMISSION_INVALID).replace("%invalid_permission%", permission));
+                            break;
+                        }
+                        if (!this.plugin.getStorage().putCommandFilter(command_name, filter_name, permission)) {
                             sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                             break;
                         }
-                        sender.sendMessage(messageSettings.getMessage(Message.SET_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command_name%", args[1]).replace("%filter_name%", filter_name));
+                        sender.sendMessage(messageSettings.getMessage(Message.SET_CUSTOM_COMMAND_SUCCESSFULLY).replace("%command%", args[1]).replace("%filter%", filter_name));
                     } else
                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_SETCMD));
                 }
@@ -548,7 +589,7 @@ public class AstralBooksCommand implements TabExecutor {
                     if (args.length > 1) {
                         String command_name = args[1];
                         if (!this.api.isValidName(command_name)) {
-                            sender.sendMessage(messageSettings.getMessage(Message.COMMAND_NAME_INVALID).replace("%invalid_command_name%", command_name));
+                            sender.sendMessage(messageSettings.getMessage(Message.COMMAND_NAME_INVALID).replace("%invalid_command%", command_name));
                             break;
                         }
                         if (!this.plugin.getStorage().removeCommandFilter(command_name)) {
@@ -578,7 +619,7 @@ public class AstralBooksCommand implements TabExecutor {
                                 if (args.length > 2) {
                                     String filter_name = args[2];
                                     if (!this.api.isValidName(filter_name)) {
-                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
+                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
                                     if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
@@ -601,14 +642,14 @@ public class AstralBooksCommand implements TabExecutor {
                                 if (args.length > 2) {
                                     String filter_name = args[2];
                                     if (!this.api.isValidName(filter_name)) {
-                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
+                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
                                     if (!this.plugin.getStorage().removeFilterBook(filter_name)) {
                                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                         break;
                                     }
-                                    sender.sendMessage(messageSettings.getMessage(Message.FILTER_REMOVED).replace("%filter_name%", filter_name));
+                                    sender.sendMessage(messageSettings.getMessage(Message.FILTER_REMOVED).replace("%filter%", filter_name));
                                 } else
                                     sender.sendMessage(messageSettings.getMessage(Message.USAGE_FILTER_REMOVE));
                             }
@@ -624,7 +665,7 @@ public class AstralBooksCommand implements TabExecutor {
                                 if (args.length > 2) {
                                     String filter_name = args[2];
                                     if (!this.api.isValidName(filter_name)) {
-                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
+                                        sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
                                     if (!this.plugin.getStorage().hasFilterBook(filter_name)) {
@@ -707,20 +748,19 @@ public class AstralBooksCommand implements TabExecutor {
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             switch (args[0]) {
-                case "interaction":
+                case "interaction" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.interaction.set"))
                         commands.add("set");
                     if (this.api.hasPermission(sender, "astralbooks.command.interaction.remove"))
                         commands.add("remove");
-                    break;
-                case "actionitem":
-                case "ai":
+                }
+                case "actionitem", "ai" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.actionitem.set"))
                         commands.add("set");
                     if (this.api.hasPermission(sender, "astralbooks.command.actionitem.remove"))
                         commands.add("remove");
-                    break;
-                case "filter":
+                }
+                case "filter" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.filter.set"))
                         commands.add("set");
                     if (this.api.hasPermission(sender, "astralbooks.command.filter.remove"))
@@ -729,33 +769,32 @@ public class AstralBooksCommand implements TabExecutor {
                         commands.add("getbook");
                     if (this.api.hasPermission(sender, "astralbooks.command.filter.list"))
                         commands.add("list");
-                    break;
-                case "forceopen":
+                }
+                case "forceopen" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.forceopen"))
                         commands.addAll(this.plugin.getStorage().getFilterNames());
-                    break;
-                case "remcmd":
+                }
+                case "remcmd" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.remcmd"))
                         commands.addAll(this.plugin.getStorage().getCommandFilterNames());
-                    break;
-                case "npc":
+                }
+                case "npc" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.npc.set"))
                         commands.add("set");
                     if (this.api.hasPermission(sender, "astralbooks.command.npc.remove"))
                         commands.add("remove");
                     if (this.api.hasPermission(sender, "astralbooks.command.npc.getbook"))
                         commands.add("getbook");
-                    break;
-                case "help":
+                }
+                case "help" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command"))
                         commands.addAll(List.of("1", "2", "3"));
-                default:
-                    break;
+                }
             }
             StringUtil.copyPartialMatches(args[1], commands, completions);
         } else if (args.length == 3) {
             switch (args[0]) {
-                case "interaction":
+                case "interaction" -> {
                     switch (args[1]) {
                         case "set" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.interaction.set.block"))
@@ -770,26 +809,26 @@ public class AstralBooksCommand implements TabExecutor {
                                 commands.add("entity");
                         }
                     }
-                case "filter":
+                }
+                case "filter" -> {
                     if (args[1].equals("remove") || args[1].equals("getbook")) {
                         if (this.api.hasPermission(sender, "astralbooks.command.filter.remove")
                                 || this.api.hasPermission(sender, "astralbooks.command.filter.getbook")) {
                             commands.addAll(this.plugin.getStorage().getFilterNames());
                         }
                     }
-                    break;
-                case "forceopen":
+                }
+                case "forceopen" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.forceopen")) {
                         commands.add("@a");
                         commands.addAll(this.api.getPlayers());
                     }
-                    break;
-                case "setcmd":
+                }
+                case "setcmd" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.setcmd"))
                         commands.addAll(this.plugin.getStorage().getFilterNames());
-                    break;
-                case "actionitem":
-                case "ai":
+                }
+                case "actionitem", "ai" -> {
                     switch (args[1]) {
                         case "set" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.actionitem.set"))
@@ -800,7 +839,8 @@ public class AstralBooksCommand implements TabExecutor {
                                 commands.addAll(List.of("right", "left"));
                         }
                     }
-                case "npc":
+                }
+                case "npc" -> {
                     switch (args[1]) {
                         case "set" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.npc.set"))
@@ -815,8 +855,7 @@ public class AstralBooksCommand implements TabExecutor {
                                 commands.addAll(List.of("right", "left"));
                         }
                     }
-                default:
-                    break;
+                }
             }
             StringUtil.copyPartialMatches(args[2], commands, completions);
         } else if (args.length == 4) {
@@ -1043,7 +1082,7 @@ public class AstralBooksCommand implements TabExecutor {
         for (int i = 0; i < 10; i++) {
             String row = page[i];
             if (row == null) continue;
-            sender.sendMessage(SettingsUtil.parseMessage("&c&l  " + (((pageNum - 1) * 10) + i + 1) + ") &a" + row));
+            sender.sendMessage(messageSettings.parseMessage("&c&l  " + (((pageNum - 1) * 10) + i + 1) + ") &a" + row));
         }
         sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
     }

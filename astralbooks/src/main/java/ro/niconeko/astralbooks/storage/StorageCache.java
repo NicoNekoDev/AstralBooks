@@ -49,16 +49,14 @@ public class StorageCache {
                         return storage.getCommandFilterStack(key).get();
                     }
                 });
-        if (this.plugin.isCitizensEnabled()) {
-            this.npcBooks = CacheBuilder.newBuilder()
-                    .expireAfterAccess(5, TimeUnit.MINUTES)
-                    .build(new CacheLoader<>() {
-                        @Override
-                        public @NotNull ItemStack load(@NotNull Pair<Integer, Side> key) throws Exception {
-                            return storage.getNPCBookStack(key.getFirstValue(), key.getSecondValue()).get();
-                        }
-                    });
-        }
+        this.npcBooks = CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull ItemStack load(@NotNull Pair<Integer, Side> key) throws Exception {
+                        return storage.getNPCBookStack(key.getFirstValue(), key.getSecondValue()).get();
+                    }
+                });
     }
 
     public void unload() {
@@ -69,7 +67,7 @@ public class StorageCache {
             this.filterBooks = null;
             this.poolExecutor.shutdown();
             //noinspection ResultOfMethodCallIgnored
-            this.poolExecutor.awaitTermination(5, TimeUnit.SECONDS);
+            this.poolExecutor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -96,8 +94,6 @@ public class StorageCache {
     }
 
     protected ItemStack getNPCBook(int npcId, Side side, ItemStack def) {
-        if (!this.plugin.isCitizensEnabled())
-            throw new IllegalStateException("Citizens is not enabled!");
         try {
             return this.npcBooks.get(Pair.of(npcId, side));
         } catch (Exception e) {

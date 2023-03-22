@@ -27,7 +27,6 @@ import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -55,7 +54,7 @@ public class AstralBooksPlugin extends JavaPlugin {
     @Getter private Permission vaultPerms;
     @Getter private LuckPerms luckPerms;
     @Getter private final AstralBooksAPI API = new AstralBooksAPI(this);
-    @Getter private PluginSettings settings;
+    @Getter private final PluginSettings settings = new PluginSettings(this);
     @Getter private Storage storage;
     @Getter private boolean PlaceholderAPIEnabled, AuthMeEnabled, CitizensEnabled, LuckPermsEnabled, VaultEnabled, NBTAPIEnabled;
     @Getter private PlayerActions playerActionsListener;
@@ -107,7 +106,7 @@ public class AstralBooksPlugin extends JavaPlugin {
                         } else
                             this.getLogger().info("Failed to hook into LuckPerms!");
                     } else {
-                        this.getLogger().info("Your LuckPerms version is oudated! :(");
+                        this.getLogger().info("Your LuckPerms version is outdated! :(");
                         if (manager.isPluginEnabled("Vault")) {
                             RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
                             if (provider != null) {
@@ -155,14 +154,17 @@ public class AstralBooksPlugin extends JavaPlugin {
                 }
             }
 
+            this.playerActionsListener = new PlayerActions(this);
+            this.serverActionsListener = new ServerActions(this);
+
             if (!this.reloadPlugin())
                 throw new IllegalStateException("Failed to load settings!");
 
             if (this.settings.isMetricsEnabled())
                 new Metrics(this, 18026);
 
-            manager.registerEvents((this.playerActionsListener = new PlayerActions(this)), this);
-            manager.registerEvents((this.serverActionsListener = new ServerActions(this)), this);
+            manager.registerEvents(this.playerActionsListener, this);
+            manager.registerEvents(this.serverActionsListener, this);
 
             PluginCommand astralBooksCommand = this.getCommand("abook");
             if (astralBooksCommand != null)
@@ -190,7 +192,8 @@ public class AstralBooksPlugin extends JavaPlugin {
             this.playerActionsListener.onDisable();
         if (this.serverActionsListener != null)
             this.serverActionsListener.onDisable();
-        this.storage.unload();
+        if (this.storage != null)
+            this.storage.unload();
     }
 
     private boolean registerCompletions(Commodore commodore, PluginCommand command) {
@@ -206,27 +209,53 @@ public class AstralBooksPlugin extends JavaPlugin {
         }
     }
 
-    public boolean reloadPlugin() {
+    public void loadSettings() {
         try {
-            FileConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
             config.options().setHeader(
-                    List.of("---------------------------------------------------------------------#",
-                            "     _____ _ _   _                     ____              _           #",
-                            "    / ____(_) | (_)                   |  _ \\            | |          #",
-                            "   | |     _| |_ _ _______ _ __  ___  | |_) | ___   ___ | | _____    #",
-                            "   | |    | | __| |_  / _ \\ '_ \\/ __| |  _ < / _ \\ / _ \\| |/ / __|   #",
-                            "   | |____| | |_| |/ /  __/ | | \\__ \\ | |_) | (_) | (_) |   <\\__ \\   #",
-                            "    \\_____|_|\\__|_/___\\___|_| |_|___/ |____/ \\___/ \\___/|_|\\_\\___/   #",
-                            "                                                                     #",
-                            "---------------------------------------------------------------------#")
+                    List.of("""
+                                             _             _ ____              _       \s
+                                   /\\       | |           | |  _ \\            | |      \s
+                                  /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
+                                 / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
+                                / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
+                               /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
+                                                                                       \s
+                                                                                       \s
+                            """.split("\n"))
             );
-            this.settings = new PluginSettings();
             this.settings.load(config);
-            config.save(settingsFile);
-        } catch (IOException e) {
-            this.getLogger().severe("Failed to load settings!");
-            return false;
+        } catch (Exception ex) {
+            this.getLogger().log(Level.WARNING, "Failed to load settings", ex);
         }
+    }
+
+    public void saveSettings() {
+        try {
+            YamlConfiguration config = new YamlConfiguration();
+            this.settings.load(config);
+            config.options().setHeader(
+                    List.of("""
+                                             _             _ ____              _       \s
+                                   /\\       | |           | |  _ \\            | |      \s
+                                  /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
+                                 / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
+                                / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
+                               /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
+                                                                                       \s
+                                                                                       \s
+                            """.split("\n"))
+            );
+            config.save(this.settingsFile);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.WARNING, "Failed to save settings", ex);
+        }
+    }
+
+    public boolean reloadPlugin() {
+        this.loadSettings();
+        if (!this.settingsFile.exists())
+            this.saveSettings();
         try {
             if (this.storage != null)
                 this.storage.unload();

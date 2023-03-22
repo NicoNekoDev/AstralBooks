@@ -2,9 +2,14 @@ package ro.niconeko.astralbooks.storage;
 
 
 import com.google.common.base.Preconditions;
+import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
+import ro.niconeko.astralbooks.AstralBooksAPI;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.storage.types.JsonStorage;
@@ -12,23 +17,60 @@ import ro.niconeko.astralbooks.storage.types.MySQLStorage;
 import ro.niconeko.astralbooks.storage.types.SQLiteStorage;
 import ro.niconeko.astralbooks.utils.Side;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.sql.SQLException;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class Storage {
     private final AstralBooksPlugin plugin;
     private StorageCache cache;
     private AbstractStorage storage;
+    private final File joinBookFile;
+    private JsonObject joinBookDatabase;
+    private boolean needsJoinBookAutoSave = false;
+    private BukkitTask autoSaveJoinBook;
 
     public Storage(AstralBooksPlugin plugin) {
         this.plugin = plugin;
+        this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
+    }
+
+    public boolean convertFrom(StorageType type) {
+        if (storage == null) throw new IllegalStateException("Trying to convert while database is not enabled");
+        try {
+            AbstractStorage convertFrom = switch (type) {
+                case JSON -> new JsonStorage(plugin);
+                case MYSQL -> new MySQLStorage(plugin);
+                case SQLITE -> new SQLiteStorage(plugin);
+            };
+            convertFrom.cache.load();
+            convertFrom.load(this.plugin.getSettings().getStorageSettings());
+            this.storage.convertFrom(convertFrom);
+            convertFrom.cache.unload();
+            convertFrom.unload();
+            return true;
+        } catch (Exception ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Failed conversion!", ex);
+            return false;
+        }
     }
 
     public boolean load(StorageSettings settings) throws SQLException {
-        if (this.storage != null)
-            this.storage.unload();
+        if (this.plugin.getSettings().isJoinBookEnabled()) {
+            if (joinBookFile.exists())
+                this.joinBookDatabase = this.readJsonFile(this.joinBookFile);
+            this.needsJoinBookAutoSave = false;
+            this.autoSaveJoinBook = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+                if (this.needsJoinBookAutoSave) this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
+            }, 20L * 60, 20L * 60);
+        }
         if (this.cache != null)
             this.cache.unload();
+        if (this.storage != null)
+            this.storage.unload();
         this.storage = switch (settings.getDatabaseType()) {
             case JSON -> new JsonStorage(plugin);
             case MYSQL -> new MySQLStorage(plugin);
@@ -40,10 +82,128 @@ public class Storage {
     }
 
     public void unload() {
-        if (this.storage != null)
-            this.storage.unload();
+        if (this.autoSaveJoinBook != null && !this.autoSaveJoinBook.isCancelled())
+            this.autoSaveJoinBook.cancel();
+        if (this.joinBookDatabase != null) {
+            this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
+            this.joinBookDatabase = null;
+        }
         if (this.cache != null)
             this.cache.unload();
+        if (this.storage != null)
+            this.storage.unload();
+    }
+
+    private JsonObject readJsonFile(File jsonFile) throws JsonParseException {
+        try (FileReader fileReader = new FileReader(jsonFile)) {
+            return AstralBooksAPI.GSON.fromJson(fileReader, JsonObject.class);
+        } catch (Exception ex) {
+            throw new JsonParseException("Failed to parse the json file " + jsonFile.getName());
+        }
+    }
+
+    private void writeJsonFile(File jsonFile, JsonObject jsonObject) {
+        try (FileWriter fileWriter = new FileWriter(jsonFile)) {
+            AstralBooksAPI.GSON.toJson(jsonObject, fileWriter);
+        } catch (Exception ex) {
+            throw new JsonParseException("Failed to put the data the json file " + jsonFile.getName());
+        }
+    }
+
+    public boolean setJoinBook(ItemStack book) {
+        Preconditions.checkNotNull(book, "The ItemStack is null! This is not an error with AstralBooks," +
+                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with AstralBooks," +
+                " so please don't report it. Make sure the plugins that uses AstralBooks as dependency are correctly configured.");
+        if (!this.removeJoinBook())
+            return false;
+        try {
+            this.joinBookDatabase = new JsonObject();
+            this.autoSaveJoinBook = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+                if (this.needsJoinBookAutoSave) this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
+            }, 20L * 60, 20L * 60);
+            this.joinBookDatabase.add("last_change", new JsonPrimitive(System.currentTimeMillis()));
+            this.joinBookDatabase.add("join_book", this.plugin.getAPI().getDistribution().convertBookToJson(book));
+            this.joinBookDatabase.add("players", new JsonObject());
+            this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
+            return true;
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Unable to convert book to json", ex);
+            return false;
+        }
+    }
+
+    public boolean removeJoinBook() {
+        if (this.joinBookFile.exists() && this.joinBookDatabase != null) {
+            this.needsJoinBookAutoSave = false;
+            this.joinBookDatabase = null;
+            if (this.autoSaveJoinBook != null && !this.autoSaveJoinBook.isCancelled())
+                this.autoSaveJoinBook.cancel();
+            return this.joinBookFile.delete();
+        }
+        return true;
+    }
+
+    public ItemStack getJoinBook() {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return null;
+        try {
+            JsonElement joinBook = this.joinBookDatabase.get("join_book");
+            if (joinBook == null || !joinBook.isJsonObject())
+                return null;
+            return this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) joinBook);
+        } catch (IllegalAccessException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "Unable to convert json to book", ex);
+            return null;
+        }
+    }
+
+    public boolean hasJoinBook() {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return false;
+        return this.joinBookDatabase.has("join_book");
+    }
+
+    public long getJoinBookLastChange() {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return 0;
+        JsonElement lastChange = this.joinBookDatabase.get("last_change");
+        if (lastChange == null || !lastChange.isJsonPrimitive())
+            return 0;
+        return lastChange.getAsLong();
+    }
+
+    public long getJoinBookLastSeen(Player player) {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return 0;
+        JsonElement players = this.joinBookDatabase.get("players");
+        if (players == null || !players.isJsonObject())
+            return 0;
+        JsonElement lastSeen = ((JsonObject) players).get(player.getUniqueId().toString());
+        if (lastSeen == null || !lastSeen.isJsonPrimitive())
+            return 0;
+        return lastSeen.getAsLong();
+    }
+
+    public void setJoinBookLastSeen(Player player, long lastSeen) {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return;
+        JsonElement players = this.joinBookDatabase.get("players");
+        if (players == null || !players.isJsonObject()) {
+            players = new JsonObject();
+            this.joinBookDatabase.add("players", players);
+        }
+        ((JsonObject) players).add(player.getUniqueId().toString(), new JsonPrimitive(lastSeen));
+        this.needsJoinBookAutoSave = true;
+    }
+
+    public boolean hasJoinBookLastSeen(Player player) {
+        if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
+            return false;
+        JsonElement players = this.joinBookDatabase.get("players");
+        if (players == null || !players.isJsonObject())
+            return false;
+        return ((JsonObject) players).has(player.getUniqueId().toString());
     }
 
     // NPCs books
@@ -76,6 +236,10 @@ public class Storage {
     public boolean hasNPCBook(int npcId, Side side) {
         Preconditions.checkArgument(npcId >= 0, "NPC id is less than 0!");
         return this.cache.hasNPCBook(npcId, side);
+    }
+
+    public Set<Pair<Integer, Side>> getNPCBooks() {
+        return this.cache.getNPCBooks();
     }
 
     // Filters books
@@ -139,7 +303,7 @@ public class Storage {
         Preconditions.checkArgument(!cmd.isEmpty(), "The command is empty! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Preconditions.checkArgument(this.plugin.getAPI().isValidName(cmd), "Invalid characters found in command!");
-        Preconditions.checkArgument(this.plugin.getAPI().isValidName(permission), "Invalid characters found in permission!");
+        Preconditions.checkArgument(this.plugin.getAPI().isValidPermission(permission), "Invalid characters found in permission!");
         return this.cache.putCommandFilter(cmd, filterName, permission);
     }
 
