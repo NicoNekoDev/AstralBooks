@@ -500,6 +500,11 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
+                    this.plugin.getSettings().setJoinBookEnabled(true);
+                    if (!this.plugin.saveSettings()) {
+                        sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
                     sender.sendMessage(messageSettings.getMessage(Message.SET_JOIN_BOOK_SUCCESSFULLY));
                 }
                 case "remjoin" -> {
@@ -508,6 +513,11 @@ public class AstralBooksCommand implements TabExecutor {
                         break;
                     }
                     if (!this.plugin.getStorage().removeJoinBook()) {
+                        sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
+                        break;
+                    }
+                    this.plugin.getSettings().setJoinBookEnabled(false);
+                    if (!this.plugin.saveSettings()) {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }

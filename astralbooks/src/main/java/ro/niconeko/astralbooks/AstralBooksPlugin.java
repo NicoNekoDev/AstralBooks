@@ -209,7 +209,7 @@ public class AstralBooksPlugin extends JavaPlugin {
         }
     }
 
-    public void loadSettings() {
+    public boolean loadSettings() {
         try {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
             config.options().setHeader(
@@ -225,12 +225,14 @@ public class AstralBooksPlugin extends JavaPlugin {
                             """.split("\n"))
             );
             this.settings.load(config);
+            return true;
         } catch (Exception ex) {
             this.getLogger().log(Level.WARNING, "Failed to load settings", ex);
+            return false;
         }
     }
 
-    public void saveSettings() {
+    public boolean saveSettings() {
         try {
             YamlConfiguration config = new YamlConfiguration();
             this.settings.load(config);
@@ -247,15 +249,16 @@ public class AstralBooksPlugin extends JavaPlugin {
                             """.split("\n"))
             );
             config.save(this.settingsFile);
+            return true;
         } catch (IOException ex) {
             this.getLogger().log(Level.WARNING, "Failed to save settings", ex);
+            return false;
         }
     }
 
     public boolean reloadPlugin() {
         this.loadSettings();
-        if (!this.settingsFile.exists())
-            this.saveSettings();
+        this.saveSettings();
         try {
             if (this.storage != null)
                 this.storage.unload();

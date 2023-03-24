@@ -2,6 +2,7 @@ package ro.niconeko.astralbooks.settings;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
@@ -12,7 +13,7 @@ import java.util.Optional;
 public class PluginSettings extends Settings {
     @Getter private boolean metricsEnabled = true;
     @Getter private boolean updateCheck = true;
-    @Getter private boolean joinBookEnabled = false;
+    @Getter @Setter private boolean joinBookEnabled = false;
     @Getter private boolean joinBookAlwaysShow = false;
     @Getter private boolean joinBookEnableDelay = false;
     @Getter private int joinBookDelay = 0;

@@ -44,8 +44,8 @@
             <url>https://repo.citizensnpcs.co/</url>
         </repository>
         <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/NicoNekoDev/SimpleTuples</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -58,8 +58,8 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>io.github.niconekodev</groupId>
-            <artifactId>simpletuples</artifactId>
+            <groupId>com.github.NicoNekoDev</groupId>
+            <artifactId>SimpleTuples</artifactId>
             <version>1.0.1</version>
             <scope>compile</scope>
             <type>jar</type>

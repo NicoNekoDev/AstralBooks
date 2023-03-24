@@ -15,9 +15,8 @@ public class MessageSettings extends Settings {
     @Override
     public void load(ConfigurationSection section) {
         this.section = section;
-        for (Message msg : Message.values()) {
+        for (Message msg : Message.values())
             super.getOrSetStringFunction(section, msg.getPath(), msg.getDefault());
-        }
     }
 
     public String getMessage(Message msg) {
