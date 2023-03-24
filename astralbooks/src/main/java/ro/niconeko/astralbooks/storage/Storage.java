@@ -185,9 +185,9 @@ public class Storage {
         return lastSeen.getAsLong();
     }
 
-    public void setJoinBookLastSeen(Player player, long lastSeen) {
+    public boolean setJoinBookLastSeen(Player player, long lastSeen) {
         if (!this.joinBookFile.exists() && this.joinBookDatabase == null)
-            return;
+            return false;
         JsonElement players = this.joinBookDatabase.get("players");
         if (players == null || !players.isJsonObject()) {
             players = new JsonObject();
@@ -195,6 +195,7 @@ public class Storage {
         }
         ((JsonObject) players).add(player.getUniqueId().toString(), new JsonPrimitive(lastSeen));
         this.needsJoinBookAutoSave = true;
+        return true;
     }
 
     public boolean hasJoinBookLastSeen(Player player) {

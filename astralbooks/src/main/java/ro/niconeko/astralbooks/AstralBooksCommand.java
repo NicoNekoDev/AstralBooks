@@ -72,16 +72,22 @@ public class AstralBooksCommand implements TabExecutor {
                     } else
                         this.sendHelp(sender, 0);
                 }
+                case "import" -> {
+                    if (player.isPresent()) {
+                        sender.sendMessage(messageSettings.getMessage(Message.PLAYER_CANNOT_USE_COMMAND));
+                        break;
+                    }
+                    if (args.length > 1 && args[1].equals("citizensbooks"))
+                        this.api.importFromCitizensBooks();
+                    else
+                        plugin.getLogger().info("Argument: citizensbooks");
+                }
                 case "convert" -> {
                     if (player.isPresent()) {
                         sender.sendMessage(messageSettings.getMessage(Message.PLAYER_CANNOT_USE_COMMAND));
                         break;
                     }
                     if (args.length > 1) {
-                        if (args[1].equals("citizensbooks")) {
-                            this.api.importFromCitizensBooks();
-                            break;
-                        }
                         StorageType type = switch (args[1]) {
                             case "mysql" -> StorageType.MYSQL;
                             case "sqlite" -> StorageType.SQLITE;
@@ -100,8 +106,7 @@ public class AstralBooksCommand implements TabExecutor {
                         plugin.getLogger().info("Reloading plugin...");
                         this.plugin.reloadPlugin();
                         plugin.getLogger().info("Done! :)");
-                    } else
-                        plugin.getLogger().info("Argument: mysql, sqlite, json");
+                    } else plugin.getLogger().info("Argument: mysql, sqlite, json");
                 }
                 case "interaction" -> {
                     if (!this.api.hasPermission(sender, "astralbooks.command.interaction")) {

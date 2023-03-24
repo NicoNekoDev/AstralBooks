@@ -20,9 +20,7 @@
 package ro.niconeko.astralbooks;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -462,5 +460,108 @@ public class AstralBooksAPI {
                 this.plugin.getLogger().log(Level.WARNING, "Failed to decode item!", ex);
             }
         return null;
+    }
+
+    public boolean setJoinBook(ItemStack book) {
+        return this.plugin.getStorage().setJoinBook(book);
+    }
+
+    public boolean removeJoinBook() {
+        return this.plugin.getStorage().removeJoinBook();
+    }
+
+    public ItemStack getJoinBook() {
+        return this.plugin.getStorage().getJoinBook();
+    }
+
+    public boolean hasJoinBook() {
+        return this.plugin.getStorage().hasJoinBook();
+    }
+
+    public long getJoinBookLastChange() {
+        return this.plugin.getStorage().getJoinBookLastChange();
+    }
+
+    public long getJoinBookLastSeen(Player player) {
+        return this.plugin.getStorage().getJoinBookLastSeen(player);
+    }
+
+    public boolean setJoinBookLastSeen(Player player, long lastSeen) {
+        return this.plugin.getStorage().setJoinBookLastSeen(player, lastSeen);
+    }
+
+    public boolean hasJoinBookLastSeen(Player player) {
+        return this.plugin.getStorage().hasJoinBookLastSeen(player);
+    }
+
+    // NPCs books
+    public boolean putNPCBook(int npcId, Side side, ItemStack book) {
+        return this.plugin.getStorage().putNPCBook(npcId, side, book);
+    }
+
+    public boolean removeNPCBook(int npcId, Side side) {
+        return this.plugin.getStorage().removeNPCBook(npcId, side);
+    }
+
+    public ItemStack getNPCBook(int npcId, Side side, ItemStack def) {
+        return this.plugin.getStorage().getNPCBook(npcId, side, def);
+    }
+
+    public ItemStack getNPCBook(int npcId, Side side) {
+        return this.plugin.getStorage().getNPCBook(npcId, side);
+    }
+
+    public boolean hasNPCBook(int npcId, Side side) {
+        return this.plugin.getStorage().hasNPCBook(npcId, side);
+    }
+
+    public Set<Pair<Integer, Side>> getNPCBooks() {
+        return this.plugin.getStorage().getNPCBooks();
+    }
+
+    // Filters books
+    public boolean putFilterBook(String filterName, ItemStack book) {
+        return this.plugin.getStorage().putFilterBook(filterName, book);
+    }
+
+    public boolean removeFilterBook(String filterName) {
+        return this.plugin.getStorage().removeFilterBook(filterName);
+    }
+
+    public ItemStack getFilterBook(String filterName, ItemStack def) {
+        return this.plugin.getStorage().getFilterBook(filterName, def);
+    }
+
+    public ItemStack getFilterBook(String filterName) {
+        return this.plugin.getStorage().getFilterBook(filterName);
+    }
+
+    public boolean hasFilterBook(String filterName) {
+        return this.plugin.getStorage().hasFilterBook(filterName);
+    }
+
+    public Set<String> getFilterNames() {
+        return this.plugin.getStorage().getFilterNames();
+    }
+
+    // Commands filters
+    public boolean putCommandFilter(String cmd, String filterName, String permission) {
+        return this.plugin.getStorage().putCommandFilter(cmd, filterName, permission);
+    }
+
+    public boolean removeCommandFilter(String cmd) {
+        return this.plugin.getStorage().removeCommandFilter(cmd);
+    }
+
+    public Pair<String, String> getCommandFilter(String cmd) {
+        return this.plugin.getStorage().getCommandFilter(cmd);
+    }
+
+    public boolean hasCommandFilter(String cmd) {
+        return this.plugin.getStorage().hasCommandFilter(cmd);
+    }
+
+    public Set<String> getCommandFilterNames() {
+        return this.plugin.getStorage().getCommandFilterNames();
     }
 }
