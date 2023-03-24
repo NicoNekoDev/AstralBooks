@@ -17,7 +17,7 @@
 
  */
 
-package ro.niconeko.astralbooks.dist.v1_19_R3;
+package ro.niconeko.astralbooks.dist.v1_19_R2;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
