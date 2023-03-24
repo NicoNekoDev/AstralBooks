@@ -150,13 +150,6 @@
         <module>distribution-core</module>
     </modules>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>maven-snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <build>
         <plugins>
             <plugin>
@@ -212,12 +205,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub NicoNekoDev Packages</name>
-            <url>https://maven.pkg.github.com/NicoNekoDev/AstralBooks</url>
-        </repository>
-    </distributionManagement>
 </project>

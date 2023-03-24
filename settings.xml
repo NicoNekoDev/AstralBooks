@@ -21,37 +21,11 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-    <activeProfiles>
-        <activeProfile>github</activeProfile>
-    </activeProfiles>
-
-    <profiles>
-        <profile>
-            <id>github</id>
-            <repositories>
-                <repository>
-                    <id>central</id>
-                    <url>https://repo1.maven.org/maven2</url>
-                </repository>
-                <repository>
-                    <id>github</id>
-                    <url>https://maven.pkg.github.com/NicoNekoDev/AstralBooks</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
-
     <servers>
         <server>
-            <id>github</id>
-            <username>NicoNekoDev</username>
-            <password>${env.GITHUB_TOKEN}</password>
+            <id>repsy</id>
+            <username>niconeko</username>
+            <password>${env.REPSY_PASS}</password>
         </server>
     </servers>
 </settings>

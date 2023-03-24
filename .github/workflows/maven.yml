@@ -45,7 +45,6 @@ jobs:
         shell: bash
 
       - name: Build AstralBooks with Maven
-        run: mvn --batch-mode package -s $GITHUB_WORKSPACE/settings.xml
+        run: mvn --batch-mode install -s $GITHUB_WORKSPACE/settings.xml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          REPSY_PASS: ${{ secrets.REPSY_PASS }}
