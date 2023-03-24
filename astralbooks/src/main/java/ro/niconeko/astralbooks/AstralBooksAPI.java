@@ -26,6 +26,7 @@ import com.google.gson.JsonObject;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.context.ContextManager;
@@ -53,10 +54,12 @@ import ro.niconeko.astralbooks.persistent.item.EmptyItemData;
 import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.persistent.item.NBTAPIItemData;
 import ro.niconeko.astralbooks.persistent.item.PersistentItemData;
-import ro.niconeko.astralbooks.storage.StorageType;
+import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
+import ro.nicuch.citizensbooks.CitizensBooksAPI;
+import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -81,8 +84,60 @@ public class AstralBooksAPI {
         this.plugin = plugin;
     }
 
-    public void importStorage(StorageType type) {
-
+    protected void importFromCitizensBooks() {
+        Storage storage = this.plugin.getStorage();
+        if (!Bukkit.getPluginManager().isPluginEnabled("CitizensBooks")) {
+            this.plugin.getLogger().info("CitizensBooks not enabled");
+            return;
+        }
+        CitizensBooksPlugin plugin = (CitizensBooksPlugin) Bukkit.getPluginManager().getPlugin("CitizensBooks");
+        if (plugin == null) {
+            this.plugin.getLogger().info("CitizensBooks not enabled");
+            return;
+        }
+        CitizensBooksAPI api = plugin.getAPI();
+        if (this.plugin.isCitizensEnabled()) {
+            this.plugin.getLogger().warning("Importing NPCs books...");
+            for (NPC npc : CitizensAPI.getNPCRegistry()) {
+                int npcId = npc.getId();
+                if (api.hasNPCBook(npcId, Side.RIGHT.toString())) {
+                    if (storage.hasNPCBook(npcId, Side.RIGHT))
+                        this.plugin.getLogger().info("NPC (id: " + npcId + ") right side is already set, skipping!");
+                    else
+                        storage.putNPCBook(npcId, Side.RIGHT, api.getNPCBook(npcId, Side.RIGHT.toString()));
+                }
+                if (api.hasNPCBook(npcId, Side.LEFT.toString())) {
+                    if (storage.hasNPCBook(npcId, Side.LEFT))
+                        this.plugin.getLogger().info("NPC (id: " + npcId + ") left side is already set, skipping!");
+                    else
+                        storage.putNPCBook(npcId, Side.LEFT, api.getNPCBook(npcId, Side.LEFT.toString()));
+                }
+            }
+        } else
+            this.plugin.getLogger().warning("Citizens is required for NPCs conversion!");
+        this.plugin.getLogger().warning("Importing filters...");
+        for (String filterName : api.getFilters()) {
+            if (storage.hasFilterBook(filterName))
+                this.plugin.getLogger().info("Filter (id: " + filterName + ") is already set, skipping!");
+            else
+                storage.putFilterBook(filterName, api.getFilter(filterName));
+        }
+        this.plugin.getLogger().warning("Importing commands...");
+        if (plugin.getSettings().isConfigurationSection("commands"))
+            //noinspection DataFlowIssue
+            for (String commandName : plugin.getSettings().getConfigurationSection("commands").getKeys(false)) {
+                String filterName = plugin.getSettings().getString("commands." + commandName + ".filter_name");
+                String permission = plugin.getSettings().getString("commands." + commandName + ".permission");
+                if (storage.hasCommandFilter(commandName))
+                    this.plugin.getLogger().info("Command (id: " + commandName + ") is already set, skipping!");
+                else
+                    storage.putCommandFilter(commandName, filterName, permission == null || permission.isEmpty() ? "none" : permission);
+            }
+        if (!storage.hasJoinBook() && api.getJoinBook() != null) {
+            this.plugin.getLogger().warning("Importing the join book... (please enabled it in the settings)");
+            storage.setJoinBook(api.getJoinBook());
+        } else this.plugin.getLogger().warning("Join book was not found");
+        this.plugin.getLogger().warning("Done :)");
     }
 
     public boolean noNBTAPIRequired() {

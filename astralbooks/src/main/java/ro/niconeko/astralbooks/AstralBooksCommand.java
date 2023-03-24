@@ -78,6 +78,10 @@ public class AstralBooksCommand implements TabExecutor {
                         break;
                     }
                     if (args.length > 1) {
+                        if (args[1].equals("citizensbooks")) {
+                            this.api.importFromCitizensBooks();
+                            break;
+                        }
                         StorageType type = switch (args[1]) {
                             case "mysql" -> StorageType.MYSQL;
                             case "sqlite" -> StorageType.SQLITE;
@@ -85,19 +89,19 @@ public class AstralBooksCommand implements TabExecutor {
                             default -> null;
                         };
                         if (type == null) {
-                            sender.sendMessage("Argument: mysql, sqlite, json");
+                            plugin.getLogger().info("Argument: mysql, sqlite, json");
                             break;
                         }
-                        sender.sendMessage("Conversion begins...");
+                        plugin.getLogger().info("Conversion begins...");
                         if (!this.plugin.getStorage().convertFrom(type)) {
                             sender.sendMessage("Conversion failed!");
                             break;
                         }
-                        sender.sendMessage("Reloading plugin...");
+                        plugin.getLogger().info("Reloading plugin...");
                         this.plugin.reloadPlugin();
-                        sender.sendMessage("Done! :)");
+                        plugin.getLogger().info("Done! :)");
                     } else
-                        sender.sendMessage("Argument: mysql, sqlite, json");
+                        plugin.getLogger().info("Argument: mysql, sqlite, json");
                 }
                 case "interaction" -> {
                     if (!this.api.hasPermission(sender, "astralbooks.command.interaction")) {
