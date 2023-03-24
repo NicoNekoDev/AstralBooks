@@ -32,6 +32,17 @@
         <java.version>16</java.version>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>repsy-release</id>
+            <url>https://repo.repsy.io/mvn/niconeko/release</url>
+        </repository>
+        <snapshotRepository>
+            <id>repsy-snapshots</id>
+            <url>https://repo.repsy.io/mvn/niconeko/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <repositories>
         <repository>
             <id>repsy-release</id>
