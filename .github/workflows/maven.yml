@@ -44,7 +44,5 @@ jobs:
           ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java17.sh
         shell: bash
 
-      - name: Build & Deploy - AstralBooks - with Maven
-        run: mvn --batch-mode deploy -s $GITHUB_WORKSPACE/settings.xml
-        env:
-          REPSY_PASS: ${{ secrets.REPSY_PASS }}
+      - name: Build AstralBooks with Maven
+        run: mvn --batch-mode install
