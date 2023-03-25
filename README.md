@@ -27,7 +27,7 @@ mvn clean package
 <dependencies>
   <dependency>
     <groupId>ro.niconeko</groupId>
-    <artifactId>AstralBooks</artifactId>
+    <artifactId>astralbooks-api</artifactId>
     <version>LATEST</version>
   </dependency>
 </dependencies>
