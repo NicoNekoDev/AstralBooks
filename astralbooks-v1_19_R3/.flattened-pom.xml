@@ -23,18 +23,18 @@
   <parent>
     <groupId>ro.niconeko</groupId>
     <artifactId>astralbooks-parent</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1-SNAPSHOT</version>
   </parent>
   <groupId>ro.niconeko</groupId>
   <artifactId>astralbooks-v1_19_R3</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1-SNAPSHOT</version>
   <properties>
     <java.version>16</java.version>
   </properties>
   <dependencies>
     <dependency>
       <groupId>ro.niconeko</groupId>
-      <artifactId>AstralBooks</artifactId>
+      <artifactId>astralbooks-core</artifactId>
       <version>${revision}</version>
       <scope>provided</scope>
       <optional>true</optional>

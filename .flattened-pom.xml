@@ -22,10 +22,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ro.niconeko</groupId>
   <artifactId>astralbooks-parent</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>AstralBooks</module>
+    <module>astralbooks-core</module>
+    <module>astralbooks-api</module>
     <module>astralbooks-v1_8_R2</module>
     <module>astralbooks-v1_8_R3</module>
     <module>astralbooks-v1_9_R1</module>
@@ -63,7 +64,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <github.global.server>github</github.global.server>
-    <revision>3.0.0</revision>
+    <revision>3.0.1-SNAPSHOT</revision>
   </properties>
   <dependencies>
     <dependency>
@@ -198,6 +199,23 @@
           <updatePomFile>true</updatePomFile>
           <flattenMode>resolveCiFriendliesOnly</flattenMode>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.4.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <minimizeJar>false</minimizeJar>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

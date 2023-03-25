@@ -47,7 +47,7 @@
     <dependencies>
         <dependency>
             <groupId>ro.niconeko</groupId>
-            <artifactId>AstralBooks</artifactId>
+            <artifactId>astralbooks-core</artifactId>
             <version>${revision}</version>
             <scope>provided</scope>
             <type>jar</type>

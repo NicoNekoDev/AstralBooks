@@ -26,7 +26,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>3.0.0</revision>
+        <revision>3.0.1-SNAPSHOT</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <github.global.server>github</github.global.server>
@@ -140,7 +140,8 @@
     </dependencies>
 
     <modules>
-        <module>AstralBooks</module>
+        <module>astralbooks-core</module>
+        <module>astralbooks-api</module>
         <module>astralbooks-v1_8_R2</module>
         <module>astralbooks-v1_8_R3</module>
         <module>astralbooks-v1_9_R1</module>
@@ -207,6 +208,24 @@
                     </execution>
                 </executions>
                 <inherited>true</inherited>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
