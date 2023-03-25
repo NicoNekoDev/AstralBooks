@@ -22,7 +22,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ro.niconeko</groupId>
   <artifactId>astralbooks-parent</artifactId>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.1</version>
   <packaging>pom</packaging>
   <modules>
     <module>astralbooks-core</module>
@@ -64,7 +64,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <github.global.server>github</github.global.server>
-    <revision>3.0.1-SNAPSHOT</revision>
+    <revision>3.0.1</revision>
   </properties>
   <dependencies>
     <dependency>
