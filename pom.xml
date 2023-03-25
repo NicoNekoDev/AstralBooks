@@ -141,7 +141,7 @@
 
     <modules>
         <module>astralbooks-core</module>
-        <module>astralbooks-apis</module>
+        <module>astralbooks-api</module>
         <module>astralbooks-v1_8_R2</module>
         <module>astralbooks-v1_8_R3</module>
         <module>astralbooks-v1_9_R1</module>
