@@ -2,3 +2,4 @@
 /target/
 /*/target/
 *.iml
+!/.flattened-pom.xml

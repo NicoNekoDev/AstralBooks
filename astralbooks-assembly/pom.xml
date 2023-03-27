@@ -174,7 +174,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>AstralBooks-${project.version}</finalName>
+                    <finalName>AstralBooks-${revision}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <version>3.3.0</version>

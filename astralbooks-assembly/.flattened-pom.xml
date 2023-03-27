@@ -23,11 +23,11 @@
   <parent>
     <groupId>ro.niconeko</groupId>
     <artifactId>astralbooks-parent</artifactId>
-    <version>3.0.1</version>
+    <version>3.0.2-SNAPSHOT</version>
   </parent>
   <groupId>ro.niconeko</groupId>
   <artifactId>astralbooks-assembly</artifactId>
-  <version>3.0.1</version>
+  <version>3.0.2-SNAPSHOT</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.deploy.skip>true</maven.deploy.skip>
@@ -180,7 +180,7 @@
           </execution>
         </executions>
         <configuration>
-          <finalName>AstralBooks-${project.version}</finalName>
+          <finalName>AstralBooks-${revision}</finalName>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>

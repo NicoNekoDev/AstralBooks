@@ -11,11 +11,11 @@ import java.util.Optional;
 public class StorageMySQLSettings extends Settings {
     @Getter private String host = "localhost";
     @Getter private int port = 3306;
-    @Getter private String database = "citizensbooks";
+    @Getter private String database = "astralbooks";
     @Getter private String username = "root";
     @Getter private String password = "";
     @Getter private boolean SSLEnabled = false;
-    @Getter private String tablePrefix = "cbooks_";
+    @Getter private String tablePrefix = "abooks_";
     @Getter private String serverName = "default";
 
     public StorageMySQLSettings(AstralBooksPlugin plugin) {
