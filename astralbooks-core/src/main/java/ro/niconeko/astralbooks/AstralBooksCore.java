@@ -54,7 +54,7 @@ import ro.niconeko.astralbooks.persistent.item.EmptyItemData;
 import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.persistent.item.NBTAPIItemData;
 import ro.niconeko.astralbooks.persistent.item.PersistentItemData;
-import ro.niconeko.astralbooks.storage.Storage;
+import ro.niconeko.astralbooks.storage.PluginStorage;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
@@ -85,7 +85,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     protected void importFromCitizensBooks() {
-        Storage storage = this.plugin.getStorage();
+        PluginStorage pluginStorage = this.plugin.getPluginStorage();
         if (!Bukkit.getPluginManager().isPluginEnabled("CitizensBooks")) {
             this.plugin.getLogger().info("CitizensBooks not enabled");
             return;
@@ -101,26 +101,26 @@ public class AstralBooksCore implements AstralBooksAPI {
             for (NPC npc : CitizensAPI.getNPCRegistry()) {
                 int npcId = npc.getId();
                 if (api.hasNPCBook(npcId, Side.RIGHT.toString())) {
-                    if (storage.hasNPCBook(npcId, Side.RIGHT))
+                    if (pluginStorage.hasNPCBook(npcId, Side.RIGHT))
                         this.plugin.getLogger().info("NPC (id: " + npcId + ") right side is already set, skipping!");
                     else
-                        storage.putNPCBook(npcId, Side.RIGHT, api.getNPCBook(npcId, Side.RIGHT.toString()));
+                        pluginStorage.putNPCBook(npcId, Side.RIGHT, api.getNPCBook(npcId, Side.RIGHT.toString()));
                 }
                 if (api.hasNPCBook(npcId, Side.LEFT.toString())) {
-                    if (storage.hasNPCBook(npcId, Side.LEFT))
+                    if (pluginStorage.hasNPCBook(npcId, Side.LEFT))
                         this.plugin.getLogger().info("NPC (id: " + npcId + ") left side is already set, skipping!");
                     else
-                        storage.putNPCBook(npcId, Side.LEFT, api.getNPCBook(npcId, Side.LEFT.toString()));
+                        pluginStorage.putNPCBook(npcId, Side.LEFT, api.getNPCBook(npcId, Side.LEFT.toString()));
                 }
             }
         } else
             this.plugin.getLogger().warning("Citizens is required for NPCs conversion!");
         this.plugin.getLogger().warning("Importing filters...");
         for (String filterName : api.getFilters()) {
-            if (storage.hasFilterBook(filterName))
+            if (pluginStorage.hasFilterBook(filterName))
                 this.plugin.getLogger().info("Filter (id: " + filterName + ") is already set, skipping!");
             else
-                storage.putFilterBook(filterName, api.getFilter(filterName));
+                pluginStorage.putFilterBook(filterName, api.getFilter(filterName));
         }
         this.plugin.getLogger().warning("Importing commands...");
         if (plugin.getSettings().isConfigurationSection("commands"))
@@ -128,14 +128,14 @@ public class AstralBooksCore implements AstralBooksAPI {
             for (String commandName : plugin.getSettings().getConfigurationSection("commands").getKeys(false)) {
                 String filterName = plugin.getSettings().getString("commands." + commandName + ".filter_name");
                 String permission = plugin.getSettings().getString("commands." + commandName + ".permission");
-                if (storage.hasCommandFilter(commandName))
+                if (pluginStorage.hasCommandFilter(commandName))
                     this.plugin.getLogger().info("Command (id: " + commandName + ") is already set, skipping!");
                 else
-                    storage.putCommandFilter(commandName, filterName, permission == null || permission.isEmpty() ? "none" : permission);
+                    pluginStorage.putCommandFilter(commandName, filterName, permission == null || permission.isEmpty() ? "none" : permission);
             }
-        if (!storage.hasJoinBook() && api.getJoinBook() != null) {
+        if (!pluginStorage.hasJoinBook() && api.getJoinBook() != null) {
             this.plugin.getLogger().warning("Importing the join book... (please enabled it in the settings)");
-            storage.setJoinBook(api.getJoinBook());
+            pluginStorage.setJoinBook(api.getJoinBook());
         } else this.plugin.getLogger().warning("Join book was not found");
         this.plugin.getLogger().warning("Done :)");
     }
@@ -307,10 +307,10 @@ public class AstralBooksCore implements AstralBooksAPI {
                     else {
                         NPC npc = optionalNPC.get();
                         return PlaceholderAPI.setPlaceholders(player, arg).replace("%npc_name%", npc.getName())
-                                .replace("%npc_id%", npc.getId() + "")
-                                .replace("%npc_loc_x%", npc.getEntity().getLocation().getX() + "")
-                                .replace("%npc_loc_y%", npc.getEntity().getLocation().getY() + "")
-                                .replace("%npc_loc_z%", npc.getEntity().getLocation().getZ() + "")
+                                .replace("%npc_id%", String.valueOf(npc.getId()))
+                                .replace("%npc_loc_x%", String.valueOf(npc.getEntity().getLocation().getX()))
+                                .replace("%npc_loc_y%", String.valueOf(npc.getEntity().getLocation().getY()))
+                                .replace("%npc_loc_z%", String.valueOf(npc.getEntity().getLocation().getZ()))
                                 .replace("%npc_loc_world%", npc.getEntity().getWorld().getName());
                     }
                 };
@@ -322,10 +322,10 @@ public class AstralBooksCore implements AstralBooksAPI {
                     else {
                         NPC npc = optionalNPC.get();
                         return PlaceholderAPI.setPlaceholders(player, argList).stream().map(str -> str.replace("%npc_name%", npc.getName())
-                                .replace("%npc_id%", npc.getId() + "")
-                                .replace("%npc_loc_x%", npc.getEntity().getLocation().getX() + "")
-                                .replace("%npc_loc_y%", npc.getEntity().getLocation().getY() + "")
-                                .replace("%npc_loc_z%", npc.getEntity().getLocation().getZ() + "")
+                                .replace("%npc_id%", String.valueOf(npc.getId()))
+                                .replace("%npc_loc_x%", String.valueOf(npc.getEntity().getLocation().getX()))
+                                .replace("%npc_loc_y%", String.valueOf(npc.getEntity().getLocation().getY()))
+                                .replace("%npc_loc_z%", String.valueOf(npc.getEntity().getLocation().getZ()))
                                 .replace("%npc_loc_world%", npc.getEntity().getWorld().getName())).toList();
                     }
                 };
@@ -466,129 +466,129 @@ public class AstralBooksCore implements AstralBooksAPI {
 
     @Override
     public boolean setJoinBook(ItemStack book) {
-        return this.plugin.getStorage().setJoinBook(book);
+        return this.plugin.getPluginStorage().setJoinBook(book);
     }
 
     @Override
     public boolean removeJoinBook() {
-        return this.plugin.getStorage().removeJoinBook();
+        return this.plugin.getPluginStorage().removeJoinBook();
     }
 
     @Override
     public ItemStack getJoinBook() {
-        return this.plugin.getStorage().getJoinBook();
+        return this.plugin.getPluginStorage().getJoinBook();
     }
 
     @Override
     public boolean hasJoinBook() {
-        return this.plugin.getStorage().hasJoinBook();
+        return this.plugin.getPluginStorage().hasJoinBook();
     }
 
     @Override
     public long getJoinBookLastChange() {
-        return this.plugin.getStorage().getJoinBookLastChange();
+        return this.plugin.getPluginStorage().getJoinBookLastChange();
     }
 
     @Override
     public long getJoinBookLastSeen(Player player) {
-        return this.plugin.getStorage().getJoinBookLastSeen(player);
+        return this.plugin.getPluginStorage().getJoinBookLastSeen(player);
     }
 
     @Override
     public boolean setJoinBookLastSeen(Player player, long lastSeen) {
-        return this.plugin.getStorage().setJoinBookLastSeen(player, lastSeen);
+        return this.plugin.getPluginStorage().setJoinBookLastSeen(player, lastSeen);
     }
 
     @Override
     public boolean hasJoinBookLastSeen(Player player) {
-        return this.plugin.getStorage().hasJoinBookLastSeen(player);
+        return this.plugin.getPluginStorage().hasJoinBookLastSeen(player);
     }
 
     // NPCs books
     @Override
     public boolean putNPCBook(int npcId, Side side, ItemStack book) {
-        return this.plugin.getStorage().putNPCBook(npcId, side, book);
+        return this.plugin.getPluginStorage().putNPCBook(npcId, side, book);
     }
 
     @Override
     public boolean removeNPCBook(int npcId, Side side) {
-        return this.plugin.getStorage().removeNPCBook(npcId, side);
+        return this.plugin.getPluginStorage().removeNPCBook(npcId, side);
     }
 
     @Override
     public ItemStack getNPCBook(int npcId, Side side, ItemStack def) {
-        return this.plugin.getStorage().getNPCBook(npcId, side, def);
+        return this.plugin.getPluginStorage().getNPCBook(npcId, side, def);
     }
 
     @Override
     public ItemStack getNPCBook(int npcId, Side side) {
-        return this.plugin.getStorage().getNPCBook(npcId, side);
+        return this.plugin.getPluginStorage().getNPCBook(npcId, side);
     }
 
     @Override
     public boolean hasNPCBook(int npcId, Side side) {
-        return this.plugin.getStorage().hasNPCBook(npcId, side);
+        return this.plugin.getPluginStorage().hasNPCBook(npcId, side);
     }
 
 
     public Set<Pair<Integer, Side>> getNPCBooks() {
-        return this.plugin.getStorage().getNPCBooks();
+        return this.plugin.getPluginStorage().getNPCBooks();
     }
 
     // Filters books
     @Override
     public boolean putFilterBook(String filterName, ItemStack book) {
-        return this.plugin.getStorage().putFilterBook(filterName, book);
+        return this.plugin.getPluginStorage().putFilterBook(filterName, book);
     }
 
     @Override
     public boolean removeFilterBook(String filterName) {
-        return this.plugin.getStorage().removeFilterBook(filterName);
+        return this.plugin.getPluginStorage().removeFilterBook(filterName);
     }
 
     @Override
     public ItemStack getFilterBook(String filterName, ItemStack def) {
-        return this.plugin.getStorage().getFilterBook(filterName, def);
+        return this.plugin.getPluginStorage().getFilterBook(filterName, def);
     }
 
     @Override
     public ItemStack getFilterBook(String filterName) {
-        return this.plugin.getStorage().getFilterBook(filterName);
+        return this.plugin.getPluginStorage().getFilterBook(filterName);
     }
 
     @Override
     public boolean hasFilterBook(String filterName) {
-        return this.plugin.getStorage().hasFilterBook(filterName);
+        return this.plugin.getPluginStorage().hasFilterBook(filterName);
     }
 
     @Override
     public Set<String> getFilterNames() {
-        return this.plugin.getStorage().getFilterNames();
+        return this.plugin.getPluginStorage().getFilterNames();
     }
 
     // Commands filters
     @Override
     public boolean putCommandFilter(String cmd, String filterName, @NotNull String permission) {
-        return this.plugin.getStorage().putCommandFilter(cmd, filterName, permission);
+        return this.plugin.getPluginStorage().putCommandFilter(cmd, filterName, permission);
     }
 
     @Override
     public boolean removeCommandFilter(String cmd) {
-        return this.plugin.getStorage().removeCommandFilter(cmd);
+        return this.plugin.getPluginStorage().removeCommandFilter(cmd);
     }
 
     @Override
     public Pair<String, String> getCommandFilter(String cmd) {
-        return this.plugin.getStorage().getCommandFilter(cmd);
+        return this.plugin.getPluginStorage().getCommandFilter(cmd);
     }
 
     @Override
     public boolean hasCommandFilter(String cmd) {
-        return this.plugin.getStorage().hasCommandFilter(cmd);
+        return this.plugin.getPluginStorage().hasCommandFilter(cmd);
     }
 
     @Override
     public Set<String> getCommandFilterNames() {
-        return this.plugin.getStorage().getCommandFilterNames();
+        return this.plugin.getPluginStorage().getCommandFilterNames();
     }
 }

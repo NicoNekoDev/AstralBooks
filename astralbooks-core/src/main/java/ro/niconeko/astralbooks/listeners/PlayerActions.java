@@ -98,12 +98,12 @@ public class PlayerActions implements Listener {
                 while ((delayedJoinPlayer = this.delayedJoinBookPlayers.poll()) != null) {
                     Player player = delayedJoinPlayer.getPlayer();
                     if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
-                        if (this.plugin.getStorage().hasJoinBookLastSeen(player))
-                            if (this.plugin.getStorage().getJoinBookLastSeen(player) >= this.plugin.getStorage().getJoinBookLastChange())
+                        if (this.plugin.getPluginStorage().hasJoinBookLastSeen(player))
+                            if (this.plugin.getPluginStorage().getJoinBookLastSeen(player) >= this.plugin.getPluginStorage().getJoinBookLastChange())
                                 continue;
-                        this.plugin.getStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
+                        this.plugin.getPluginStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
                     }
-                    this.api.openBook(player, this.api.placeholderHook(player, this.plugin.getStorage().getJoinBook(), null));
+                    this.api.openBook(player, this.api.placeholderHook(player, this.plugin.getPluginStorage().getJoinBook(), null));
                 }
             }
         }, 20L, 20L);
@@ -125,9 +125,9 @@ public class PlayerActions implements Listener {
                 this.api.removeBookOfBlock(block, pair.getSecondValue());
                 event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK)
                         .replace("%player%", event.getPlayer().getName())
-                        .replace("%block_x%", block.getX() + "")
-                        .replace("%block_y%", block.getY() + "")
-                        .replace("%block_z%", block.getZ() + "")
+                        .replace("%block_x%", String.valueOf(block.getX()))
+                        .replace("%block_y%", String.valueOf(block.getY()))
+                        .replace("%block_z%", String.valueOf(block.getZ()))
                         .replace("%world%", block.getWorld().getName())
                         .replace("%type%", block.getType().name())
                 );
@@ -137,9 +137,9 @@ public class PlayerActions implements Listener {
             this.api.putBookOnBlock(block, pair.getFirstValue(), pair.getSecondValue());
             event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
                     .replace("%player%", event.getPlayer().getName())
-                    .replace("%block_x%", block.getX() + "")
-                    .replace("%block_y%", block.getY() + "")
-                    .replace("%block_z%", block.getZ() + "")
+                    .replace("%block_x%", String.valueOf(block.getX()))
+                    .replace("%block_y%", String.valueOf(block.getY()))
+                    .replace("%block_z%", String.valueOf(block.getZ()))
                     .replace("%world%", block.getWorld().getName())
                     .replace("%type%", block.getType().name())
             );
@@ -155,8 +155,8 @@ public class PlayerActions implements Listener {
                         case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> data.getString(PersistentKey.ITEM_RIGHT_KEY);
                         default -> null;
                     };
-            if (filterName != null && !filterName.isEmpty() && this.plugin.getStorage().hasFilterBook(filterName)) {
-                ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+            if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
+                ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                 this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
                 event.setCancelled(true);
                 return;
@@ -212,8 +212,8 @@ public class PlayerActions implements Listener {
             if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
                 ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                 String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
-                if (filterName != null && !filterName.isEmpty() && this.plugin.getStorage().hasFilterBook(filterName)) {
-                    ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+                if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
+                    ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                     this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
                     event.setCancelled(true);
                     return;
@@ -241,8 +241,8 @@ public class PlayerActions implements Listener {
                 if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
                     ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                     String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
-                    if (filterName != null && !filterName.isEmpty() && this.plugin.getStorage().hasFilterBook(filterName)) {
-                        ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+                    if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
+                        ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                         this.api.openBook(player, this.api.placeholderHook(player, book));
                         event.setCancelled(true);
                         return;
@@ -266,19 +266,19 @@ public class PlayerActions implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         String command = event.getMessage().substring(1).split(" ")[0];
-        if (!this.plugin.getStorage().hasCommandFilter(command))
+        if (!this.plugin.getPluginStorage().hasCommandFilter(command))
             return;
         event.setCancelled(true);
-        Pair<String, String> filter = this.plugin.getStorage().getCommandFilter(command);
+        Pair<String, String> filter = this.plugin.getPluginStorage().getCommandFilter(command);
         String filterName = filter.getFirstValue();
         String permission = filter.getSecondValue() != null || !filter.getSecondValue().isEmpty() ? filter.getSecondValue() : "none";
         if (!("none".equalsIgnoreCase(permission) || this.api.hasPermission(player, permission)))
             return;
-        if (!this.plugin.getStorage().hasFilterBook(filterName)) {
+        if (!this.plugin.getPluginStorage().hasFilterBook(filterName)) {
             player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NO_BOOK_FOR_FILTER));
             return;
         }
-        ItemStack book = this.plugin.getStorage().getFilterBook(filterName);
+        ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
         this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, book, null));
     }
 
@@ -288,7 +288,7 @@ public class PlayerActions implements Listener {
             return;
         if (!this.plugin.getSettings().isJoinBookEnabled())
             return;
-        if (!this.plugin.getStorage().hasJoinBook())
+        if (!this.plugin.getPluginStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
         if (this.api.hasPermission(player, "astralbooks.nojoinbook"))

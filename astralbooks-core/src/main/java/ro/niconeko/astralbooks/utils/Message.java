@@ -33,7 +33,7 @@ public enum Message {
     NO_BOOK_FOR_FILTER("no_book_for_filter", "&cThis filter doesn't have a book!"),
     FILTER_SAVED("filter_saved", "&aFilter %filter_name% was saved."),
     FILTER_REMOVED("filter_removed", "&aFilter %filter_name% was removed."),
-    BOOK_RECEIVED("book_received", "&aYou recived the book in your inventory!"),
+    BOOK_RECEIVED("book_received", "&aYou received the book in your inventory!"),
     CITIZENS_NOT_ENABLED("citizens_not_enabled", "&cCitizens plugin is not enabled! This command requires Citizens to be installed!"),
     NBTAPI_NOT_ENABLED("nbtapi_not_enabled", "&cNBTAPI plugin is not enabled! This command requires NBTAPI to be installed!"),
     SET_CUSTOM_COMMAND_SUCCESSFULLY("set_custom_command_successfully", "&aCommand %command% has been set!"),

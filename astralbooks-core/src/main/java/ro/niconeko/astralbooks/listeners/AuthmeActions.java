@@ -40,17 +40,17 @@ public class AuthmeActions implements Listener {
     public void onLogin(LoginEvent event) {
         if (!this.plugin.getSettings().isJoinBookEnabled())
             return;
-        if (!this.plugin.getStorage().hasJoinBook())
+        if (!this.plugin.getPluginStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
         if (this.api.hasPermission(player, "astralbooks.nojoinbook"))
             return;
         if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
-            if (this.plugin.getStorage().hasJoinBookLastSeen(player))
-                if (this.plugin.getStorage().getJoinBookLastSeen(player) >= this.plugin.getStorage().getJoinBookLastChange())
+            if (this.plugin.getPluginStorage().hasJoinBookLastSeen(player))
+                if (this.plugin.getPluginStorage().getJoinBookLastSeen(player) >= this.plugin.getPluginStorage().getJoinBookLastChange())
                     return;
-            this.plugin.getStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
+            this.plugin.getPluginStorage().setJoinBookLastSeen(player, System.currentTimeMillis());
         }
-        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.plugin.getStorage().getJoinBook(), null));
+        this.api.openBook(event.getPlayer(), this.api.placeholderHook(player, this.plugin.getPluginStorage().getJoinBook(), null));
     }
 }

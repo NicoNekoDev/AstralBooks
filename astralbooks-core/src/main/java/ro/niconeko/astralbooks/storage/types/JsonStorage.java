@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.storage.AbstractStorage;
+import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
@@ -20,7 +20,7 @@ import java.io.FileWriter;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-public class JsonStorage extends AbstractStorage {
+public class JsonStorage extends Storage {
     private JsonObject jsonStorage = new JsonObject();
     private final File jsonStorageFile;
     //

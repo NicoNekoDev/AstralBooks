@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 public class StorageCache {
     protected final AstralBooksPlugin plugin;
-    protected final AbstractStorage storage;
+    protected final Storage storage;
     public ExecutorService poolExecutor;
     public LoadingCache<String, ItemStack> filterBooks;
     public LoadingCache<Pair<Integer, Side>, ItemStack> npcBooks;
@@ -26,7 +26,7 @@ public class StorageCache {
     public final Set<Pair<Integer, Side>> npcs = new HashSet<>();
     public final Set<String> commands = new HashSet<>();
 
-    protected StorageCache(AstralBooksPlugin plugin, AbstractStorage storage) {
+    protected StorageCache(AstralBooksPlugin plugin, Storage storage) {
         this.plugin = plugin;
         this.storage = storage;
     }

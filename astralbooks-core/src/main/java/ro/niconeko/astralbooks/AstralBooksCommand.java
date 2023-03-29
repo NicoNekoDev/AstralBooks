@@ -99,7 +99,7 @@ public class AstralBooksCommand implements TabExecutor {
                             break;
                         }
                         plugin.getLogger().info("Conversion begins...");
-                        if (!this.plugin.getStorage().convertFrom(type)) {
+                        if (!this.plugin.getPluginStorage().convertFrom(type)) {
                             sender.sendMessage("Conversion failed!");
                             break;
                         }
@@ -270,7 +270,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 } else side = Side.RIGHT;
-                                if (!this.plugin.getStorage().putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()))) {
+                                if (!this.plugin.getPluginStorage().putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()))) {
                                     sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     break;
                                 }
@@ -296,7 +296,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 } else side = Side.RIGHT;
-                                if (!this.plugin.getStorage().removeNPCBook(npc.get().getId(), side)) {
+                                if (!this.plugin.getPluginStorage().removeNPCBook(npc.get().getId(), side)) {
                                     sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     break;
                                 }
@@ -323,11 +323,11 @@ public class AstralBooksCommand implements TabExecutor {
                                     }
                                 } else
                                     side = Side.RIGHT;
-                                if (!this.plugin.getStorage().hasNPCBook(npc.get().getId(), side)) {
+                                if (!this.plugin.getPluginStorage().hasNPCBook(npc.get().getId(), side)) {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_BOOK_FOR_NPC).replace("%npc%", npc.get().getFullName()));
                                     break;
                                 }
-                                ItemStack book = this.plugin.getStorage().getNPCBook(npc.get().getId(), side, new ItemStack(Material.WRITTEN_BOOK));
+                                ItemStack book = this.plugin.getPluginStorage().getNPCBook(npc.get().getId(), side, new ItemStack(Material.WRITTEN_BOOK));
                                 player.get().getInventory().addItem(book);
                                 sender.sendMessage(messageSettings.getMessage(Message.BOOK_RECEIVED));
                             }
@@ -362,7 +362,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
                                         break;
                                     }
-                                    if (!this.plugin.getStorage().hasFilterBook(filter_name)) {
+                                    if (!this.plugin.getPluginStorage().hasFilterBook(filter_name)) {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NOT_FOUND));
                                         break;
                                     }
@@ -431,7 +431,7 @@ public class AstralBooksCommand implements TabExecutor {
                             sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter_name%", filter_name));
                             break;
                         }
-                        if (!this.plugin.getStorage().hasFilterBook(filter_name)) {
+                        if (!this.plugin.getPluginStorage().hasFilterBook(filter_name)) {
                             sender.sendMessage(messageSettings.getMessage(Message.FILTER_NOT_FOUND));
                             break;
                         }
@@ -441,7 +441,7 @@ public class AstralBooksCommand implements TabExecutor {
                                 sender.sendMessage(messageSettings.getMessage(Message.USAGE_FORCEOPEN));
                                 break;
                             }
-                            if (!this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.plugin.getStorage().getFilterBook(filter_name), null)))
+                            if (!this.api.openBook(player.get(), this.api.placeholderHook(player.get(), this.plugin.getPluginStorage().getFilterBook(filter_name), null)))
                                 sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                             else
                                 sender.sendMessage(messageSettings.getMessage(Message.OPENED_BOOK_FOR_PLAYER)
@@ -451,17 +451,17 @@ public class AstralBooksCommand implements TabExecutor {
                                 int failedReceiver = 0;
                                 int successfulReceiver = 0;
                                 for (Player receiver : Bukkit.getOnlinePlayers())
-                                    if (!this.api.openBook(receiver, this.api.placeholderHook(receiver, this.plugin.getStorage().getFilterBook(filter_name), null)))
+                                    if (!this.api.openBook(receiver, this.api.placeholderHook(receiver, this.plugin.getPluginStorage().getFilterBook(filter_name), null)))
                                         failedReceiver++;
                                     else
                                         successfulReceiver++;
                                 sender.sendMessage(messageSettings.getMessage(Message.OPENED_BOOK_FOR_PLAYERS)
-                                        .replace("%success%", successfulReceiver + "")
-                                        .replace("%failed%", failedReceiver + ""));
+                                        .replace("%success%", String.valueOf(successfulReceiver))
+                                        .replace("%failed%", String.valueOf(failedReceiver)));
                             } else {
                                 Optional<? extends Player> optionalPlayer = Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(args[2])).findFirst();
                                 if (optionalPlayer.isPresent())
-                                    if (!this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.plugin.getStorage().getFilterBook(filter_name), null)))
+                                    if (!this.api.openBook(optionalPlayer.get(), this.api.placeholderHook(optionalPlayer.get(), this.plugin.getPluginStorage().getFilterBook(filter_name), null)))
                                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     else
                                         sender.sendMessage(messageSettings.getMessage(Message.OPENED_BOOK_FOR_PLAYER)
@@ -505,7 +505,7 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
-                    if (!this.plugin.getStorage().setJoinBook(this.getItemFromHand(player.get()))) {
+                    if (!this.plugin.getPluginStorage().setJoinBook(this.getItemFromHand(player.get()))) {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
@@ -521,7 +521,7 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.plugin.getStorage().removeJoinBook()) {
+                    if (!this.plugin.getPluginStorage().removeJoinBook()) {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
@@ -592,7 +592,7 @@ public class AstralBooksCommand implements TabExecutor {
                             sender.sendMessage(messageSettings.getMessage(Message.PERMISSION_INVALID).replace("%invalid_permission%", permission));
                             break;
                         }
-                        if (!this.plugin.getStorage().putCommandFilter(command_name, filter_name, permission)) {
+                        if (!this.plugin.getPluginStorage().putCommandFilter(command_name, filter_name, permission)) {
                             sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                             break;
                         }
@@ -611,7 +611,7 @@ public class AstralBooksCommand implements TabExecutor {
                             sender.sendMessage(messageSettings.getMessage(Message.COMMAND_NAME_INVALID).replace("%invalid_command%", command_name));
                             break;
                         }
-                        if (!this.plugin.getStorage().removeCommandFilter(command_name)) {
+                        if (!this.plugin.getPluginStorage().removeCommandFilter(command_name)) {
                             sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                             break;
                         }
@@ -645,7 +645,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                         break;
                                     }
-                                    if (!this.plugin.getStorage().putFilterBook(filter_name, this.getItemFromHand((Player) sender))) {
+                                    if (!this.plugin.getPluginStorage().putFilterBook(filter_name, this.getItemFromHand((Player) sender))) {
                                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                         break;
                                     }
@@ -664,7 +664,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
-                                    if (!this.plugin.getStorage().removeFilterBook(filter_name)) {
+                                    if (!this.plugin.getPluginStorage().removeFilterBook(filter_name)) {
                                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                         break;
                                     }
@@ -687,11 +687,11 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
-                                    if (!this.plugin.getStorage().hasFilterBook(filter_name)) {
+                                    if (!this.plugin.getPluginStorage().hasFilterBook(filter_name)) {
                                         sender.sendMessage(messageSettings.getMessage(Message.NO_BOOK_FOR_FILTER));
                                         break;
                                     }
-                                    ItemStack book = this.plugin.getStorage().getFilterBook(filter_name);
+                                    ItemStack book = this.plugin.getPluginStorage().getFilterBook(filter_name);
                                     player.get().getInventory().addItem(book);
                                     sender.sendMessage(messageSettings.getMessage(Message.BOOK_RECEIVED));
                                 } else
@@ -791,11 +791,11 @@ public class AstralBooksCommand implements TabExecutor {
                 }
                 case "forceopen" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.forceopen"))
-                        commands.addAll(this.plugin.getStorage().getFilterNames());
+                        commands.addAll(this.plugin.getPluginStorage().getFilterNames());
                 }
                 case "remcmd" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.remcmd"))
-                        commands.addAll(this.plugin.getStorage().getCommandFilterNames());
+                        commands.addAll(this.plugin.getPluginStorage().getCommandFilterNames());
                 }
                 case "npc" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.npc.set"))
@@ -833,7 +833,7 @@ public class AstralBooksCommand implements TabExecutor {
                     if (args[1].equals("remove") || args[1].equals("getbook")) {
                         if (this.api.hasPermission(sender, "astralbooks.command.filter.remove")
                                 || this.api.hasPermission(sender, "astralbooks.command.filter.getbook")) {
-                            commands.addAll(this.plugin.getStorage().getFilterNames());
+                            commands.addAll(this.plugin.getPluginStorage().getFilterNames());
                         }
                     }
                 }
@@ -845,13 +845,13 @@ public class AstralBooksCommand implements TabExecutor {
                 }
                 case "setcmd" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.setcmd"))
-                        commands.addAll(this.plugin.getStorage().getFilterNames());
+                        commands.addAll(this.plugin.getPluginStorage().getFilterNames());
                 }
                 case "actionitem", "ai" -> {
                     switch (args[1]) {
                         case "set" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.actionitem.set"))
-                                commands.addAll(this.plugin.getStorage().getFilterNames());
+                                commands.addAll(this.plugin.getPluginStorage().getFilterNames());
                         }
                         case "remove" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.actionitem.remove"))
@@ -966,20 +966,20 @@ public class AstralBooksCommand implements TabExecutor {
     }
 
     private void sendAbout(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage("");
         sender.sendMessage(ChatColor.RED + "<+ AstralBooks +>");
         sender.sendMessage(ChatColor.GOLD + "Version: " + ChatColor.RED + this.plugin.getDescription().getVersion());
         sender.sendMessage(ChatColor.GOLD + "Auhtor: " + ChatColor.RED + "NicoNekoDev");
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendHelp(CommandSender sender, int page) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
         if (page < 1 || page > 4) page = 1;
         sender.sendMessage("");
-        sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INFO).replace("%page%", page + ""));
+        sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INFO).replace("%page%", String.valueOf(page)));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         if (page == 2) {
@@ -1015,7 +1015,7 @@ public class AstralBooksCommand implements TabExecutor {
 
     private void sendFilterHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_FILTER_SET).split("\\$"));
@@ -1023,57 +1023,57 @@ public class AstralBooksCommand implements TabExecutor {
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_FILTER_GETBOOK).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_FILTER_LIST).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendActionItemHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ACTIONITEM_SET).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ACTIONITEM_REMOVE).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendNpcHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_NPC_SET).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_NPC_REMOVE).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_NPC_GETBOOK).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendInteractionSetHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_SET_BLOCK).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_SET_ENTITY).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendInteractionRemoveHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_BLOCK).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendInteractionHelp(CommandSender sender) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
         sender.sendMessage("");
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_SET_BLOCK).split("\\$"));
@@ -1081,12 +1081,12 @@ public class AstralBooksCommand implements TabExecutor {
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_BLOCK).split("\\$"));
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private void sendFiltersList(CommandSender sender, int pageNum) {
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
-        LinkedList<String[]> pages = this.getSplitList(this.plugin.getStorage().getFilterNames());
+        LinkedList<String[]> pages = this.getSplitList(this.plugin.getPluginStorage().getFilterNames());
         if (pages.isEmpty()) {
             sender.sendMessage(messageSettings.getMessage(Message.FILTERS_LIST_NO_FILTER_PRESENT));
             return;
@@ -1097,13 +1097,13 @@ public class AstralBooksCommand implements TabExecutor {
         }
         String[] page = pages.get(pageNum - 1);
         sender.sendMessage(messageSettings.getMessage(Message.FILTERS_LIST_PRESENT));
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
         for (int i = 0; i < 10; i++) {
             String row = page[i];
             if (row == null) continue;
             sender.sendMessage(messageSettings.parseMessage("&c&l  " + (((pageNum - 1) * 10) + i + 1) + ") &a" + row));
         }
-        sender.sendMessage(ChatColor.GRAY + "" + ChatColor.STRIKETHROUGH + "+----------------------------------+");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
     }
 
     private LinkedList<String[]> getSplitList(Collection<String> list) {

@@ -38,7 +38,7 @@ import ro.niconeko.astralbooks.listeners.CitizensActions;
 import ro.niconeko.astralbooks.listeners.PlayerActions;
 import ro.niconeko.astralbooks.listeners.ServerActions;
 import ro.niconeko.astralbooks.settings.PluginSettings;
-import ro.niconeko.astralbooks.storage.Storage;
+import ro.niconeko.astralbooks.storage.PluginStorage;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
 
@@ -56,7 +56,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
     @Getter private LuckPerms luckPerms;
     @Getter private final AstralBooksCore API = new AstralBooksCore(this);
     @Getter private final PluginSettings settings = new PluginSettings(this);
-    @Getter private Storage storage;
+    @Getter private PluginStorage pluginStorage;
     @Getter private boolean PlaceholderAPIEnabled, AuthMeEnabled, CitizensEnabled, LuckPermsEnabled, VaultEnabled, NBTAPIEnabled;
     @Getter private PlayerActions playerActionsListener;
     @Getter private ServerActions serverActionsListener;
@@ -193,8 +193,8 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
             this.playerActionsListener.onDisable();
         if (this.serverActionsListener != null)
             this.serverActionsListener.onDisable();
-        if (this.storage != null)
-            this.storage.unload();
+        if (this.pluginStorage != null)
+            this.pluginStorage.unload();
     }
 
     private boolean registerCompletions(Commodore commodore, PluginCommand command) {
@@ -261,10 +261,10 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
         this.loadSettings();
         this.saveSettings();
         try {
-            if (this.storage != null)
-                this.storage.unload();
-            this.storage = new Storage(this);
-            this.storage.load(this.settings.getStorageSettings());
+            if (this.pluginStorage != null)
+                this.pluginStorage.unload();
+            this.pluginStorage = new PluginStorage(this);
+            this.pluginStorage.load(this.settings.getStorageSettings());
         } catch (SQLException ex) {
             this.getLogger().log(Level.SEVERE, "Could not load storage!", ex);
             return false;

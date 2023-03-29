@@ -3,7 +3,7 @@ package ro.niconeko.astralbooks.storage.types;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.storage.AbstractStorage;
+import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageMySQLSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
@@ -13,7 +13,7 @@ import java.sql.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-public class MySQLStorage extends AbstractStorage {
+public class MySQLStorage extends Storage {
     private Connection connection;
     private String tablePrefix = "";
     private String serverName = "";
