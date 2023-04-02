@@ -19,11 +19,14 @@
 
 package ro.niconeko.astralbooks;
 
+import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -39,7 +42,9 @@ import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AstralBooksCommand implements TabExecutor {
     private final AstralBooksPlugin plugin;
@@ -71,6 +76,85 @@ public class AstralBooksCommand implements TabExecutor {
                         }
                     } else
                         this.sendHelp(sender, 0);
+                }
+                case "security" -> {
+                    if (!this.api.hasPermission(sender, "astralbooks.command.security")) {
+                        sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
+                        break;
+                    }
+                    if (!this.plugin.getSettings().isBookSignSecurityEnabled()) {
+                        sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_ENABLED));
+                        break;
+                    }
+                    if (args.length > 1) {
+                        switch (args[1]) {
+                            case "list" -> {
+                                if (!this.api.hasPermission(sender, "astralbooks.command.security.list")) {
+                                    sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
+                                    break;
+                                }
+                                if (args.length > 2) {
+                                    int page = 1;
+                                    if (args.length > 3) {
+                                        try {
+                                            page = Integer.parseInt(args[3]);
+                                        } catch (NumberFormatException ex) {
+                                            sender.sendMessage(messageSettings.getMessage(Message.USAGE_SECURITY_LIST));
+                                            break;
+                                        }
+                                    }
+                                    if (page < 1) {
+                                        sender.sendMessage(messageSettings.getMessage(Message.USAGE_SECURITY_LIST));
+                                        break;
+                                    }
+                                    if (args[2].equalsIgnoreCase("*"))
+                                        this.sendSecurityPage(sender, page);
+                                    else {
+                                        OfflinePlayer offlineSelected = Bukkit.getPlayerExact(args[2]);
+                                        if (offlineSelected != null && offlineSelected.hasPlayedBefore())
+                                            this.sendSecurityPage(sender, offlineSelected, page);
+                                        else
+                                            sender.sendMessage(messageSettings.getMessage(Message.PLAYER_NOT_FOUND));
+                                    }
+                                } else
+                                    sender.sendMessage(messageSettings.getMessage(Message.USAGE_SECURITY_LIST));
+                            }
+                            case "getbook" -> {
+                                if (player.isEmpty()) {
+                                    sender.sendMessage(messageSettings.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
+                                    break;
+                                }
+                                if (!this.api.hasPermission(sender, "astralbooks.command.security.getbook")) {
+                                    sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
+                                    break;
+                                }
+                                if (args.length > 2) {
+                                    OfflinePlayer offlineSelected = Bukkit.getPlayerExact(args[2]);
+                                    if (offlineSelected != null && offlineSelected.hasPlayedBefore()) {
+                                        if (args.length > 3) {
+                                            try {
+                                                long timestamp = Long.parseLong(args[3]);
+                                                Date date = new Date(timestamp);
+                                                ItemStack book = this.plugin.getPluginStorage().getBookSecurity(offlineSelected.getUniqueId(), date);
+                                                if (book == null) {
+                                                    sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND));
+                                                    break;
+                                                }
+                                                player.get().getInventory().addItem(book);
+                                            } catch (NumberFormatException ex) {
+                                                sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND));
+                                            }
+                                        } else
+                                            sender.sendMessage(messageSettings.getMessage(Message.USAGE_SECURITY_GETBOOK));
+                                    } else
+                                        sender.sendMessage(messageSettings.getMessage(Message.PLAYER_NOT_FOUND));
+                                } else
+                                    sender.sendMessage(messageSettings.getMessage(Message.USAGE_SECURITY_GETBOOK));
+                            }
+                            default -> this.sendSecurityHelp(sender);
+                        }
+                    } else
+                        this.sendSecurityHelp(sender);
                 }
                 case "import" -> {
                     if (player.isPresent()) {
@@ -447,7 +531,7 @@ public class AstralBooksCommand implements TabExecutor {
                                 sender.sendMessage(messageSettings.getMessage(Message.OPENED_BOOK_FOR_PLAYER)
                                         .replace("%player%", sender.getName()));
                         } else {
-                            if ("*".equals(args[2]) || "@a".equals(args[2])) {
+                            if ("*".equals(args[2])) {
                                 int failedReceiver = 0;
                                 int successfulReceiver = 0;
                                 for (Player receiver : Bukkit.getOnlinePlayers())
@@ -737,7 +821,7 @@ public class AstralBooksCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         List<String> completions = new ArrayList<>();
-        List<String> commands = new ArrayList<>();
+        Set<String> commands = new HashSet<>();
 
         if (args.length == 1) {
             if (this.api.hasPermission(sender, "astralbooks.command"))
@@ -764,9 +848,17 @@ public class AstralBooksCommand implements TabExecutor {
                 commands.add("reload");
             if (this.api.hasPermission(sender, "astralbooks.command.interaction"))
                 commands.add("interaction");
+            if (this.api.hasPermission(sender, "astralbooks.command.security"))
+                commands.add("security");
             StringUtil.copyPartialMatches(args[0], commands, completions);
         } else if (args.length == 2) {
             switch (args[0]) {
+                case "security" -> {
+                    if (this.api.hasPermission(sender, "astralbooks.command.security.list"))
+                        commands.add("list");
+                    if (this.api.hasPermission(sender, "astralbooks.command.security.getbook"))
+                        commands.add("getbook");
+                }
                 case "interaction" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.interaction.set"))
                         commands.add("set");
@@ -813,6 +905,29 @@ public class AstralBooksCommand implements TabExecutor {
             StringUtil.copyPartialMatches(args[1], commands, completions);
         } else if (args.length == 3) {
             switch (args[0]) {
+                case "security" -> {
+                    switch (args[1]) {
+                        case "list" -> {
+                            if (this.api.hasPermission(sender, "astralbooks.command.security.list")) {
+                                commands.add("*");
+                                commands.addAll(this.getPlayers());
+                                for (Pair<UUID, Date> pairs : this.plugin.getPluginStorage().getCache().playerSecurityBooks.asMap().keySet()) { // this is stupid!
+                                    OfflinePlayer player = Bukkit.getOfflinePlayer(pairs.getFirstValue());
+                                    commands.add(player.getName());
+                                }
+                            }
+                        }
+                        case "getbook" -> {
+                            if (this.api.hasPermission(sender, "astralbooks.command.security.getbook")) {
+                                commands.addAll(this.getPlayers());
+                                for (Pair<UUID, Date> pairs : this.plugin.getPluginStorage().getCache().playerSecurityBooks.asMap().keySet()) { // this is stupid!
+                                    OfflinePlayer player = Bukkit.getOfflinePlayer(pairs.getFirstValue());
+                                    commands.add(player.getName());
+                                }
+                            }
+                        }
+                    }
+                }
                 case "interaction" -> {
                     switch (args[1]) {
                         case "set" -> {
@@ -839,8 +954,8 @@ public class AstralBooksCommand implements TabExecutor {
                 }
                 case "forceopen" -> {
                     if (this.api.hasPermission(sender, "astralbooks.command.forceopen")) {
-                        commands.add("@a");
-                        commands.addAll(this.api.getPlayers());
+                        commands.add("*");
+                        commands.addAll(this.getPlayers());
                     }
                 }
                 case "setcmd" -> {
@@ -879,10 +994,20 @@ public class AstralBooksCommand implements TabExecutor {
             StringUtil.copyPartialMatches(args[2], commands, completions);
         } else if (args.length == 4) {
             switch (args[0]) {
+                case "security" -> {
+                    if (this.api.hasPermission(sender, "astralbooks.command.security.getbook") && "getbook".equalsIgnoreCase(args[1])) {
+                        // this is stupid!
+                        OfflinePlayer player = Bukkit.getPlayerExact(args[2]);
+                        if (player == null) break;
+                        this.plugin.getPluginStorage().getCache().playerTimestamps.refresh(player.getUniqueId());
+                        for (Date date : this.plugin.getPluginStorage().getCache().playerTimestamps.getUnchecked(player.getUniqueId())) {
+                            commands.add(String.valueOf(date.getTime()));
+                        }
+                    }
+                }
                 case "actionitem", "ai" -> {
-                    if (this.api.hasPermission(sender, "astralbooks.command.actionitem.set"))
-                        if ("set".equalsIgnoreCase(args[1]))
-                            commands.addAll(List.of("right", "left"));
+                    if (this.api.hasPermission(sender, "astralbooks.command.actionitem.set") && "set".equalsIgnoreCase(args[1]))
+                        commands.addAll(List.of("right", "left"));
                 }
                 case "interaction" -> {
                     switch (args[1]) {
@@ -917,6 +1042,10 @@ public class AstralBooksCommand implements TabExecutor {
         }
         Collections.sort(completions);
         return completions;
+    }
+
+    private List<String> getPlayers() {
+        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
     }
 
     private boolean hasItemTypeInHand(Player player, Material type) {
@@ -1082,6 +1211,83 @@ public class AstralBooksCommand implements TabExecutor {
         sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_INTERACTION_REMOVE_ENTITY).split("\\$"));
         sender.sendMessage("");
         sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
+    }
+
+
+    private void sendSecurityHelp(CommandSender sender) {
+        MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
+        sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_ARGUMENTS));
+        sender.sendMessage("");
+        sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_SECURITY_LIST).split("\\$"));
+        sender.sendMessage(messageSettings.getMessageNoHeader(Message.HELP_SECURITY_GETBOOK).split("\\$"));
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GRAY + String.valueOf(ChatColor.STRIKETHROUGH) + "+----------------------------------+");
+    }
+
+    private void sendSecurityPage(CommandSender sender, OfflinePlayer player, int page) {
+        MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
+        SimpleDateFormat dateFormat;
+        try {
+            dateFormat = new SimpleDateFormat(messageSettings.getMessageNoHeader(Message.BOOK_SECURITY_DATE_FORMAT));
+        } catch (Exception ex) {
+            this.plugin.getLogger().warning("The date format for \"book_security_date_format\" is not correctly set. Please check the settings!");
+            dateFormat = new SimpleDateFormat("dd/MM/yyyy-HH:mm:ss");
+        }
+        LinkedList<Pair<Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(player.getUniqueId(), page - 1, 10);
+        if (securityBooks.isEmpty()) {
+            sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND));
+            return;
+        }
+        sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT));
+        int count = 0;
+        for (Pair<Date, ItemStack> securityBook : securityBooks) {
+            ItemStack book = securityBook.getSecondValue();
+            String title = "<no title>";
+            if (book.hasItemMeta() && book.getItemMeta() instanceof BookMeta bookMeta && bookMeta.hasTitle())
+                title = bookMeta.getTitle();
+            sender.sendMessage(messageSettings.parseMessage(
+                    "&c&l  " + (((page - 1) * 10) + count + 1) +
+                            ") &f" + player.getName() +
+                            " &e- &f" + dateFormat.format(securityBook.getFirstValue()) +
+                            " &c(&b" + securityBook.getFirstValue().getTime() + "&c) &e- &f" +
+                            title
+            ));
+            count++;
+        }
+    }
+
+    private void sendSecurityPage(CommandSender sender, int page) {
+        MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
+        SimpleDateFormat dateFormat;
+        try {
+            dateFormat = new SimpleDateFormat(messageSettings.getMessageNoHeader(Message.BOOK_SECURITY_DATE_FORMAT));
+        } catch (Exception ex) {
+            this.plugin.getLogger().warning("The date format for \"book_security_date_format\" is not correctly set. Please check the settings!");
+            dateFormat = new SimpleDateFormat("dd/MM/yyyy-HH:mm:ss");
+        }
+        LinkedList<Triplet<UUID, Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(page - 1, 10);
+        if (securityBooks.isEmpty()) {
+            sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND).replace("%page%", String.valueOf(page)));
+            return;
+        }
+        sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT));
+        int count = 0;
+        for (Triplet<UUID, Date, ItemStack> securityBook : securityBooks) {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(securityBook.getFirstValue());
+            ItemStack book = securityBook.getThirdValue();
+            String title = "<no title>";
+            if (book.hasItemMeta() && book.getItemMeta() instanceof BookMeta bookMeta && bookMeta.hasTitle())
+                title = bookMeta.getTitle();
+            sender.sendMessage(messageSettings.parseMessage(
+                    "&c&l  " + (((page - 1) * 10) + count + 1) +
+                            ") &f" + player.getName() +
+                            " &e- &f" + dateFormat.format(securityBook.getSecondValue()) +
+                            " &c(&b" + securityBook.getSecondValue().getTime() + "&c) &e- &f" +
+                            title
+            ));
+            count++;
+        }
     }
 
     private void sendFiltersList(CommandSender sender, int pageNum) {

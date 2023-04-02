@@ -4,6 +4,7 @@ package ro.niconeko.astralbooks.storage;
 import com.google.common.base.Preconditions;
 import com.google.gson.*;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,7 +22,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class PluginStorage {
@@ -92,6 +96,10 @@ public class PluginStorage {
             this.cache.unload();
         if (this.storage != null)
             this.storage.unload();
+    }
+
+    public StorageCache getCache() {
+        return this.cache;
     }
 
     private JsonObject readJsonFile(File jsonFile) throws JsonParseException {
@@ -337,5 +345,23 @@ public class PluginStorage {
 
     public Set<String> getCommandFilterNames() {
         return this.cache.getCommandFilterNames();
+    }
+
+    public LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
+        return this.cache.getAllBookSecurity(uuid, page, amount);
+    }
+
+    public LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
+        return this.cache.getAllBookSecurity(page, amount);
+    }
+
+    public boolean putBookSecurity(UUID uuid, Date date, ItemStack book) {
+        Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
+                " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
+        return this.cache.putBookSecurity(uuid, date, book);
+    }
+
+    public ItemStack getBookSecurity(UUID uuid, Date date) {
+        return this.cache.getBookSecurity(uuid, date);
     }
 }

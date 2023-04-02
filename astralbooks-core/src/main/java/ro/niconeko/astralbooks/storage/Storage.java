@@ -1,12 +1,16 @@
 package ro.niconeko.astralbooks.storage;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -47,6 +51,14 @@ public abstract class Storage {
 
     protected abstract void putCommandFilterStack(String cmd, String filterName, String permission);
 
+    protected abstract Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount);
+
+    protected abstract Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount);
+
+    protected abstract void putBookSecurityStack(UUID uuid, Date date, ItemStack book);
+
+    protected abstract Future<ItemStack> getSecurityBookStack(UUID uuid, Date date);
+
     protected final void convertFrom(Storage storage) {
         if (storage.getStorageType() == this.getStorageType())
             throw new IllegalStateException("The storage type is the same");
@@ -65,6 +77,12 @@ public abstract class Storage {
                 String command = commandAndPermission.getFirstValue();
                 String permission = commandAndPermission.getSecondValue();
                 this.putCommandFilterStack(commandName, command, permission);
+            }
+            for (Triplet<UUID, Date, ItemStack> bookSecurity : this.getAllBookSecurityStack(-1, -1).get()) {
+                UUID playerUUID = bookSecurity.getFirstValue();
+                Date securityDate = bookSecurity.getSecondValue();
+                ItemStack book = bookSecurity.getThirdValue();
+                this.putBookSecurityStack(playerUUID, securityDate, book);
             }
         } catch (InterruptedException | ExecutionException ex) {
             throw new RuntimeException(ex);

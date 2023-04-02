@@ -17,6 +17,7 @@ public class PluginSettings extends Settings {
     @Getter private boolean joinBookAlwaysShow = false;
     @Getter private boolean joinBookEnableDelay = false;
     @Getter private int joinBookDelay = 0;
+    @Getter private boolean bookSignSecurityEnabled = false;
 
     public PluginSettings(AstralBooksPlugin plugin) {
         super(plugin);
@@ -33,6 +34,10 @@ public class PluginSettings extends Settings {
         this.joinBookAlwaysShow = super.getOrSetBooleanFunction(section, "join_book_always_show", this.joinBookAlwaysShow);
         this.joinBookEnableDelay = super.getOrSetBooleanFunction(section, "join_book_enable_delay", this.joinBookEnableDelay);
         this.joinBookDelay = super.getOrSetIntFunction(section, "join_book_delay", this.joinBookDelay);
+        this.bookSignSecurityEnabled = super.getOrSetBooleanFunction(section, "sign_book_enable_security", this.bookSignSecurityEnabled, Optional.of(List.of(
+                "Logs every signed book on the server.",
+                "Works on 1.18+ servers."
+        )));
         this.storageSettings.load(super.getOrCreateSection(section, "storage"));
         this.messageSettings.load(super.getOrCreateSection(section, "messages"));
     }

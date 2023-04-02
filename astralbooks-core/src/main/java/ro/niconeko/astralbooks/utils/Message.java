@@ -19,6 +19,10 @@
 
 package ro.niconeko.astralbooks.utils;
 
+import java.util.List;
+import java.util.Optional;
+
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public enum Message {
     HEADER("header", "&f[&6AstralBooks&f] &r"),
     NO_PERMISSION("no_permission", "&cYou don't have permission!"),
@@ -65,6 +69,10 @@ public enum Message {
     BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK("book_removed_successfully_from_block", "&aThe book have been removed from block! (%block_x%, %block_y%, %block_z%)"),
     BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY("book_removed_successfully_from_entity", "&aThe book have been removed from entity! (%type%)"),
     ENTITY_IS_NPC("entity_is_npc", "&cThe entity is an Citizens NPC. Use &f/abook npc &cto set a book for this type of entity!"),
+    BOOK_SECURITY_NOT_ENABLED("book_security_not_enabled", "&cBook security is not enabled!"),
+    BOOK_SECURITY_NOT_FOUND("book_security_not_found", "&cNo security book found!"),
+    BOOK_SECURITY_LIST_PRESENT("book_security_list_found", "&aHere's the list of books saved:"),
+    BOOK_SECURITY_DATE_FORMAT("book_security_date_format", "dd/MM/yyyy-HH:mm:ss", Optional.of(List.of("https://help.gooddata.com/cloudconnect/manual/date-and-time-format.html"))),
 
     USAGE_NPC_SET("usage.npc.set", "&aUsage: &f/abook npc set [right/left]"),
     USAGE_NPC_REMOVE("usage.npc.remove", "&aUsage: &f/abook npc remove [right/left]"),
@@ -87,6 +95,8 @@ public enum Message {
     USAGE_INTERACTION_SET_ENTITY("usage.interaction.set.entity", "&aUsage: &f/abook interaction set entity [right/left]"),
     USAGE_INTERACTION_REMOVE_BLOCK("usage.interaction.remove.block", "&aUsage: &f/abook interaction remove block [right/left]"),
     USAGE_INTERACTION_REMOVE_ENTITY("usage.interaction.remove.entity", "&aUsage: &f/abook interaction remove entity [right/left]"),
+    USAGE_SECURITY_LIST("usage.security.list", "&aUsage: &f/abook security list <*/player> [page]"),
+    USAGE_SECURITY_GETBOOK("usage.security.getbook", "&aUsage: &f/abook security getbook <player> <timestamp>"),
 
     HELP_INFO("help.info", "&e<    &6Commands and Usage &f| &6Page index (%page%/3) &e    >"),
     HELP_ARGUMENTS("help.arguments", "&f(&c<> &f= &erequired argument&f, &c[] &f= &eoptional argument&f)"),
@@ -112,13 +122,21 @@ public enum Message {
     HELP_INTERACTION_SET_BLOCK("help.interaction.set.block", "&f/abook interaction set block [right/left] $ &9Apply a book on a block."),
     HELP_INTERACTION_SET_ENTITY("help.interaction.set.entity", "&f/abook interaction set entity [right/left] $ &9Apply a book on an entity."),
     HELP_INTERACTION_REMOVE_BLOCK("help.interaction.remove.block", "&f/abook interaction remove block [right/left] $ &9Remove a book from a block."),
-    HELP_INTERACTION_REMOVE_ENTITY("help.interaction.remove.entity", "&f/abook interaction remove entity [right/left] $ &9Remove a book from an entity.");
+    HELP_INTERACTION_REMOVE_ENTITY("help.interaction.remove.entity", "&f/abook interaction remove entity [right/left] $ &9Remove a book from an entity."),
+    HELP_SECURITY_LIST("help.security.list", "&f/abook security list <*/player> [page] $ &9List all books created by a player or all players."),
+    HELP_SECURITY_GETBOOK("help.security.getbook", "&f/abook security getbook <player> <timestamp> $ &9Get the book a player has created.");
 
     private final String key, def;
+    private final Optional<List<String>> comments;
 
-    Message(String key, String def) {
+    Message(String key, String def, Optional<List<String>> comments) {
         this.key = key;
         this.def = def;
+        this.comments = comments;
+    }
+
+    Message(String key, String def) {
+        this(key, def, Optional.empty());
     }
 
     public final String getPath() {
@@ -127,5 +145,9 @@ public enum Message {
 
     public final String getDefault() {
         return this.def;
+    }
+
+    public final Optional<List<String>> getComments() {
+        return this.comments;
     }
 }

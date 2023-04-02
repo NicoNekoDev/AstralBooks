@@ -43,6 +43,7 @@ import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -309,6 +310,17 @@ public class PlayerActions implements Listener {
         if (this.plugin.getSettings().isJoinBookEnableDelay())
             //noinspection ResultOfMethodCallIgnored
             this.delayedJoinBookPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
+    }
+
+    @EventHandler
+    public void onBookSign(PlayerEditBookEvent event) {
+        if (!this.plugin.getSettings().isBookSignSecurityEnabled())
+            return;
+        if (!event.isSigning())
+            return;
+        ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+        book.setItemMeta(event.getNewBookMeta());
+        this.api.putBookSecurity(event.getPlayer().getUniqueId(), new Date(), book);
     }
 
     private static class DelayedPlayer implements Delayed {

@@ -20,8 +20,11 @@
 package ro.niconeko.astralbooks;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.CitizensAPI;
@@ -67,7 +70,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("RegExpRedundantEscape")
 public class AstralBooksCore implements AstralBooksAPI {
@@ -434,10 +436,6 @@ public class AstralBooksCore implements AstralBooksAPI {
         ).checkPermission(permission).asBoolean();
     }
 
-    protected List<String> getPlayers() {
-        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-    }
-
     public String encodeItemStack(ItemStack item) {
         if (item != null && item.getType() != Material.AIR)
             try {
@@ -590,5 +588,17 @@ public class AstralBooksCore implements AstralBooksAPI {
     @Override
     public Set<String> getCommandFilterNames() {
         return this.plugin.getPluginStorage().getCommandFilterNames();
+    }
+
+    public LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
+        return this.plugin.getPluginStorage().getAllBookSecurity(uuid, page, amount);
+    }
+
+    public LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
+        return this.plugin.getPluginStorage().getAllBookSecurity(page, amount);
+    }
+
+    public void putBookSecurity(UUID uuid, Date date, ItemStack book) {
+        this.plugin.getPluginStorage().putBookSecurity(uuid, date, book);
     }
 }

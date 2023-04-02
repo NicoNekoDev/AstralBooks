@@ -2,6 +2,19 @@ abook {
   help {
     page brigadier:integer;
   }
+  security {
+      list {
+        player brigadier:string single_word {
+          page brigadier:integer;
+        }
+        *;
+      }
+      getbook {
+        player brigadier:string single_word {
+          timestamp brigadier:long;
+        }
+      }
+  }
   interaction {
       set {
         block {
@@ -40,7 +53,7 @@ abook {
   forceopen {
     filter brigadier:string single_word {
       player brigadier:string single_word;
-      @a;
+      *;
     }
   }
   closebook {

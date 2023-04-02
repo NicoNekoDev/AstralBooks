@@ -16,7 +16,7 @@ public class MessageSettings extends Settings {
     public void load(ConfigurationSection section) {
         this.section = section;
         for (Message msg : Message.values())
-            super.getOrSetStringFunction(section, msg.getPath(), msg.getDefault());
+            super.getOrSetStringFunction(section, msg.getPath(), msg.getDefault(), msg.getComments());
     }
 
     public String getMessage(Message msg) {

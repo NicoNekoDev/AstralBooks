@@ -4,13 +4,14 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.utils.Side;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,11 @@ public class StorageCache {
     public final Set<String> filters = new HashSet<>();
     public final Set<Pair<Integer, Side>> npcs = new HashSet<>();
     public final Set<String> commands = new HashSet<>();
+
+    public LoadingCache<Triplet<UUID, Integer, Integer>, LinkedList<Pair<Date, ItemStack>>> allPlayersSecurityBooks;
+    public LoadingCache<Pair<Integer, Integer>, LinkedList<Triplet<UUID, Date, ItemStack>>> allSecurityBooks;
+    public LoadingCache<Pair<UUID, Date>, ItemStack> playerSecurityBooks;
+    public LoadingCache<UUID, Set<Date>> playerTimestamps;
 
     protected StorageCache(AstralBooksPlugin plugin, Storage storage) {
         this.plugin = plugin;
@@ -57,6 +63,51 @@ public class StorageCache {
                         return storage.getNPCBookStack(key.getFirstValue(), key.getSecondValue()).get();
                     }
                 });
+        this.allPlayersSecurityBooks = CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull LinkedList<Pair<Date, ItemStack>> load(@NotNull Triplet<UUID, Integer, Integer> key) throws Exception {
+                        return storage.getAllBookSecurityStack(key.getFirstValue(), key.getSecondValue(), key.getThirdValue()).get();
+                    }
+                });
+        this.allSecurityBooks = CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull LinkedList<Triplet<UUID, Date, ItemStack>> load(@NotNull Pair<Integer, Integer> key) throws Exception {
+                        return storage.getAllBookSecurityStack(key.getFirstValue(), key.getSecondValue()).get();
+                    }
+                });
+        this.playerSecurityBooks = CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull ItemStack load(@NotNull Pair<UUID, Date> key) throws Exception {
+                        return storage.getSecurityBookStack(key.getFirstValue(), key.getSecondValue()).get();
+                    }
+                });
+        this.playerTimestamps = CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public @NotNull Set<Date> load(@NotNull UUID key) {
+                        Set<Date> result = new HashSet<>();
+                        // this is stupid!
+                        for (Map.Entry<Triplet<UUID, Integer, Integer>, LinkedList<Pair<Date, ItemStack>>> entry : StorageCache.this.allPlayersSecurityBooks.asMap().entrySet()) {
+                            if (entry.getKey().getFirstValue().equals(key))
+                                for (Pair<Date, ItemStack> pair : entry.getValue())
+                                    result.add(pair.getFirstValue());
+                        }
+                        for (LinkedList<Triplet<UUID, Date, ItemStack>> tripletList : StorageCache.this.allSecurityBooks.asMap().values()) {
+                            for (Triplet<UUID, Date, ItemStack> triplet : tripletList) {
+                                if (triplet.getFirstValue().equals(key))
+                                    result.add(triplet.getSecondValue());
+                            }
+                        }
+                        return result;
+                    }
+                });
     }
 
     public void unload() {
@@ -78,7 +129,6 @@ public class StorageCache {
             this.storage.putNPCBookStack(npcId, side, book);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -88,7 +138,6 @@ public class StorageCache {
             this.storage.removeNPCBookStack(npcId, side);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -114,7 +163,6 @@ public class StorageCache {
             this.storage.putFilterBookStack(filterName, book);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -124,7 +172,6 @@ public class StorageCache {
             this.storage.removeFilterBookStack(filterName);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -150,7 +197,6 @@ public class StorageCache {
             this.storage.putCommandFilterStack(cmd, filterName, permission);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -160,7 +206,6 @@ public class StorageCache {
             this.storage.removeCommandFilterStack(cmd);
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
             return false;
         }
     }
@@ -179,5 +224,38 @@ public class StorageCache {
 
     protected Set<String> getCommandFilterNames() {
         return this.commands;
+    }
+
+    protected LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
+        try {
+            return this.allPlayersSecurityBooks.get(Triplet.of(uuid, page, amount));
+        } catch (ExecutionException e) {
+            return new LinkedList<>();
+        }
+    }
+
+    protected LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
+        try {
+            return this.allSecurityBooks.get(Pair.of(page, amount));
+        } catch (ExecutionException e) {
+            return new LinkedList<>();
+        }
+    }
+
+    protected boolean putBookSecurity(UUID uuid, Date date, ItemStack book) {
+        try {
+            this.storage.putBookSecurityStack(uuid, date, book);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    protected ItemStack getBookSecurity(UUID uuid, Date date) {
+        try {
+            return this.playerSecurityBooks.get(Pair.of(uuid, date));
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }

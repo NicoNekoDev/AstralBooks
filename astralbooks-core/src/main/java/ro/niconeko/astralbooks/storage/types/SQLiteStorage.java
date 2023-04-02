@@ -1,6 +1,7 @@
 package ro.niconeko.astralbooks.storage.types;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
@@ -10,6 +11,9 @@ import ro.niconeko.astralbooks.utils.Side;
 
 import java.io.File;
 import java.sql.*;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
@@ -220,5 +224,25 @@ public class SQLiteStorage extends Storage {
                 this.plugin.getLogger().log(Level.WARNING, "(SQLite) Failed to save book data!", ex);
             }
         });
+    }
+
+    @Override
+    protected Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
+        return null;
+    }
+
+    @Override
+    protected Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
+        return null;
+    }
+
+    @Override
+    protected void putBookSecurityStack(UUID uuid, Date date, ItemStack book) {
+
+    }
+
+    @Override
+    protected Future<ItemStack> getSecurityBookStack(UUID uuid, Date date) {
+        return null;
     }
 }
