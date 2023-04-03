@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 
 public abstract class Storage {
     public final AstralBooksPlugin plugin;
@@ -59,7 +60,7 @@ public abstract class Storage {
 
     protected abstract Future<ItemStack> getSecurityBookStack(UUID uuid, Date date);
 
-    protected final void convertFrom(Storage storage) {
+    protected final boolean convertFrom(Storage storage) {
         if (storage.getStorageType() == this.getStorageType())
             throw new IllegalStateException("The storage type is the same");
         try {
@@ -78,14 +79,15 @@ public abstract class Storage {
                 String permission = commandAndPermission.getSecondValue();
                 this.putCommandFilterStack(commandName, command, permission);
             }
-            for (Triplet<UUID, Date, ItemStack> bookSecurity : this.getAllBookSecurityStack(-1, -1).get()) {
+            for (Triplet<UUID, Date, ItemStack> bookSecurity : storage.getAllBookSecurityStack(-1, -1).get()) {
                 UUID playerUUID = bookSecurity.getFirstValue();
                 Date securityDate = bookSecurity.getSecondValue();
                 ItemStack book = bookSecurity.getThirdValue();
                 this.putBookSecurityStack(playerUUID, securityDate, book);
             }
         } catch (InterruptedException | ExecutionException ex) {
-            throw new RuntimeException(ex);
+            this.plugin.getLogger().log(Level.WARNING, "Failed conversion!", ex);
         }
+        return true;
     }
 }

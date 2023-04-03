@@ -911,8 +911,8 @@ public class AstralBooksCommand implements TabExecutor {
                             if (this.api.hasPermission(sender, "astralbooks.command.security.list")) {
                                 commands.add("*");
                                 commands.addAll(this.getPlayers());
-                                for (Pair<UUID, Date> pairs : this.plugin.getPluginStorage().getCache().playerSecurityBooks.asMap().keySet()) { // this is stupid!
-                                    OfflinePlayer player = Bukkit.getOfflinePlayer(pairs.getFirstValue());
+                                for (UUID uuid : this.plugin.getPluginStorage().getCache().playerTimestamps.asMap().keySet()) { // this is stupid!
+                                    OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
                                     commands.add(player.getName());
                                 }
                             }
@@ -920,8 +920,8 @@ public class AstralBooksCommand implements TabExecutor {
                         case "getbook" -> {
                             if (this.api.hasPermission(sender, "astralbooks.command.security.getbook")) {
                                 commands.addAll(this.getPlayers());
-                                for (Pair<UUID, Date> pairs : this.plugin.getPluginStorage().getCache().playerSecurityBooks.asMap().keySet()) { // this is stupid!
-                                    OfflinePlayer player = Bukkit.getOfflinePlayer(pairs.getFirstValue());
+                                for (UUID uuid : this.plugin.getPluginStorage().getCache().playerTimestamps.asMap().keySet()) { // this is stupid!
+                                    OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
                                     commands.add(player.getName());
                                 }
                             }
@@ -999,7 +999,6 @@ public class AstralBooksCommand implements TabExecutor {
                         // this is stupid!
                         OfflinePlayer player = Bukkit.getPlayerExact(args[2]);
                         if (player == null) break;
-                        this.plugin.getPluginStorage().getCache().playerTimestamps.refresh(player.getUniqueId());
                         for (Date date : this.plugin.getPluginStorage().getCache().playerTimestamps.getUnchecked(player.getUniqueId())) {
                             commands.add(String.valueOf(date.getTime()));
                         }
@@ -1239,7 +1238,7 @@ public class AstralBooksCommand implements TabExecutor {
             sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND));
             return;
         }
-        sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT));
+        sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT).replace("%page%", String.valueOf(page)));
         int count = 0;
         for (Pair<Date, ItemStack> securityBook : securityBooks) {
             ItemStack book = securityBook.getSecondValue();

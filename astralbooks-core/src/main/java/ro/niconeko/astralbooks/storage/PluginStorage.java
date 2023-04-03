@@ -2,7 +2,10 @@ package ro.niconeko.astralbooks.storage;
 
 
 import com.google.common.base.Preconditions;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.Bukkit;
@@ -26,6 +29,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
 public class PluginStorage {
@@ -348,20 +352,44 @@ public class PluginStorage {
     }
 
     public LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
-        return this.cache.getAllBookSecurity(uuid, page, amount);
+        try {
+            LinkedList<Pair<Date, ItemStack>> list = this.storage.getAllBookSecurityStack(uuid, page, amount).get(); // no cache sadly :(
+            for (Pair<Date, ItemStack> pair : list)
+                this.cache.playerTimestamps.get(uuid).add(pair.getFirstValue());
+            return list;
+        } catch (ExecutionException | InterruptedException e) {
+            return new LinkedList<>();
+        }
     }
 
     public LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
-        return this.cache.getAllBookSecurity(page, amount);
+        try {
+            LinkedList<Triplet<UUID, Date, ItemStack>> list = this.storage.getAllBookSecurityStack(page, amount).get();
+            for (Triplet<UUID, Date, ItemStack> triplet : list)
+                this.cache.playerTimestamps.get(triplet.getFirstValue()).add(triplet.getSecondValue());
+            return list;
+        } catch (ExecutionException | InterruptedException e) {
+            return new LinkedList<>();
+        }
     }
 
     public boolean putBookSecurity(UUID uuid, Date date, ItemStack book) {
         Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
-        return this.cache.putBookSecurity(uuid, date, book);
+        try {
+            this.storage.putBookSecurityStack(uuid, date, book);
+            this.cache.playerTimestamps.get(uuid).add(date);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     public ItemStack getBookSecurity(UUID uuid, Date date) {
-        return this.cache.getBookSecurity(uuid, date);
+        try {
+            return this.storage.getSecurityBookStack(uuid, date).get();
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }
