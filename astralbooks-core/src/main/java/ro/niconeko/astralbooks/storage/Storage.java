@@ -10,10 +10,10 @@ import ro.niconeko.astralbooks.utils.Side;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Storage {
     public final AstralBooksPlugin plugin;
@@ -60,34 +60,20 @@ public abstract class Storage {
 
     protected abstract Future<ItemStack> getSecurityBookStack(UUID uuid, Date date);
 
-    protected final boolean convertFrom(Storage storage) {
-        if (storage.getStorageType() == this.getStorageType())
-            throw new IllegalStateException("The storage type is the same");
-        try {
-            for (Pair<Integer, Side> npcBook : storage.cache.getNPCBooks()) {
-                int npcId = npcBook.getFirstValue();
-                Side side = npcBook.getSecondValue();
-                this.putNPCBookStack(npcId, side, storage.getNPCBookStack(npcId, side).get());
-            }
-            for (String filterName : storage.cache.getFilterNames()) {
-                ItemStack book = storage.getFilterBookStack(filterName).get();
-                this.putFilterBookStack(filterName, book);
-            }
-            for (String commandName : storage.cache.getCommandFilterNames()) {
-                Pair<String, String> commandAndPermission = storage.getCommandFilterStack(commandName).get();
-                String command = commandAndPermission.getFirstValue();
-                String permission = commandAndPermission.getSecondValue();
-                this.putCommandFilterStack(commandName, command, permission);
-            }
-            for (Triplet<UUID, Date, ItemStack> bookSecurity : storage.getAllBookSecurityStack(-1, -1).get()) {
-                UUID playerUUID = bookSecurity.getFirstValue();
-                Date securityDate = bookSecurity.getSecondValue();
-                ItemStack book = bookSecurity.getThirdValue();
-                this.putBookSecurityStack(playerUUID, securityDate, book);
-            }
-        } catch (InterruptedException | ExecutionException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Failed conversion!", ex);
-        }
-        return true;
-    }
+    protected abstract Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed);
+
+    protected abstract Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed);
+
+    protected abstract Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed);
+
+    protected abstract Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed);
+
+    protected abstract void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed);
+
+    protected abstract void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed);
+
+    protected abstract void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed);
+
+    protected abstract void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed);
+
 }

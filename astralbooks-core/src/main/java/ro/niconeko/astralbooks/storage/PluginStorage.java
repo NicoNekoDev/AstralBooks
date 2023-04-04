@@ -46,24 +46,18 @@ public class PluginStorage {
         this.joinBookFile = new File(plugin.getDataFolder() + File.separator + "join_book.json");
     }
 
-    public boolean convertFrom(StorageType type) {
-        if (storage == null) throw new IllegalStateException("Trying to convert while database is not enabled");
-        try {
-            Storage convertFrom = switch (type) {
-                case JSON -> new JsonStorage(plugin);
-                case MYSQL -> new MySQLStorage(plugin);
-                case SQLITE -> new SQLiteStorage(plugin);
-            };
-            convertFrom.cache.load();
-            convertFrom.load(this.plugin.getSettings().getStorageSettings());
-            this.storage.convertFrom(convertFrom);
-            convertFrom.cache.unload();
-            convertFrom.unload();
-            return true;
-        } catch (Exception ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Failed conversion!", ex);
-            return false;
+    public void convertFrom(StorageType type) {
+        if (storage == null) {
+            this.plugin.getLogger().warning("Trying to convert while database is not enabled!");
+            return;
         }
+        plugin.getLogger().info("Conversion begins...");
+        Storage convertFrom = switch (type) {
+            case JSON -> new JsonStorage(plugin);
+            case MYSQL -> new MySQLStorage(plugin);
+            case SQLITE -> new SQLiteStorage(plugin);
+        };
+        new StorageConvertor(this.plugin, this.storage, convertFrom).convert();
     }
 
     public boolean load(StorageSettings settings) throws SQLException {

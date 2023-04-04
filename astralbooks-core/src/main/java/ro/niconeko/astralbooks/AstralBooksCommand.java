@@ -182,14 +182,7 @@ public class AstralBooksCommand implements TabExecutor {
                             plugin.getLogger().info("Argument: mysql, sqlite, json");
                             break;
                         }
-                        plugin.getLogger().info("Conversion begins...");
-                        if (!this.plugin.getPluginStorage().convertFrom(type)) {
-                            sender.sendMessage("Conversion failed!");
-                            break;
-                        }
-                        plugin.getLogger().info("Reloading plugin...");
-                        this.plugin.reloadPlugin();
-                        plugin.getLogger().info("Done! :)");
+                        this.plugin.getPluginStorage().convertFrom(type);
                     } else plugin.getLogger().info("Argument: mysql, sqlite, json");
                 }
                 case "interaction" -> {

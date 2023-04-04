@@ -15,8 +15,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class MySQLStorage extends Storage {
@@ -39,6 +41,7 @@ public class MySQLStorage extends Storage {
         this.tablePrefix = mySQLSettings.getTablePrefix();
         this.serverName = mySQLSettings.getServerName();
         this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
+        this.connection.setAutoCommit(true);
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 CREATE TABLE IF NOT EXISTS %sfilters (
                 filter_name VARCHAR(256),
@@ -160,7 +163,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve filter book data!", ex);
                 return null;
             }
         });
@@ -346,9 +349,6 @@ public class MySQLStorage extends Storage {
                         list.add(Pair.of(date, book));
                     }
                     return list;
-                } catch (SQLException ex) {
-                    this.plugin.getLogger().log(Level.WARNING, "(SQLite) Failed to retrieve book security data!", ex);
-                    return list;
                 }
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book security data!", ex);
@@ -385,9 +385,6 @@ public class MySQLStorage extends Storage {
                         list.add(Triplet.of(uuid, date, book));
                     }
                     return list;
-                } catch (SQLException ex) {
-                    this.plugin.getLogger().log(Level.WARNING, "(SQLite) Failed to retrieve book security data!", ex);
-                    return list;
                 }
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book security data!", ex);
@@ -399,30 +396,24 @@ public class MySQLStorage extends Storage {
     @Override
     protected void putBookSecurityStack(UUID uuid, Date date, ItemStack book) {
         super.cache.poolExecutor.submit(() -> {
-            String encodedBook = this.plugin.getAPI().encodeItemStack(book);
-            String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
-
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                    "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix)
-            )) {
-                statement.setString(1, uuid.toString());
-                statement.setLong(2, date.getTime());
-                statement.setString(3, hashBook);
-                statement.setString(4, hashBook);
-                statement.executeUpdate();
+            try (PreparedStatement statementPlayers = this.connection.prepareStatement(
+                    "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix));
+                 PreparedStatement statementBooks = this.connection.prepareStatement(
+                         "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix))
+            ) {
+                String encodedBook = this.plugin.getAPI().encodeItemStack(book);
+                String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
+                statementPlayers.setString(1, uuid.toString());
+                statementPlayers.setLong(2, date.getTime());
+                statementPlayers.setString(3, hashBook);
+                statementPlayers.setString(4, hashBook);
+                statementPlayers.executeUpdate();
+                statementBooks.setString(1, hashBook);
+                statementBooks.setString(2, encodedBook);
+                statementBooks.setString(3, encodedBook);
+                statementBooks.executeUpdate();
             } catch (SQLException ex) {
                 this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save security player data!", ex);
-            }
-
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                    "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix)
-            )) {
-                statement.setString(1, hashBook);
-                statement.setString(2, encodedBook);
-                statement.setString(3, encodedBook);
-                statement.executeUpdate();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save security book data!", ex);
             }
         });
     }
@@ -450,5 +441,185 @@ public class MySQLStorage extends Storage {
                 return null;
             }
         });
+    }
+
+    @Override
+    protected Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
+        Queue<Triplet<Integer, Side, ItemStack>> queue = new LinkedList<>();
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "SELECT npc_id, side, npc_book FROM %snpc_books WHERE server=?;".formatted(this.tablePrefix)
+        )) {
+            statement.setString(1, this.serverName);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    int npcId = result.getInt("npc_id");
+                    Side side = Side.fromString(result.getString("side"));
+                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
+                    queue.add(Triplet.of(npcId, side, book));
+                }
+            }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all book data!", ex);
+            failed.set(true);
+            return queue;
+        }
+        return queue;
+    }
+
+    @Override
+    protected Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
+        Queue<Pair<String, ItemStack>> queue = new LinkedList<>();
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "SELECT filter_name, filter_book FROM %sfilters;".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    String filterName = result.getString("filter_name");
+                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
+                    queue.add(Pair.of(filterName, book));
+                }
+            }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all filter book data!", ex);
+            failed.set(true);
+            return queue;
+        }
+        return queue;
+    }
+
+    @Override
+    protected Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
+        Queue<Triplet<String, String, String>> queue = new LinkedList<>();
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "SELECT command_name, filter_name, permission FROM %scommands;".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    String cmd = result.getString("command_name");
+                    String filterName = result.getString("filter_name");
+                    String permission = result.getString("permission");
+                    queue.add(Triplet.of(cmd, filterName, permission));
+                }
+            }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all command data!", ex);
+            failed.set(true);
+            return queue;
+        }
+        return queue;
+    }
+
+    @Override
+    protected Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
+        Queue<Triplet<UUID, Date, ItemStack>> queue = new LinkedList<>();
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "SELECT book, timestamp, player FROM %1$ssecurity_books INNER JOIN %1$ssecurity_players USING(book_hash);".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    UUID uuid = UUID.fromString(result.getString("player"));
+                    Date date = new Date(result.getLong("timestamp"));
+                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("book"));
+                    queue.add(Triplet.of(uuid, date, book));
+                }
+            }
+        } catch (SQLException ex) {
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all book security data!", ex);
+            failed.set(true);
+            return queue;
+        }
+        return queue;
+    }
+
+    @Override
+    protected void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "INSERT INTO %snpc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;".formatted(this.tablePrefix)
+        )) {
+            Triplet<Integer, Side, ItemStack> triplet;
+            while ((triplet = queue.poll()) != null) {
+                String encoded = this.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
+                statement.setInt(1, triplet.getFirstValue());
+                statement.setString(2, triplet.getSecondValue().toString());
+                statement.setString(3, this.serverName);
+                statement.setString(4, encoded);
+                statement.setString(5, encoded);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException ex) {
+            failed.set(true);
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all npc book data!", ex);
+        }
+    }
+
+    @Override
+    protected void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed) {
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "INSERT INTO %sfilters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;".formatted(this.tablePrefix)
+        )) {
+            Pair<String, ItemStack> pair;
+            while ((pair = queue.poll()) != null) {
+                String encoded = this.plugin.getAPI().encodeItemStack(pair.getSecondValue());
+                statement.setString(1, pair.getFirstValue());
+                statement.setString(2, encoded);
+                statement.setString(3, encoded);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException ex) {
+            failed.set(true);
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all filter book data!", ex);
+        }
+    }
+
+    @Override
+    protected void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed) {
+        try (PreparedStatement statement = this.connection.prepareStatement(
+                "INSERT INTO %scommands (command_name, filter_name, permission) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE filter_name=?, permission=?;".formatted(this.tablePrefix)
+        )) {
+            Triplet<String, String, String> triplet;
+            while ((triplet = queue.poll()) != null) {
+                statement.setString(1, triplet.getFirstValue());
+                statement.setString(2, triplet.getSecondValue());
+                statement.setString(3, triplet.getThirdValue());
+                statement.setString(4, triplet.getSecondValue());
+                statement.setString(5, triplet.getThirdValue());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException ex) {
+            failed.set(true);
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all command data!", ex);
+        }
+    }
+
+    @Override
+    protected void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed) {
+        try (PreparedStatement statementPlayers = this.connection.prepareStatement(
+                "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix));
+             PreparedStatement statementBooks = this.connection.prepareStatement(
+                     "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix))
+        ) {
+            Triplet<UUID, Date, ItemStack> triplet;
+            while ((triplet = queue.poll()) != null) {
+                String encodedBook = this.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
+                String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
+                statementPlayers.setString(1, triplet.getFirstValue().toString());
+                statementPlayers.setLong(2, triplet.getSecondValue().getTime());
+                statementPlayers.setString(3, hashBook);
+                statementPlayers.setString(4, hashBook);
+                statementPlayers.addBatch();
+                statementBooks.setString(1, hashBook);
+                statementBooks.setString(2, encodedBook);
+                statementBooks.setString(3, encodedBook);
+                statementBooks.addBatch();
+            }
+            statementPlayers.executeBatch();
+            statementBooks.executeBatch();
+        } catch (SQLException ex) {
+            failed.set(true);
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all security player data!", ex);
+        }
     }
 }
