@@ -14,123 +14,138 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class SQLiteStorage extends Storage {
     private Connection connection;
+    private int purgeSecurityBooksOlderThan = 30;
 
     public SQLiteStorage(AstralBooksPlugin plugin) {
         super(plugin, StorageType.SQLITE);
     }
 
     protected boolean load(StorageSettings settings) throws SQLException {
-        this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteSettings().getFileName());
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS 'filters' (
-                filter_name VARCHAR(255) PRIMARY KEY,
-                filter_book TEXT
-                );
-                """
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'filters' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS 'commands' (
-                command_name VARCHAR(255) PRIMARY KEY,
-                filter_name VARCHAR(255),
-                permission VARCHAR(255)
-                );
-                """
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'commands' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS 'npc_books' (
-                npc_id INT NOT NULL,
-                side VARCHAR(32) NOT NULL DEFAULT 'right_side',
-                npc_book TEXT,
-                PRIMARY KEY (npc_id, side)
-                );
-                """
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'npcbooks' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS 'security_books' (
-                book_hash VARCHAR(256) PRIMARY KEY,
-                book TEXT
-                );
-                """
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'security_books' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS 'security_players' (
-                player VARCHAR(48) NOT NULL,
-                timestamp TIMESTAMP NOT NULL,
-                book_hash VARCHAR(256) NOT NULL,
-                PRIMARY KEY (player, timestamp)
-                );
-                """
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'security_players' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT filter_name FROM 'filters';"
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.filters.add(preload.getString("filter_name"));
+        try {
+            super.lock.lock();
+            this.plugin.getLogger().info("Loading SQLite database...");
+            this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+            this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteSettings().getFileName());
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS 'filters' (
+                    filter_name VARCHAR(255) PRIMARY KEY,
+                    filter_book TEXT
+                    );
+                    """
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'filters' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS 'commands' (
+                    command_name VARCHAR(255) PRIMARY KEY,
+                    filter_name VARCHAR(255),
+                    permission VARCHAR(255)
+                    );
+                    """
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'commands' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS 'npc_books' (
+                    npc_id INT NOT NULL,
+                    side VARCHAR(32) NOT NULL DEFAULT 'right_side',
+                    npc_book TEXT,
+                    PRIMARY KEY (npc_id, side)
+                    );
+                    """
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'npcbooks' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS 'security_books' (
+                    book_hash VARCHAR(256) PRIMARY KEY,
+                    book TEXT
+                    );
+                    """
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'security_books' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS 'security_players' (
+                    player VARCHAR(48) NOT NULL,
+                    timestamp TIMESTAMP NOT NULL,
+                    book_hash VARCHAR(256) NOT NULL,
+                    PRIMARY KEY (player, timestamp)
+                    );
+                    """
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to create 'security_players' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT filter_name FROM 'filters';"
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.filters.add(preload.getString("filter_name"));
+                    }
                 }
             }
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT command_name FROM 'commands';"
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.commands.add(preload.getString("command_name"));
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT command_name FROM 'commands';"
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.commands.add(preload.getString("command_name"));
+                    }
                 }
             }
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT npc_id, side FROM 'npc_books';"
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT npc_id, side FROM 'npc_books';"
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                    }
                 }
             }
+            super.loaded = true;
+            return true;
+        } finally {
+            super.lock.unlock();
         }
-        return true;
     }
 
     @Override
     protected void unload() {
         try {
-            this.connection.close();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to unload database!", ex);
+            super.lock.lock();
+            this.plugin.getLogger().info("Unloading SQLite database...");
+            super.loaded = false;
+            try {
+                this.connection.close();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(SQLite) Failed to unload database!", ex);
+            }
+        } finally {
+            super.lock.unlock();
         }
     }
 
@@ -618,6 +633,44 @@ public class SQLiteStorage extends Storage {
         } catch (SQLException ex) {
             failed.set(true);
             this.plugin.getLogger().log(Level.WARNING, "(SQLite) Failed to save all security player data!", ex);
+        }
+    }
+
+    @Override
+    protected Map<UUID, Set<Date>> cleanOldSecurityBookStacks() {
+        try {
+            super.lock.lock();
+            Map<UUID, Set<Date>> map = new HashMap<>();
+            long interval = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(this.purgeSecurityBooksOlderThan);
+            try (PreparedStatement statementSelectPlayers = this.connection.prepareStatement(
+                    "SELECT player, timestamp FROM 'security_players' WHERE timestamp < " + interval + ";");
+                 PreparedStatement statementDeletePlayers = this.connection.prepareStatement(
+                         "DELETE FROM 'security_players' WHERE timestamp < " + interval + ";");
+                 PreparedStatement statementBooks = this.connection.prepareStatement("""
+                         DELETE FROM 'security_books' WHERE book_hash IN (
+                         SELECT
+                         'security_books'.book_hash
+                         FROM 'security_books', 'security_players'
+                         WHERE 'security_books'.book_hash = 'security_players'.book_hash
+                         AND 'security_players'.book_hash IS NULL
+                         );
+                          """)
+            ) {
+                try (ResultSet result = statementSelectPlayers.executeQuery()) {
+                    while (result.next()) {
+                        UUID uuid = UUID.fromString(result.getString(1));
+                        Date timestamp = new Date(result.getTimestamp(2).getTime());
+                        map.computeIfAbsent(uuid, key -> new HashSet<>()).add(timestamp);
+                    }
+                }
+                statementDeletePlayers.executeUpdate();
+                statementBooks.executeUpdate();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to clean old security books data!", ex);
+            }
+            return map;
+        } finally {
+            super.lock.unlock();
         }
     }
 }

@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -31,6 +32,7 @@ public class JsonStorage extends Storage {
     //
     private BukkitTask autoSaveJsonStorage = null;
     private boolean needsAutoSave = false;
+    private int purgeSecurityBooksOlderThan = 30;
 
     public JsonStorage(AstralBooksPlugin plugin) {
         super(plugin, StorageType.JSON);
@@ -44,44 +46,59 @@ public class JsonStorage extends Storage {
 
     @Override
     protected boolean load(StorageSettings settings) {
-        this.readJsonStorage();
-        JsonElement filtersJson = this.jsonStorage.get("filters");
-        if (filtersJson != null && filtersJson.isJsonObject())
-            super.cache.filters.addAll(((JsonObject) filtersJson).keySet());
-        JsonElement commandsJson = this.jsonStorage.get("commands");
-        if (commandsJson != null && commandsJson.isJsonObject())
-            super.cache.commands.addAll(((JsonObject) commandsJson).keySet());
-        JsonElement npcBooksJson = this.jsonStorage.get("npcbooks");
-        if (npcBooksJson != null && npcBooksJson.isJsonObject())
-            for (String npcKey : ((JsonObject) npcBooksJson).keySet()) {
-                JsonElement npcBookJson = ((JsonObject) npcBooksJson).get(npcKey);
-                if (npcBookJson != null && npcBookJson.isJsonObject())
-                    for (String sideKey : ((JsonObject) npcBookJson).keySet())
-                        try {
-                            super.cache.npcs.add(Pair.of(Integer.parseInt(npcKey), Side.fromString(sideKey)));
-                        } catch (NumberFormatException ignore) {
-                        }
-            }
-        int autoSaveInterval = settings.getJsonSettings().getSaveInterval();
-        this.autoSaveJsonStorage = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
-            if (this.needsAutoSave) this.writeJsonStorage();
-        }, 20L * autoSaveInterval, 20L * autoSaveInterval);
-        if (super.cache.filters.isEmpty()) plugin.getLogger().info("No filter was loaded!");
-        else plugin.getLogger().info("Loaded " + super.cache.filters.size() + " filters!");
-        return true;
+        try {
+            this.lock.lock();
+            this.plugin.getLogger().info("Loading JSON database...");
+            this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+            this.readJsonStorage();
+            JsonElement filtersJson = this.jsonStorage.get("filters");
+            if (filtersJson != null && filtersJson.isJsonObject())
+                super.cache.filters.addAll(((JsonObject) filtersJson).keySet());
+            JsonElement commandsJson = this.jsonStorage.get("commands");
+            if (commandsJson != null && commandsJson.isJsonObject())
+                super.cache.commands.addAll(((JsonObject) commandsJson).keySet());
+            JsonElement npcBooksJson = this.jsonStorage.get("npcbooks");
+            if (npcBooksJson != null && npcBooksJson.isJsonObject())
+                for (String npcKey : ((JsonObject) npcBooksJson).keySet()) {
+                    JsonElement npcBookJson = ((JsonObject) npcBooksJson).get(npcKey);
+                    if (npcBookJson != null && npcBookJson.isJsonObject())
+                        for (String sideKey : ((JsonObject) npcBookJson).keySet())
+                            try {
+                                super.cache.npcs.add(Pair.of(Integer.parseInt(npcKey), Side.fromString(sideKey)));
+                            } catch (NumberFormatException ignore) {
+                            }
+                }
+            int autoSaveInterval = settings.getJsonSettings().getSaveInterval();
+            this.autoSaveJsonStorage = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+                if (this.needsAutoSave) this.writeJsonStorage();
+            }, 20L * autoSaveInterval, 20L * autoSaveInterval);
+            if (super.cache.filters.isEmpty()) plugin.getLogger().info("No filter was loaded!");
+            else plugin.getLogger().info("Loaded " + super.cache.filters.size() + " filters!");
+            super.loaded = true;
+            return true;
+        } finally {
+            super.lock.unlock();
+        }
     }
 
     @Override
     protected void unload() {
-        this.writeJsonStorage();
-        if (this.autoSaveJsonStorage != null && !this.autoSaveJsonStorage.isCancelled())
-            this.autoSaveJsonStorage.cancel();
+        try {
+            super.lock.lock();
+            this.plugin.getLogger().info("Unloading JSON database...");
+            super.loaded = false;
+            this.writeJsonStorage();
+            if (this.autoSaveJsonStorage != null && !this.autoSaveJsonStorage.isCancelled())
+                this.autoSaveJsonStorage.cancel();
+        } finally {
+            super.lock.unlock();
+        }
     }
 
     private void readJsonStorage() {
         try (FileReader reader = new FileReader(this.jsonStorageFile)) {
             this.jsonStorage = AstralBooksCore.GSON.fromJson(reader, JsonObject.class);
-            if (this.jsonStorage == null || this.jsonStorage.isJsonNull()) this.jsonStorage = new JsonObject();
+            if (this.jsonStorage == null || !this.jsonStorage.isJsonObject()) this.jsonStorage = new JsonObject();
         } catch (Exception ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to read database.json!", ex);
         }
@@ -510,5 +527,53 @@ public class JsonStorage extends Storage {
             ((JsonObject) filtersJson).remove(filterName);
             this.needsAutoSave = true;
         });
+    }
+
+    @Override
+    protected Map<UUID, Set<Date>> cleanOldSecurityBookStacks() {
+        try {
+            super.lock.lock();
+            Map<UUID, Set<Date>> map = new HashMap<>();
+            JsonElement bookSecurity = this.jsonStorage.get("book_security");
+            if (bookSecurity == null || !bookSecurity.isJsonObject()) return map;
+            JsonElement allPlayersSecurity = ((JsonObject) bookSecurity).get("saved_players");
+            if (allPlayersSecurity == null || !allPlayersSecurity.isJsonObject()) return map;
+            Set<String> existingBooks = new HashSet<>();
+
+            for (Iterator<String> iter = ((JsonObject) allPlayersSecurity).keySet().iterator(); iter.hasNext(); ) {
+                String uuidString = iter.next();
+                JsonElement playerSecurity = ((JsonObject) allPlayersSecurity).get(uuidString);
+                if (playerSecurity == null || !playerSecurity.isJsonObject()) continue;
+                for (Iterator<String> it = ((JsonObject) playerSecurity).keySet().iterator(); it.hasNext(); ) {
+                    String timeStamp = it.next();
+                    try {
+                        Date date = new Date(Long.parseLong(timeStamp));
+                        if (date.getTime() < System.currentTimeMillis() - TimeUnit.DAYS.toMillis(this.purgeSecurityBooksOlderThan)) {
+                            it.remove();
+                            UUID uuid = UUID.fromString(uuidString);
+                            map.computeIfAbsent(uuid, key -> new HashSet<>()).add(date);
+                        } else
+                            existingBooks.add(((JsonObject) playerSecurity).get(timeStamp).getAsString());
+                    } catch (IllegalArgumentException ignored) {}
+                }
+                if (((JsonObject) playerSecurity).keySet().isEmpty()) iter.remove();
+            }
+
+            JsonElement allBooksSecurity = ((JsonObject) bookSecurity).get("saved_books");
+            if (allBooksSecurity == null || !allBooksSecurity.isJsonObject()) return map;
+
+            ((JsonObject) allBooksSecurity).keySet().removeIf(bookHash -> !existingBooks.contains(bookHash));
+            if (((JsonObject) allBooksSecurity).keySet().isEmpty())
+                ((JsonObject) bookSecurity).remove("saved_books");
+            if (((JsonObject) allPlayersSecurity).keySet().isEmpty())
+                ((JsonObject) bookSecurity).remove("saved_players");
+            if (((JsonObject) bookSecurity).keySet().isEmpty())
+                this.jsonStorage.remove("book_security");
+            if (!map.isEmpty())
+                this.writeJsonStorage();
+            return map;
+        } finally {
+            super.lock.unlock();
+        }
     }
 }

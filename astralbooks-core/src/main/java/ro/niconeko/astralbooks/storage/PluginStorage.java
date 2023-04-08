@@ -25,10 +25,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 
@@ -40,6 +37,7 @@ public class PluginStorage {
     private JsonObject joinBookDatabase;
     private boolean needsJoinBookAutoSave = false;
     private BukkitTask autoSaveJoinBook;
+    private BukkitTask oldSecurityBooksCleaner;
 
     public PluginStorage(AstralBooksPlugin plugin) {
         this.plugin = plugin;
@@ -69,6 +67,13 @@ public class PluginStorage {
                 if (this.needsJoinBookAutoSave) this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
             }, 20L * 60, 20L * 60);
         }
+        this.oldSecurityBooksCleaner = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
+            if (this.storage.isLoaded())
+                for (Map.Entry<UUID, Set<Date>> entry : this.storage.cleanOldSecurityBookStacks().entrySet()) {
+                    if (this.cache.playerTimestamps.asMap().containsKey(entry.getKey()))
+                        this.cache.playerTimestamps.asMap().get(entry.getKey()).removeAll(entry.getValue());
+                }
+        }, 20L, 20L);
         if (this.cache != null)
             this.cache.unload();
         if (this.storage != null)
@@ -86,6 +91,8 @@ public class PluginStorage {
     public void unload() {
         if (this.autoSaveJoinBook != null && !this.autoSaveJoinBook.isCancelled())
             this.autoSaveJoinBook.cancel();
+        if (this.oldSecurityBooksCleaner != null && !this.oldSecurityBooksCleaner.isCancelled())
+            this.oldSecurityBooksCleaner.cancel();
         if (this.joinBookDatabase != null) {
             this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
             this.joinBookDatabase = null;

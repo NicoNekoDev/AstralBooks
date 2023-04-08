@@ -8,17 +8,17 @@ import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class Storage {
     public final AstralBooksPlugin plugin;
     protected final StorageCache cache;
     private final StorageType storageType;
+    protected boolean loaded;
+    public final ReentrantLock lock = new ReentrantLock();
 
     protected Storage(AstralBooksPlugin plugin, StorageType storageType) {
         this.plugin = plugin;
@@ -28,6 +28,10 @@ public abstract class Storage {
 
     public final StorageType getStorageType() {
         return this.storageType;
+    }
+
+    public final boolean isLoaded() {
+        return this.loaded;
     }
 
     protected abstract boolean load(StorageSettings settings) throws SQLException;
@@ -75,5 +79,7 @@ public abstract class Storage {
     protected abstract void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed);
 
     protected abstract void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed);
+
+    protected abstract Map<UUID, Set<Date>> cleanOldSecurityBookStacks();
 
 }

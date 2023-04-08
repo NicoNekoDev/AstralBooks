@@ -14,10 +14,9 @@ import ro.niconeko.astralbooks.utils.Side;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -25,128 +24,144 @@ public class MySQLStorage extends Storage {
     private Connection connection;
     private String tablePrefix = "";
     private String serverName = "";
+    private int purgeSecurityBooksOlderThan = 30;
 
     public MySQLStorage(AstralBooksPlugin plugin) {
         super(plugin, StorageType.MYSQL);
     }
 
     protected boolean load(StorageSettings settings) throws SQLException {
-        StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
-        String user = mySQLSettings.getUsername();
-        String pass = mySQLSettings.getPassword();
-        String host = mySQLSettings.getHost();
-        int port = mySQLSettings.getPort();
-        String database = mySQLSettings.getDatabase();
-        boolean sslEnabled = mySQLSettings.isSSLEnabled();
-        this.tablePrefix = mySQLSettings.getTablePrefix();
-        this.serverName = mySQLSettings.getServerName();
-        this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
-        this.connection.setAutoCommit(true);
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS %sfilters (
-                filter_name VARCHAR(256),
-                filter_book TEXT,
-                PRIMARY KEY (filter_name)
-                );
-                """.formatted(this.tablePrefix)
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'filters' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS %scommands (
-                command_name VARCHAR(256),
-                filter_name VARCHAR(256),
-                permission VARCHAR(255),
-                PRIMARY KEY (command_name)
-                );
-                """.formatted(this.tablePrefix)
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'commands' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS %snpc_books (
-                npc_id INT NOT NULL,
-                side VARCHAR(32) NOT NULL DEFAULT 'right_side',
-                server VARCHAR(256) DEFAULT 'default',
-                npc_book TEXT,
-                CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
-                );
-                """.formatted(this.tablePrefix)
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'npcbooks' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS %ssecurity_books (
-                book_hash VARCHAR(256),
-                book TEXT,
-                PRIMARY KEY (book_hash)
-                );
-                """.formatted(this.tablePrefix)
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_books' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS %ssecurity_players (
-                player VARCHAR(48) NOT NULL,
-                timestamp BIGINT NOT NULL,
-                book_hash VARCHAR(256) NOT NULL,
-                CONSTRAINT player_date PRIMARY KEY (player, timestamp)
-                );
-                """.formatted(this.tablePrefix)
-        )) {
-            statement.execute();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_players' table!", ex);
-            return false;
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT filter_name FROM %sfilters;".formatted(this.tablePrefix)
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.filters.add(preload.getString("filter_name"));
+        try {
+            super.lock.lock();
+            this.plugin.getLogger().info("Loading MySQL database...");
+            StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
+            String user = mySQLSettings.getUsername();
+            String pass = mySQLSettings.getPassword();
+            String host = mySQLSettings.getHost();
+            int port = mySQLSettings.getPort();
+            String database = mySQLSettings.getDatabase();
+            boolean sslEnabled = mySQLSettings.isSSLEnabled();
+            this.tablePrefix = mySQLSettings.getTablePrefix();
+            this.serverName = mySQLSettings.getServerName();
+            this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+            this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
+            this.connection.setAutoCommit(true);
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS %sfilters (
+                    filter_name VARCHAR(256),
+                    filter_book TEXT,
+                    PRIMARY KEY (filter_name)
+                    );
+                    """.formatted(this.tablePrefix)
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'filters' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS %scommands (
+                    command_name VARCHAR(256),
+                    filter_name VARCHAR(256),
+                    permission VARCHAR(255),
+                    PRIMARY KEY (command_name)
+                    );
+                    """.formatted(this.tablePrefix)
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'commands' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS %snpc_books (
+                    npc_id INT NOT NULL,
+                    side VARCHAR(32) NOT NULL DEFAULT 'right_side',
+                    server VARCHAR(256) DEFAULT 'default',
+                    npc_book TEXT,
+                    CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
+                    );
+                    """.formatted(this.tablePrefix)
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'npcbooks' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS %ssecurity_books (
+                    book_hash VARCHAR(256),
+                    book TEXT,
+                    PRIMARY KEY (book_hash)
+                    );
+                    """.formatted(this.tablePrefix)
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_books' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement("""
+                    CREATE TABLE IF NOT EXISTS %ssecurity_players (
+                    player VARCHAR(48) NOT NULL,
+                    timestamp BIGINT NOT NULL,
+                    book_hash VARCHAR(256) NOT NULL,
+                    CONSTRAINT player_date PRIMARY KEY (player, timestamp)
+                    );
+                    """.formatted(this.tablePrefix)
+            )) {
+                statement.execute();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_players' table!", ex);
+                return false;
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT filter_name FROM %sfilters;".formatted(this.tablePrefix)
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.filters.add(preload.getString("filter_name"));
+                    }
                 }
             }
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT command_name FROM %scommands;".formatted(this.tablePrefix)
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.commands.add(preload.getString("command_name"));
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT command_name FROM %scommands;".formatted(this.tablePrefix)
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.commands.add(preload.getString("command_name"));
+                    }
                 }
             }
-        }
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT npc_id, side FROM %snpc_books;".formatted(this.tablePrefix)
-        )) {
-            try (ResultSet preload = statement.executeQuery()) {
-                while (preload.next()) {
-                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                    "SELECT npc_id, side FROM %snpc_books;".formatted(this.tablePrefix)
+            )) {
+                try (ResultSet preload = statement.executeQuery()) {
+                    while (preload.next()) {
+                        super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                    }
                 }
             }
+            super.loaded = true;
+            return true;
+        } finally {
+            super.lock.unlock();
         }
-        return true;
     }
 
     @Override
     protected void unload() {
         try {
-            this.connection.close();
-        } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to unload database!", ex);
+            super.lock.lock();
+            this.plugin.getLogger().info("Unloading MySQL database...");
+            super.loaded = false;
+            try {
+                this.connection.close();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to unload database!", ex);
+            }
+        } finally {
+            super.lock.unlock();
         }
     }
 
@@ -325,14 +340,16 @@ public class MySQLStorage extends Storage {
             LinkedList<Pair<Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp
-                    FROM %1$ssecurity_books
-                    INNER JOIN %1$ssecurity_players USING(book_hash)
+                    FROM %1$ssecurity_books books
+                    INNER JOIN %1$ssecurity_players players
+                    ON books.book_hash=players.book_hash
                     WHERE player = ?
                     ORDER BY timestamp DESC LIMIT ? OFFSET ?;
                     """ : """
                     SELECT book, timestamp
-                    FROM %1$ssecurity_books
-                    INNER JOIN %1$ssecurity_players USING(book_hash)
+                    FROM %1$ssecurity_books books
+                    INNER JOIN %1$ssecurity_players players
+                    ON books.book_hash=players.book_hash
                     WHERE player = ?
                     ORDER BY timestamp DESC;
                     """;
@@ -363,13 +380,15 @@ public class MySQLStorage extends Storage {
             LinkedList<Triplet<UUID, Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp, player
-                    FROM %1$ssecurity_books
-                    INNER JOIN %1$ssecurity_players USING(book_hash)
+                    FROM %1$ssecurity_books books
+                    INNER JOIN %1$ssecurity_players players
+                    ON books.book_hash=players.book_hash
                     ORDER BY timestamp DESC LIMIT ? OFFSET ?;
                     """ : """
                     SELECT book, timestamp, player
-                    FROM %1$ssecurity_books
-                    INNER JOIN %1$ssecurity_players USING(book_hash)
+                    FROM %1$ssecurity_books books
+                    INNER JOIN %1$ssecurity_players players
+                    ON books.book_hash=players.book_hash
                     ORDER BY timestamp DESC;
                     """;
             try (PreparedStatement statement = this.connection.prepareStatement(query.formatted(this.tablePrefix))) {
@@ -512,8 +531,12 @@ public class MySQLStorage extends Storage {
     @Override
     protected Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
         Queue<Triplet<UUID, Date, ItemStack>> queue = new LinkedList<>();
-        try (PreparedStatement statement = this.connection.prepareStatement(
-                "SELECT book, timestamp, player FROM %1$ssecurity_books INNER JOIN %1$ssecurity_players USING(book_hash);".formatted(this.tablePrefix)
+        try (PreparedStatement statement = this.connection.prepareStatement("""
+                SELECT book, timestamp, player
+                FROM %1$ssecurity_books books
+                INNER JOIN %1$ssecurity_players players
+                ON books.book_hash=players.book_hash;
+                """.formatted(this.tablePrefix)
         )) {
             try (ResultSet result = statement.executeQuery()) {
                 while (result.next()) {
@@ -619,7 +642,43 @@ public class MySQLStorage extends Storage {
             statementBooks.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all security player data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all security books data!", ex);
+        }
+    }
+
+    @Override
+    protected Map<UUID, Set<Date>> cleanOldSecurityBookStacks() {
+        try {
+            super.lock.lock();
+            Map<UUID, Set<Date>> map = new HashMap<>();
+            long interval = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(this.purgeSecurityBooksOlderThan);
+            try (PreparedStatement statementSelectPlayers = this.connection.prepareStatement(
+                    ("SELECT player, timestamp FROM %ssecurity_players WHERE timestamp < " + interval + ";").formatted(this.tablePrefix));
+                 PreparedStatement statementDeletePlayers = this.connection.prepareStatement(
+                         ("DELETE FROM %ssecurity_players WHERE timestamp < " + interval + ";").formatted(this.tablePrefix));
+                 PreparedStatement statementBooks = this.connection.prepareStatement("""
+                         DELETE books
+                         FROM %1$ssecurity_books books
+                         LEFT JOIN %1$ssecurity_players players
+                         ON books.book_hash=players.book_hash
+                         WHERE players.book_hash IS NULL;
+                         """.formatted(this.tablePrefix))
+            ) {
+                try (ResultSet result = statementSelectPlayers.executeQuery()) {
+                    while (result.next()) {
+                        UUID uuid = UUID.fromString(result.getString("player"));
+                        Date timestamp = new Date(result.getLong("timestamp"));
+                        map.computeIfAbsent(uuid, key -> new HashSet<>()).add(timestamp);
+                    }
+                }
+                statementDeletePlayers.executeUpdate();
+                statementBooks.executeUpdate();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to clean old security books data!", ex);
+            }
+            return map;
+        } finally {
+            super.lock.unlock();
         }
     }
 }

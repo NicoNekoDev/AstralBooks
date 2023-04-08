@@ -26,6 +26,7 @@ import me.lucko.commodore.file.CommodoreFileReader;
 import net.luckperms.api.LuckPerms;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -161,8 +162,15 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
             if (!this.reloadPlugin())
                 throw new IllegalStateException("Failed to load settings!");
 
-            if (this.settings.isMetricsEnabled())
-                new Metrics(this, 18026);
+            if (this.settings.isMetricsEnabled()) {
+                Metrics metrics = new Metrics(this, 18026);
+                metrics.addCustomChart(new SimplePie("database_type", () ->
+                        switch (this.settings.getStorageSettings().getDatabaseType()) {
+                            case JSON -> "JSON";
+                            case MYSQL -> "MySQL";
+                            case SQLITE -> "SQLite";
+                        }));
+            }
 
             manager.registerEvents(this.playerActionsListener, this);
             manager.registerEvents(this.serverActionsListener, this);
@@ -258,19 +266,20 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
     }
 
     public boolean reloadPlugin() {
-        this.loadSettings();
-        this.saveSettings();
-        try {
-            if (this.pluginStorage != null)
-                this.pluginStorage.unload();
-            this.pluginStorage = new PluginStorage(this);
-            this.pluginStorage.load(this.settings.getStorageSettings());
-        } catch (SQLException ex) {
-            this.getLogger().log(Level.SEVERE, "Could not load storage!", ex);
-            return false;
+        if (this.loadSettings()) {
+            this.saveSettings();
+            try {
+                if (this.pluginStorage != null)
+                    this.pluginStorage.unload();
+                this.pluginStorage = new PluginStorage(this);
+                this.pluginStorage.load(this.settings.getStorageSettings());
+            } catch (SQLException ex) {
+                this.getLogger().log(Level.SEVERE, "Could not load storage!", ex);
+                return false;
+            }
+            if (this.playerActionsListener != null)
+                this.playerActionsListener.onReload();
         }
-        if (this.playerActionsListener != null)
-            this.playerActionsListener.onReload();
         return true;
     }
 }

@@ -70,6 +70,7 @@ public class StorageConvertor {
             this.plugin.getLogger().info("Converting [" + allBookSecurityStacks.size() + "] security books...");
             this.currentStorage.setAllBookSecurityStacks(allBookSecurityStacks, failed);
 
+            failed.set(true);
             scheduler.shutdown();
             try {
                 if (!scheduler.awaitTermination(5, TimeUnit.SECONDS))
@@ -77,7 +78,6 @@ public class StorageConvertor {
             } catch (InterruptedException e) {
                 this.plugin.getLogger().severe("A previous task failed to shut down correctly!");
             }
-
             this.plugin.getLogger().info("Conversion done! Reloading plugin...");
 
             Bukkit.getScheduler().runTask(this.plugin, () -> {
