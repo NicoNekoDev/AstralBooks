@@ -93,7 +93,7 @@ public class UpdateChecker implements Listener {
         if (!this.plugin.getSettings().isUpdateCheck())
             return;
         Player player = event.getPlayer();
-        if (this.plugin.getAPI().hasPermission(player, "npcbook.notify"))
+        if (!this.plugin.getAPI().hasPermission(player, "astralbooks.notify"))
             return;
         if (!updateAvailable)
             return;
