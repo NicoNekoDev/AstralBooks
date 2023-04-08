@@ -73,7 +73,7 @@ public class PluginStorage {
                     if (this.cache.playerTimestamps.asMap().containsKey(entry.getKey()))
                         this.cache.playerTimestamps.asMap().get(entry.getKey()).removeAll(entry.getValue());
                 }
-        }, 20L, 20L);
+        }, 20L * 60, 20L * 60 * 60); // run first after 1 minute, then once an hour
         if (this.cache != null)
             this.cache.unload();
         if (this.storage != null)
