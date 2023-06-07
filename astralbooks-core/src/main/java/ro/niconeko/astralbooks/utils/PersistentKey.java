@@ -43,9 +43,13 @@ public class PersistentKey {
     //
     public static PersistentKey BLOCK_LEFT_BOOK = null;
     public static PersistentKey BLOCK_RIGHT_BOOK = null;
+    public static Class<?> NAMESPACE_KEY = null;
 
     public static boolean init(AstralBooksPlugin plugin) {
         try {
+            try {
+                NAMESPACE_KEY = Class.forName("org.bukkit.NamespacedKey");
+            } catch (ClassNotFoundException ignore) {}
             ITEM_RIGHT_KEY = new PersistentKey("RightBookValue", plugin);
             ITEM_LEFT_KEY = new PersistentKey("LeftBookValue", plugin);
             BOOK_PASSWORD = new PersistentKey("BookPassword", plugin);
@@ -70,7 +74,7 @@ public class PersistentKey {
     private PersistentKey(String value, AstralBooksPlugin plugin) {
         this.value = value;
         try {
-            this.key = NamespacedKey.class.getConstructor(Plugin.class, String.class).newInstance(plugin, this.value);
+            this.key = NAMESPACE_KEY != null ? NAMESPACE_KEY.getConstructor(Plugin.class, String.class).newInstance(plugin, this.value) : null;
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException |
                  InstantiationException ignore) {
             this.key = null;

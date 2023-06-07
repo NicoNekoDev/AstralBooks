@@ -49,6 +49,10 @@ import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.niconeko.astralbooks.api.AstralBooksAPI;
 import ro.niconeko.astralbooks.dist.Distribution;
+import ro.niconeko.astralbooks.persistent.chunk.ChunkData;
+import ro.niconeko.astralbooks.persistent.chunk.EmptyChunkData;
+import ro.niconeko.astralbooks.persistent.chunk.NBTAPIChunkData;
+import ro.niconeko.astralbooks.persistent.chunk.PersistentChunkData;
 import ro.niconeko.astralbooks.persistent.entity.EmptyEntityData;
 import ro.niconeko.astralbooks.persistent.entity.EntityData;
 import ro.niconeko.astralbooks.persistent.entity.NBTAPIEntityData;
@@ -289,6 +293,15 @@ public class AstralBooksCore implements AstralBooksAPI {
             return new NBTAPIEntityData(entity);
         }
         return new EmptyEntityData();
+    }
+
+    public ChunkData chunkDataFactory(Chunk chunk) {
+        if (this.noNBTAPIRequired()) {
+            return new PersistentChunkData(chunk);
+        } else if (this.plugin.isNBTAPIEnabled()) {
+            return new NBTAPIChunkData(chunk);
+        }
+        return new EmptyChunkData();
     }
 
     public boolean loadDistribution() {

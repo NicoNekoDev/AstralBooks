@@ -47,6 +47,7 @@
     <module>astralbooks-v1_19_R1</module>
     <module>astralbooks-v1_19_R2</module>
     <module>astralbooks-v1_19_R3</module>
+    <module>astralbooks-v1_20_R1</module>
     <module>astralbooks-assembly</module>
   </modules>
   <distributionManagement>
@@ -69,7 +70,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.19.4-R0.1-SNAPSHOT</version>
+      <version>1.20-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

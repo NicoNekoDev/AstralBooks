@@ -45,7 +45,6 @@ import ro.niconeko.astralbooks.utils.UpdateChecker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
@@ -221,18 +220,19 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
     public boolean loadSettings() {
         try {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
-            config.options().setHeader(
-                    List.of("""
-                                             _             _ ____              _       \s
-                                   /\\       | |           | |  _ \\            | |      \s
-                                  /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
-                                 / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
-                                / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
-                               /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
-                                                                                       \s
-                                                                                       \s
-                            """.split("\n"))
-            );
+            try {
+                config.options().getClass()
+                        .getMethod("setHeader", List.class).invoke(config.options(), List.of("""
+                                                 _             _ ____              _       \s
+                                       /\\       | |           | |  _ \\            | |      \s
+                                      /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
+                                     / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
+                                    / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
+                                   /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
+                                                                                           \s
+                                                                                           \s
+                                """.split("\n")));
+            } catch (NoSuchMethodException ignored) {}
             this.settings.load(config);
             return true;
         } catch (Exception ex) {
@@ -245,21 +245,22 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
         try {
             YamlConfiguration config = new YamlConfiguration();
             this.settings.load(config);
-            config.options().setHeader(
-                    List.of("""
-                                             _             _ ____              _       \s
-                                   /\\       | |           | |  _ \\            | |      \s
-                                  /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
-                                 / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
-                                / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
-                               /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
-                                                                                       \s
-                                                                                       \s
-                            """.split("\n"))
-            );
+            try {
+                config.options().getClass()
+                        .getMethod("setHeader", List.class).invoke(config.options(), List.of("""
+                                                 _             _ ____              _       \s
+                                       /\\       | |           | |  _ \\            | |      \s
+                                      /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
+                                     / /\\ \\ / __| __| '__/ _` | |  _ < / _ \\ / _ \\| |/ / __|
+                                    / ____ \\\\__ \\ |_| | | (_| | | |_) | (_) | (_) |   <\\__ \\
+                                   /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
+                                                                                           \s
+                                                                                           \s
+                                """.split("\n")));
+            } catch (NoSuchMethodException ignored) {}
             config.save(this.settingsFile);
             return true;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             this.getLogger().log(Level.WARNING, "Failed to save settings", ex);
             return false;
         }
