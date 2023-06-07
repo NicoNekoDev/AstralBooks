@@ -267,6 +267,8 @@ public class PlayerActions implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         String command = event.getMessage().substring(1).split(" ")[0];
+        if (!this.plugin.getAPI().isValidName(command))
+            return;
         if (!this.plugin.getPluginStorage().hasCommandFilter(command))
             return;
         event.setCancelled(true);
