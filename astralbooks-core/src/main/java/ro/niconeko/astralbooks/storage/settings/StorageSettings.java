@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Optional;
 
 public class StorageSettings extends Settings {
-    @Getter private StorageType databaseType = StorageType.SQLITE;
+    @Getter private StorageType databaseType = StorageType.H2;
     @Getter private int databaseThreads = 2;
     @Getter private boolean securityBookPurgeEnabled = true;
     @Getter private int securityBookPurgeOlderThan = 30;
     @Getter private final StorageMySQLSettings MySQLSettings = new StorageMySQLSettings(super.plugin);
     @Getter private final StorageSQLiteSettings SQLiteSettings = new StorageSQLiteSettings(super.plugin);
     @Getter private final StorageJsonSettings JsonSettings = new StorageJsonSettings(super.plugin);
+    @Getter private final StorageH2Settings H2Settings = new StorageH2Settings(super.plugin);
 
     public StorageSettings(AstralBooksPlugin plugin) {
         super(plugin);
@@ -24,7 +25,7 @@ public class StorageSettings extends Settings {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.databaseType = StorageType.fromString(super.getOrSetStringFunction(section, "type", this.databaseType.toString(), Optional.of(List.of("Options: json, sqlite, mysql"))));
+        this.databaseType = StorageType.fromString(super.getOrSetStringFunction(section, "type", this.databaseType.toString(), Optional.of(List.of("Options: h2, sqlite, mysql, json"))));
         this.databaseThreads = super.getOrSetIntFunction(section, "threads", this.databaseThreads, Optional.of(List.of("Number of threads the cache will use")));
         this.securityBookPurgeEnabled = super.getOrSetBooleanFunction(section, "security_books_purge_enabled", this.securityBookPurgeEnabled, Optional.of(List.of(
                 "Enable if you want to clean old saved books created by players"
@@ -35,5 +36,6 @@ public class StorageSettings extends Settings {
         this.JsonSettings.load(super.getOrCreateSection(section, "json"));
         this.SQLiteSettings.load(super.getOrCreateSection(section, "sqlite"));
         this.MySQLSettings.load(super.getOrCreateSection(section, "mysql"));
+        this.H2Settings.load(super.getOrCreateSection(section, "h2"));
     }
 }

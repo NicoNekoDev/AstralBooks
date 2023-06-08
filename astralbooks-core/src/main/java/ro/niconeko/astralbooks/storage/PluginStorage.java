@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
+import ro.niconeko.astralbooks.storage.types.H2Storage;
 import ro.niconeko.astralbooks.storage.types.JsonStorage;
 import ro.niconeko.astralbooks.storage.types.MySQLStorage;
 import ro.niconeko.astralbooks.storage.types.SQLiteStorage;
@@ -54,6 +55,7 @@ public class PluginStorage {
             case JSON -> new JsonStorage(plugin);
             case MYSQL -> new MySQLStorage(plugin);
             case SQLITE -> new SQLiteStorage(plugin);
+            case H2 -> new H2Storage(plugin);
         };
         new StorageConvertor(this.plugin, this.storage, convertFrom).convert();
     }
@@ -82,6 +84,7 @@ public class PluginStorage {
             case JSON -> new JsonStorage(plugin);
             case MYSQL -> new MySQLStorage(plugin);
             case SQLITE -> new SQLiteStorage(plugin);
+            case H2 -> new H2Storage(plugin);
         };
         this.cache = this.storage.cache;
         this.cache.load();
@@ -89,10 +92,14 @@ public class PluginStorage {
     }
 
     public void unload() {
-        if (this.autoSaveJoinBook != null && !this.autoSaveJoinBook.isCancelled())
+        if (this.autoSaveJoinBook != null) {
             this.autoSaveJoinBook.cancel();
-        if (this.oldSecurityBooksCleaner != null && !this.oldSecurityBooksCleaner.isCancelled())
+            this.autoSaveJoinBook = null;
+        }
+        if (this.oldSecurityBooksCleaner != null) {
             this.oldSecurityBooksCleaner.cancel();
+            this.oldSecurityBooksCleaner = null;
+        }
         if (this.joinBookDatabase != null) {
             this.writeJsonFile(this.joinBookFile, this.joinBookDatabase);
             this.joinBookDatabase = null;
@@ -150,8 +157,10 @@ public class PluginStorage {
         if (this.joinBookFile.exists() && this.joinBookDatabase != null) {
             this.needsJoinBookAutoSave = false;
             this.joinBookDatabase = null;
-            if (this.autoSaveJoinBook != null && !this.autoSaveJoinBook.isCancelled())
+            if (this.autoSaveJoinBook != null) {
                 this.autoSaveJoinBook.cancel();
+                this.autoSaveJoinBook = null;
+            }
             return this.joinBookFile.delete();
         }
         return true;

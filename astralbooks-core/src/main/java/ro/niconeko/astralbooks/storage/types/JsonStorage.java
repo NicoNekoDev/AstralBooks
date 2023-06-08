@@ -88,8 +88,10 @@ public class JsonStorage extends Storage {
             this.plugin.getLogger().info("Unloading JSON database...");
             super.loaded = false;
             this.writeJsonStorage();
-            if (this.autoSaveJsonStorage != null && !this.autoSaveJsonStorage.isCancelled())
+            if (this.autoSaveJsonStorage != null) {
                 this.autoSaveJsonStorage.cancel();
+                this.autoSaveJsonStorage = null;
+            }
         } finally {
             super.lock.unlock();
         }

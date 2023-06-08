@@ -78,13 +78,17 @@ public class PlayerActions implements Listener {
     }
 
     public void onDisable() {
-        if (this.pullTask != null)
+        if (this.pullTask != null) {
             this.pullTask.cancel();
+            this.pullTask = null;
+        }
     }
 
     public void onReload() {
-        if (this.pullTask != null && !this.pullTask.isCancelled())
+        if (this.pullTask != null) {
             this.pullTask.cancel();
+            this.pullTask = null;
+        }
         this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
             DelayedPlayer delayedInteractionBookBlockOperator;
             while ((delayedInteractionBookBlockOperator = this.delayedInteractionBookBlockOperators.poll()) != null) {

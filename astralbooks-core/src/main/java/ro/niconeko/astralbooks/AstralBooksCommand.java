@@ -177,14 +177,15 @@ public class AstralBooksCommand implements TabExecutor {
                             case "mysql" -> StorageType.MYSQL;
                             case "sqlite" -> StorageType.SQLITE;
                             case "json" -> StorageType.JSON;
+                            case "h2" -> StorageType.H2;
                             default -> null;
                         };
                         if (type == null) {
-                            plugin.getLogger().info("Argument: mysql, sqlite, json");
+                            plugin.getLogger().info("Argument: mysql, sqlite, json, h2");
                             break;
                         }
                         this.plugin.getPluginStorage().convertFrom(type);
-                    } else plugin.getLogger().info("Argument: mysql, sqlite, json");
+                    } else plugin.getLogger().info("Argument: mysql, sqlite, json, h2");
                 }
                 case "interaction" -> {
                     if (!this.api.hasPermission(sender, "astralbooks.command.interaction")) {

@@ -6,7 +6,7 @@ import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.settings.Settings;
 
 public class StorageSQLiteSettings extends Settings {
-    @Getter private String fileName = "database.db";
+    @Getter private String fileName = "database-sql.db";
 
     public StorageSQLiteSettings(AstralBooksPlugin plugin) {
         super(plugin);

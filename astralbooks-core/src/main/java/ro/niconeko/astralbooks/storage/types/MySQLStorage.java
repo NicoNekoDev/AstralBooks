@@ -44,6 +44,7 @@ public class MySQLStorage extends Storage {
             this.tablePrefix = mySQLSettings.getTablePrefix();
             this.serverName = mySQLSettings.getServerName();
             this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+            Class.forName("com.mysql.jdbc.Driver");
             this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
             this.connection.setAutoCommit(true);
             try (PreparedStatement statement = this.connection.prepareStatement("""
@@ -56,7 +57,7 @@ public class MySQLStorage extends Storage {
             )) {
                 statement.execute();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'filters' table!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'filters' table!", ex);
                 return false;
             }
             try (PreparedStatement statement = this.connection.prepareStatement("""
@@ -70,7 +71,7 @@ public class MySQLStorage extends Storage {
             )) {
                 statement.execute();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'commands' table!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'commands' table!", ex);
                 return false;
             }
             try (PreparedStatement statement = this.connection.prepareStatement("""
@@ -85,7 +86,7 @@ public class MySQLStorage extends Storage {
             )) {
                 statement.execute();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'npcbooks' table!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'npcbooks' table!", ex);
                 return false;
             }
             try (PreparedStatement statement = this.connection.prepareStatement("""
@@ -98,7 +99,7 @@ public class MySQLStorage extends Storage {
             )) {
                 statement.execute();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_books' table!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'security_books' table!", ex);
                 return false;
             }
             try (PreparedStatement statement = this.connection.prepareStatement("""
@@ -112,7 +113,7 @@ public class MySQLStorage extends Storage {
             )) {
                 statement.execute();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to create 'security_players' table!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'security_players' table!", ex);
                 return false;
             }
             try (PreparedStatement statement = this.connection.prepareStatement(
@@ -144,6 +145,9 @@ public class MySQLStorage extends Storage {
             }
             super.loaded = true;
             return true;
+        } catch (ClassNotFoundException ex) {
+            this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to find MySQL driver!", ex);
+            return false;
         } finally {
             super.lock.unlock();
         }
@@ -158,7 +162,7 @@ public class MySQLStorage extends Storage {
             try {
                 this.connection.close();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MYSQL) Failed to unload database!", ex);
+                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to unload database!", ex);
             }
         } finally {
             super.lock.unlock();
@@ -178,7 +182,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve filter book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve filter book data!", ex);
                 return null;
             }
         });
@@ -199,7 +203,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book data!", ex);
                 return null;
             }
         });
@@ -218,7 +222,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve command data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve command data!", ex);
                 return null;
             }
         });
@@ -236,7 +240,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(3, this.serverName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to remove book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove book data!", ex);
             }
         });
     }
@@ -252,7 +256,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(1, filterName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to remove book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove book data!", ex);
             }
         });
     }
@@ -268,7 +272,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(1, cmd);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to remove command data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove command data!", ex);
             }
         });
     }
@@ -290,7 +294,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(5, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save book data!", ex);
             }
         });
     }
@@ -309,7 +313,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(3, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save book data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save book data!", ex);
             }
         });
     }
@@ -329,7 +333,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(5, permission);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save command data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save command data!", ex);
             }
         });
     }
@@ -368,7 +372,7 @@ public class MySQLStorage extends Storage {
                     return list;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book security data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book security data!", ex);
                 return list;
             }
         });
@@ -406,7 +410,7 @@ public class MySQLStorage extends Storage {
                     return list;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve book security data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book security data!", ex);
                 return list;
             }
         });
@@ -432,7 +436,7 @@ public class MySQLStorage extends Storage {
                 statementBooks.setString(3, encodedBook);
                 statementBooks.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save security player data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save security player data!", ex);
             }
         });
     }
@@ -456,7 +460,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve command data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve command data!", ex);
                 return null;
             }
         });
@@ -478,7 +482,7 @@ public class MySQLStorage extends Storage {
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all book data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all book data!", ex);
             failed.set(true);
             return queue;
         }
@@ -492,14 +496,14 @@ public class MySQLStorage extends Storage {
                 "SELECT filter_name, filter_book FROM %sfilters;".formatted(this.tablePrefix)
         )) {
             try (ResultSet result = statement.executeQuery()) {
-                if (result.next()) {
+                while (result.next()) {
                     String filterName = result.getString("filter_name");
                     ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
                     queue.add(Pair.of(filterName, book));
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all filter book data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all filter book data!", ex);
             failed.set(true);
             return queue;
         }
@@ -513,7 +517,7 @@ public class MySQLStorage extends Storage {
                 "SELECT command_name, filter_name, permission FROM %scommands;".formatted(this.tablePrefix)
         )) {
             try (ResultSet result = statement.executeQuery()) {
-                if (result.next()) {
+                while (result.next()) {
                     String cmd = result.getString("command_name");
                     String filterName = result.getString("filter_name");
                     String permission = result.getString("permission");
@@ -521,7 +525,7 @@ public class MySQLStorage extends Storage {
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all command data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all command data!", ex);
             failed.set(true);
             return queue;
         }
@@ -547,7 +551,7 @@ public class MySQLStorage extends Storage {
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to retrieve all book security data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all book security data!", ex);
             failed.set(true);
             return queue;
         }
@@ -572,7 +576,7 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all npc book data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all npc book data!", ex);
         }
     }
 
@@ -592,7 +596,7 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all filter book data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all filter book data!", ex);
         }
     }
 
@@ -613,7 +617,7 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all command data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all command data!", ex);
         }
     }
 
@@ -642,7 +646,7 @@ public class MySQLStorage extends Storage {
             statementBooks.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to save all security books data!", ex);
+            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all security books data!", ex);
         }
     }
 
@@ -674,7 +678,7 @@ public class MySQLStorage extends Storage {
                 statementDeletePlayers.executeUpdate();
                 statementBooks.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MYSQL) Failed to clean old security books data!", ex);
+                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to clean old security books data!", ex);
             }
             return map;
         } finally {

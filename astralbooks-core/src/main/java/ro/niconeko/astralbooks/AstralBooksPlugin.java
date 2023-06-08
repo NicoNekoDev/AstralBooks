@@ -168,6 +168,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                             case JSON -> "JSON";
                             case MYSQL -> "MySQL";
                             case SQLITE -> "SQLite";
+                            case H2 -> "H2";
                         }));
             }
 
@@ -200,7 +201,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
             this.playerActionsListener.onDisable();
         if (this.serverActionsListener != null)
             this.serverActionsListener.onDisable();
-        if (this.pluginStorage != null)
+        if (this.pluginStorage != null && this.isEnabled())
             this.pluginStorage.unload();
     }
 
