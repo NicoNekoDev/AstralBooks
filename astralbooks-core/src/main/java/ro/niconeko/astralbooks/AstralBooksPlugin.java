@@ -169,6 +169,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                             case MYSQL -> "MySQL";
                             case SQLITE -> "SQLite";
                             case H2 -> "H2";
+                            case MARIADB -> "MariaDB";
                         }));
             }
 

@@ -14,10 +14,8 @@ public class StorageSettings extends Settings {
     @Getter private int databaseThreads = 2;
     @Getter private boolean securityBookPurgeEnabled = true;
     @Getter private int securityBookPurgeOlderThan = 30;
-    @Getter private final StorageMySQLSettings MySQLSettings = new StorageMySQLSettings(super.plugin);
-    @Getter private final StorageSQLiteSettings SQLiteSettings = new StorageSQLiteSettings(super.plugin);
-    @Getter private final StorageJsonSettings JsonSettings = new StorageJsonSettings(super.plugin);
-    @Getter private final StorageH2Settings H2Settings = new StorageH2Settings(super.plugin);
+    @Getter private final StorageRemoteSettings RemoteSettings = new StorageRemoteSettings(super.plugin);
+    @Getter private final StorageEmbedSettings EmbedSettings = new StorageEmbedSettings(super.plugin);
 
     public StorageSettings(AstralBooksPlugin plugin) {
         super(plugin);
@@ -33,9 +31,7 @@ public class StorageSettings extends Settings {
         this.securityBookPurgeOlderThan = super.getOrSetIntFunction(section, "security_books_purge_older_than", this.securityBookPurgeOlderThan, Optional.of(List.of(
                 "In days, default: 30"
         )));
-        this.JsonSettings.load(super.getOrCreateSection(section, "json"));
-        this.SQLiteSettings.load(super.getOrCreateSection(section, "sqlite"));
-        this.MySQLSettings.load(super.getOrCreateSection(section, "mysql"));
-        this.H2Settings.load(super.getOrCreateSection(section, "h2"));
+        this.RemoteSettings.load(super.getOrCreateSection(section, "remote"));
+        this.EmbedSettings.load(super.getOrCreateSection(section, "embed"));
     }
 }

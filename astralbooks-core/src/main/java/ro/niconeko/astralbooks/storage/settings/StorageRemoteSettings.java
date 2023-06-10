@@ -8,7 +8,7 @@ import ro.niconeko.astralbooks.settings.Settings;
 import java.util.List;
 import java.util.Optional;
 
-public class StorageMySQLSettings extends Settings {
+public class StorageRemoteSettings extends Settings {
     @Getter private String host = "localhost";
     @Getter private int port = 3306;
     @Getter private String database = "astralbooks";
@@ -18,7 +18,7 @@ public class StorageMySQLSettings extends Settings {
     @Getter private String tablePrefix = "abooks_";
     @Getter private String serverName = "default";
 
-    public StorageMySQLSettings(AstralBooksPlugin plugin) {
+    public StorageRemoteSettings(AstralBooksPlugin plugin) {
         super(plugin);
     }
 

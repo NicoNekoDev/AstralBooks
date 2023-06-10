@@ -1,4 +1,4 @@
-package ro.niconeko.astralbooks.storage.types;
+package ro.niconeko.astralbooks.storage.types.impl;
 
 import com.google.common.hash.Hashing;
 import com.google.gson.JsonElement;
@@ -11,9 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
-import ro.niconeko.astralbooks.storage.settings.StorageSettings;
+import ro.niconeko.astralbooks.storage.types.EmbedStorage;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.io.File;
@@ -26,13 +25,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-public class JsonStorage extends Storage {
+public class JsonStorage extends EmbedStorage {
     private JsonObject jsonStorage = new JsonObject();
     private final File jsonStorageFile;
-    //
     private BukkitTask autoSaveJsonStorage = null;
     private boolean needsAutoSave = false;
-    private int purgeSecurityBooksOlderThan = 30;
 
     public JsonStorage(AstralBooksPlugin plugin) {
         super(plugin, StorageType.JSON);
@@ -45,11 +42,11 @@ public class JsonStorage extends Storage {
     }
 
     @Override
-    protected boolean load(StorageSettings settings) {
+    protected boolean load() {
         try {
             this.lock.lock();
-            this.plugin.getLogger().info("Loading JSON database...");
-            this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+            super.plugin.getLogger().info("Loading " + super.storageType.getFormattedName() + " database...");
+            super.loadSettings(super.plugin.getSettings().getStorageSettings());
             this.readJsonStorage();
             JsonElement filtersJson = this.jsonStorage.get("filters");
             if (filtersJson != null && filtersJson.isJsonObject())
@@ -68,10 +65,9 @@ public class JsonStorage extends Storage {
                             } catch (NumberFormatException ignore) {
                             }
                 }
-            int autoSaveInterval = settings.getJsonSettings().getSaveInterval();
-            this.autoSaveJsonStorage = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
+            this.autoSaveJsonStorage = Bukkit.getScheduler().runTaskTimer(super.plugin, () -> {
                 if (this.needsAutoSave) this.writeJsonStorage();
-            }, 20L * autoSaveInterval, 20L * autoSaveInterval);
+            }, 20L * super.autoSaveInterval, 20L * super.autoSaveInterval);
             if (super.cache.filters.isEmpty()) plugin.getLogger().info("No filter was loaded!");
             else plugin.getLogger().info("Loaded " + super.cache.filters.size() + " filters!");
             super.loaded = true;
@@ -85,7 +81,7 @@ public class JsonStorage extends Storage {
     protected void unload() {
         try {
             super.lock.lock();
-            this.plugin.getLogger().info("Unloading JSON database...");
+            super.plugin.getLogger().info("Unloading " + super.storageType.getFormattedName() + " database...");
             super.loaded = false;
             this.writeJsonStorage();
             if (this.autoSaveJsonStorage != null) {
@@ -102,7 +98,7 @@ public class JsonStorage extends Storage {
             this.jsonStorage = AstralBooksCore.GSON.fromJson(reader, JsonObject.class);
             if (this.jsonStorage == null || !this.jsonStorage.isJsonObject()) this.jsonStorage = new JsonObject();
         } catch (Exception ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Failed to read database.json!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "Failed to read database.json!", ex);
         }
     }
 
@@ -110,7 +106,7 @@ public class JsonStorage extends Storage {
         try (FileWriter writer = new FileWriter(this.jsonStorageFile)) {
             AstralBooksCore.GSON.toJson(this.jsonStorage, writer);
         } catch (Exception ex) {
-            this.plugin.getLogger().log(Level.WARNING, "Failed to save database.json!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "Failed to save database.json!", ex);
         }
     }
 
@@ -121,7 +117,7 @@ public class JsonStorage extends Storage {
             if (filtersJson == null || !filtersJson.isJsonObject()) return null;
             JsonElement filterJson = ((JsonObject) filtersJson).get(filterName);
             if (filterJson == null || !filterJson.isJsonObject()) return null;
-            return this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson);
+            return super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson);
         });
     }
 
@@ -134,7 +130,7 @@ public class JsonStorage extends Storage {
             if (npcBookJson == null || !npcBookJson.isJsonObject()) return null;
             JsonElement npcBookJsonSide = ((JsonObject) npcBookJson).get(side.toString());
             if (npcBookJsonSide == null || !npcBookJsonSide.isJsonObject()) return null;
-            return this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide);
+            return super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide);
         });
     }
 
@@ -167,7 +163,7 @@ public class JsonStorage extends Storage {
                     npcBookJson = new JsonObject();
                     ((JsonObject) npcBooksJson).add(String.valueOf(npcId), npcBookJson);
                 }
-                ((JsonObject) npcBookJson).add(side.toString(), this.plugin.getAPI().getDistribution().convertBookToJson(book));
+                ((JsonObject) npcBookJson).add(side.toString(), super.plugin.getAPI().getDistribution().convertBookToJson(book));
                 this.needsAutoSave = true;
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
@@ -186,7 +182,7 @@ public class JsonStorage extends Storage {
                     filtersJson = new JsonObject();
                     this.jsonStorage.add("filters", filtersJson);
                 }
-                ((JsonObject) filtersJson).add(filterName, this.plugin.getAPI().getDistribution().convertBookToJson(book));
+                ((JsonObject) filtersJson).add(filterName, super.plugin.getAPI().getDistribution().convertBookToJson(book));
                 this.needsAutoSave = true;
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
@@ -211,7 +207,7 @@ public class JsonStorage extends Storage {
 
     @Override
     protected Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
-        return this.cache.poolExecutor.submit(() -> {
+        return super.cache.poolExecutor.submit(() -> {
             LinkedList<Pair<Date, ItemStack>> temporaryList = new LinkedList<>();
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) return temporaryList;
@@ -228,7 +224,7 @@ public class JsonStorage extends Storage {
                 JsonElement bookJson = ((JsonObject) allBooksSecurity).get(bookHash);
                 if (bookJson == null || !bookJson.isJsonObject()) continue;
                 try {
-                    ItemStack book = this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
+                    ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                     Date date = new Date(Long.parseLong(timeStamp));
                     temporaryList.add(Pair.of(date, book));
                 } catch (IllegalAccessException | NumberFormatException ignored) {
@@ -247,7 +243,7 @@ public class JsonStorage extends Storage {
 
     @Override
     protected Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
-        return this.cache.poolExecutor.submit(() -> {
+        return super.cache.poolExecutor.submit(() -> {
             LinkedList<Triplet<UUID, Date, ItemStack>> temporaryList = new LinkedList<>();
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) return temporaryList;
@@ -266,7 +262,7 @@ public class JsonStorage extends Storage {
                             String bookHash = bookHashJson.getAsString();
                             JsonElement bookJson = ((JsonObject) allBooksSecurity).get(bookHash);
                             if (bookJson == null || !bookJson.isJsonObject()) continue;
-                            ItemStack book = this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
+                            ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                             Date date = new Date(Long.parseLong(timeStamp));
                             temporaryList.add(Triplet.of(UUID.fromString(uuidString), date, book));
                         } catch (IllegalAccessException ignored) {
@@ -288,7 +284,7 @@ public class JsonStorage extends Storage {
 
     @Override
     protected void putBookSecurityStack(UUID uuid, Date date, ItemStack book) {
-        this.cache.poolExecutor.submit(() -> {
+        super.cache.poolExecutor.submit(() -> {
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) {
                 bookSecurity = new JsonObject();
@@ -305,7 +301,7 @@ public class JsonStorage extends Storage {
                 ((JsonObject) bookSecurity).add("saved_players", allPlayersSecurity);
             }
             try {
-                JsonObject bookJson = this.plugin.getAPI().getDistribution().convertBookToJson(book);
+                JsonObject bookJson = super.plugin.getAPI().getDistribution().convertBookToJson(book);
                 String bookHash = Hashing.sha256().hashString(bookJson.toString(), StandardCharsets.UTF_8).toString();
                 ((JsonObject) allBooksSecurity).add(bookHash, bookJson);
                 JsonElement playerSecurity = ((JsonObject) allPlayersSecurity).get(uuid.toString());
@@ -322,7 +318,7 @@ public class JsonStorage extends Storage {
 
     @Override
     protected Future<ItemStack> getSecurityBookStack(UUID uuid, Date date) {
-        return this.cache.poolExecutor.submit(() -> {
+        return super.cache.poolExecutor.submit(() -> {
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) return null;
             JsonElement allBooksSecurity = ((JsonObject) bookSecurity).get("saved_books");
@@ -335,7 +331,7 @@ public class JsonStorage extends Storage {
             if (bookHash == null || !bookHash.isJsonPrimitive()) return null;
             JsonElement book = ((JsonObject) allBooksSecurity).get(bookHash.getAsString());
             if (book == null || !book.isJsonObject()) return null;
-            return this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) book);
+            return super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) book);
         });
     }
 
@@ -351,8 +347,9 @@ public class JsonStorage extends Storage {
                 try {
                     JsonElement npcBookJsonSide = ((JsonObject) npcBookJson).get(side);
                     if (npcBookJsonSide == null || !npcBookJsonSide.isJsonObject()) continue;
-                    queue.add(Triplet.of(Integer.parseInt(npcId), Side.fromString(side), this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide)));
-                } catch (IllegalAccessException ignored) {}
+                    queue.add(Triplet.of(Integer.parseInt(npcId), Side.fromString(side), super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide)));
+                } catch (IllegalAccessException ignored) {
+                }
         }
         return queue;
     }
@@ -366,8 +363,9 @@ public class JsonStorage extends Storage {
             try {
                 JsonElement filterJson = ((JsonObject) filtersJson).get(filterName);
                 if (filterJson == null || !filterJson.isJsonObject()) continue;
-                queue.add(Pair.of(filterName, this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson)));
-            } catch (IllegalAccessException ignored) {}
+                queue.add(Pair.of(filterName, super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson)));
+            } catch (IllegalAccessException ignored) {
+            }
         return queue;
     }
 
@@ -405,11 +403,13 @@ public class JsonStorage extends Storage {
                         String bookHash = bookHashJson.getAsString();
                         JsonElement bookJson = ((JsonObject) allBooksSecurity).get(bookHash);
                         if (bookJson == null || !bookJson.isJsonObject()) continue;
-                        ItemStack book = this.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
+                        ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                         Date date = new Date(Long.parseLong(timeStamp));
                         queue.add(Triplet.of(UUID.fromString(uuidString), date, book));
-                    } catch (IllegalAccessException ignored) {}
-            } catch (IllegalArgumentException ignored) {}
+                    } catch (IllegalAccessException ignored) {
+                    }
+            } catch (IllegalArgumentException ignored) {
+            }
         return queue;
     }
 
@@ -428,8 +428,9 @@ public class JsonStorage extends Storage {
                     npcBookJson = new JsonObject();
                     ((JsonObject) npcBooksJson).add(String.valueOf(triplet.getFirstValue()), npcBookJson);
                 }
-                ((JsonObject) npcBookJson).add(triplet.getSecondValue().toString(), this.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue()));
-            } catch (IllegalAccessException ignored) {}
+                ((JsonObject) npcBookJson).add(triplet.getSecondValue().toString(), super.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue()));
+            } catch (IllegalAccessException ignored) {
+            }
         this.writeJsonStorage();
     }
 
@@ -442,8 +443,9 @@ public class JsonStorage extends Storage {
         }
         Pair<String, ItemStack> pair;
         while ((pair = queue.poll()) != null) try {
-            ((JsonObject) filtersJson).add(pair.getFirstValue(), this.plugin.getAPI().getDistribution().convertBookToJson(pair.getSecondValue()));
-        } catch (IllegalAccessException ignored) {}
+            ((JsonObject) filtersJson).add(pair.getFirstValue(), super.plugin.getAPI().getDistribution().convertBookToJson(pair.getSecondValue()));
+        } catch (IllegalAccessException ignored) {
+        }
         this.writeJsonStorage();
     }
 
@@ -481,7 +483,7 @@ public class JsonStorage extends Storage {
         Triplet<UUID, Date, ItemStack> triplet;
         while ((triplet = queue.poll()) != null)
             try {
-                JsonObject bookJson = this.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue());
+                JsonObject bookJson = super.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue());
                 String bookHash = Hashing.sha256().hashString(bookJson.toString(), StandardCharsets.UTF_8).toString();
                 ((JsonObject) allBooksSecurity).add(bookHash, bookJson);
                 JsonElement playerSecurity = ((JsonObject) allPlayersSecurity).get(triplet.getFirstValue().toString());
@@ -490,7 +492,8 @@ public class JsonStorage extends Storage {
                     ((JsonObject) allPlayersSecurity).add(triplet.getFirstValue().toString(), playerSecurity);
                 }
                 ((JsonObject) playerSecurity).add(String.valueOf(triplet.getSecondValue().getTime()), new JsonPrimitive(bookHash));
-            } catch (IllegalAccessException ignored) {}
+            } catch (IllegalAccessException ignored) {
+            }
         this.writeJsonStorage();
     }
 
@@ -556,7 +559,8 @@ public class JsonStorage extends Storage {
                             map.computeIfAbsent(uuid, key -> new HashSet<>()).add(date);
                         } else
                             existingBooks.add(((JsonObject) playerSecurity).get(timeStamp).getAsString());
-                    } catch (IllegalArgumentException ignored) {}
+                    } catch (IllegalArgumentException ignored) {
+                    }
                 }
                 if (((JsonObject) playerSecurity).keySet().isEmpty()) iter.remove();
             }

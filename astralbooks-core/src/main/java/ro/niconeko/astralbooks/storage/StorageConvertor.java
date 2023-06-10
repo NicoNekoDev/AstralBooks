@@ -45,7 +45,7 @@ public class StorageConvertor {
         }, 1, TimeUnit.SECONDS);
         try {
             this.previousStorage.cache.load();
-            this.previousStorage.load(this.plugin.getSettings().getStorageSettings());
+            this.previousStorage.load();
         } catch (SQLException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to load previous storage type! Please check configuration...", ex);
             failed.set(true);

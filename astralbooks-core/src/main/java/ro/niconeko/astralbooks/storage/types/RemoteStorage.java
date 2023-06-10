@@ -7,182 +7,177 @@ import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
-import ro.niconeko.astralbooks.storage.settings.StorageMySQLSettings;
+import ro.niconeko.astralbooks.storage.settings.StorageRemoteSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.*;
-import java.util.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-public class MySQLStorage extends Storage {
-    private Connection connection;
-    private String tablePrefix = "";
-    private String serverName = "";
-    private int purgeSecurityBooksOlderThan = 30;
+public abstract class RemoteStorage extends Storage {
+    protected String user;
+    protected String pass;
+    protected String host;
+    protected int port;
+    protected String database;
+    protected boolean sslEnabled;
+    protected String tablePrefix = "";
+    protected String serverName = "";
 
-    public MySQLStorage(AstralBooksPlugin plugin) {
-        super(plugin, StorageType.MYSQL);
-    }
-
-    protected boolean load(StorageSettings settings) throws SQLException {
-        try {
-            super.lock.lock();
-            this.plugin.getLogger().info("Loading MySQL database...");
-            StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
-            String user = mySQLSettings.getUsername();
-            String pass = mySQLSettings.getPassword();
-            String host = mySQLSettings.getHost();
-            int port = mySQLSettings.getPort();
-            String database = mySQLSettings.getDatabase();
-            boolean sslEnabled = mySQLSettings.isSSLEnabled();
-            this.tablePrefix = mySQLSettings.getTablePrefix();
-            this.serverName = mySQLSettings.getServerName();
-            this.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
-            Class.forName("com.mysql.jdbc.Driver");
-            this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
-            this.connection.setAutoCommit(true);
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS %sfilters (
-                    filter_name VARCHAR(256),
-                    filter_book TEXT,
-                    PRIMARY KEY (filter_name)
-                    );
-                    """.formatted(this.tablePrefix)
-            )) {
-                statement.execute();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'filters' table!", ex);
-                return false;
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS %scommands (
-                    command_name VARCHAR(256),
-                    filter_name VARCHAR(256),
-                    permission VARCHAR(255),
-                    PRIMARY KEY (command_name)
-                    );
-                    """.formatted(this.tablePrefix)
-            )) {
-                statement.execute();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'commands' table!", ex);
-                return false;
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS %snpc_books (
-                    npc_id INT NOT NULL,
-                    side VARCHAR(32) NOT NULL DEFAULT 'right_side',
-                    server VARCHAR(256) DEFAULT 'default',
-                    npc_book TEXT,
-                    CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
-                    );
-                    """.formatted(this.tablePrefix)
-            )) {
-                statement.execute();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'npcbooks' table!", ex);
-                return false;
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS %ssecurity_books (
-                    book_hash VARCHAR(256),
-                    book TEXT,
-                    PRIMARY KEY (book_hash)
-                    );
-                    """.formatted(this.tablePrefix)
-            )) {
-                statement.execute();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'security_books' table!", ex);
-                return false;
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS %ssecurity_players (
-                    player VARCHAR(48) NOT NULL,
-                    timestamp BIGINT NOT NULL,
-                    book_hash VARCHAR(256) NOT NULL,
-                    CONSTRAINT player_date PRIMARY KEY (player, timestamp)
-                    );
-                    """.formatted(this.tablePrefix)
-            )) {
-                statement.execute();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to create 'security_players' table!", ex);
-                return false;
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                    "SELECT filter_name FROM %sfilters;".formatted(this.tablePrefix)
-            )) {
-                try (ResultSet preload = statement.executeQuery()) {
-                    while (preload.next()) {
-                        super.cache.filters.add(preload.getString("filter_name"));
-                    }
-                }
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                    "SELECT command_name FROM %scommands;".formatted(this.tablePrefix)
-            )) {
-                try (ResultSet preload = statement.executeQuery()) {
-                    while (preload.next()) {
-                        super.cache.commands.add(preload.getString("command_name"));
-                    }
-                }
-            }
-            try (PreparedStatement statement = this.connection.prepareStatement(
-                    "SELECT npc_id, side FROM %snpc_books;".formatted(this.tablePrefix)
-            )) {
-                try (ResultSet preload = statement.executeQuery()) {
-                    while (preload.next()) {
-                        super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
-                    }
-                }
-            }
-            super.loaded = true;
-            return true;
-        } catch (ClassNotFoundException ex) {
-            this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to find MySQL driver!", ex);
-            return false;
-        } finally {
-            super.lock.unlock();
-        }
+    protected RemoteStorage(AstralBooksPlugin plugin, StorageType storageType) {
+        super(plugin, storageType);
     }
 
     @Override
-    protected void unload() {
-        try {
-            super.lock.lock();
-            this.plugin.getLogger().info("Unloading MySQL database...");
-            super.loaded = false;
-            try {
-                this.connection.close();
-            } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.SEVERE, "(MySQL) Failed to unload database!", ex);
-            }
-        } finally {
-            super.lock.unlock();
+    protected void loadSettings(StorageSettings storageSettings) {
+        StorageRemoteSettings remoteSettings = storageSettings.getRemoteSettings();
+        this.user = remoteSettings.getUsername();
+        this.pass = remoteSettings.getPassword();
+        this.host = remoteSettings.getHost();
+        this.port = remoteSettings.getPort();
+        this.database = remoteSettings.getDatabase();
+        this.sslEnabled = remoteSettings.isSSLEnabled();
+        this.tablePrefix = remoteSettings.getTablePrefix();
+        this.serverName = remoteSettings.getServerName();
+        super.purgeSecurityBooksOlderThan = storageSettings.getSecurityBookPurgeOlderThan();
+    }
+
+    @Override
+    protected boolean createTables() {
+        try (PreparedStatement statement = super.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS %sfilters (
+                filter_name VARCHAR(256),
+                filter_book TEXT,
+                PRIMARY KEY (filter_name)
+                );
+                """.formatted(this.tablePrefix)
+        )) {
+            statement.execute();
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to create 'filters' table!", ex);
+            return false;
         }
+        try (PreparedStatement statement = super.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS %scommands (
+                command_name VARCHAR(256),
+                filter_name VARCHAR(256),
+                permission VARCHAR(255),
+                PRIMARY KEY (command_name)
+                );
+                """.formatted(this.tablePrefix)
+        )) {
+            statement.execute();
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to create 'commands' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS %snpc_books (
+                npc_id INT NOT NULL,
+                side VARCHAR(32) NOT NULL DEFAULT 'right_side',
+                server VARCHAR(256) DEFAULT 'default',
+                npc_book TEXT,
+                CONSTRAINT npc_id_side PRIMARY KEY (npc_id, side)
+                );
+                """.formatted(this.tablePrefix)
+        )) {
+            statement.execute();
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to create 'npcbooks' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS %ssecurity_books (
+                book_hash VARCHAR(256),
+                book TEXT,
+                PRIMARY KEY (book_hash)
+                );
+                """.formatted(this.tablePrefix)
+        )) {
+            statement.execute();
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to create 'security_books' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement("""
+                CREATE TABLE IF NOT EXISTS %ssecurity_players (
+                player VARCHAR(48) NOT NULL,
+                timestamp BIGINT NOT NULL,
+                book_hash VARCHAR(256) NOT NULL,
+                CONSTRAINT player_date PRIMARY KEY (player, timestamp)
+                );
+                """.formatted(this.tablePrefix)
+        )) {
+            statement.execute();
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to create 'security_players' table!", ex);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean preloadCache() {
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT filter_name FROM %sfilters;".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.filters.add(preload.getString("filter_name"));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'filters' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT command_name FROM %scommands;".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.commands.add(preload.getString("command_name"));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'commands' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT npc_id, side FROM %snpc_books;".formatted(this.tablePrefix)
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'npc_books' table!", ex);
+            return false;
+        }
+        return true;
     }
 
     @Override
     protected Future<ItemStack> getFilterBookStack(String filterName) {
         return super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "SELECT filter_book FROM %sfilters WHERE filter_name=?;".formatted(this.tablePrefix)
             )) {
                 statement.setString(1, filterName);
                 try (ResultSet result = statement.executeQuery()) {
                     if (result.next())
-                        return this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
+                        return super.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve filter book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve filter book data!", ex);
                 return null;
             }
         });
@@ -191,7 +186,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Future<ItemStack> getNPCBookStack(int npcId, Side side) {
         return super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "SELECT npc_book FROM %snpc_books WHERE npc_id=? AND side=? AND server=?;".formatted(this.tablePrefix)
             )) {
                 statement.setInt(1, npcId);
@@ -199,11 +194,11 @@ public class MySQLStorage extends Storage {
                 statement.setString(3, this.serverName);
                 try (ResultSet result = statement.executeQuery()) {
                     if (result.next())
-                        return this.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
+                        return super.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve book data!", ex);
                 return null;
             }
         });
@@ -212,7 +207,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Future<Pair<String, String>> getCommandFilterStack(String cmd) {
         return super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "SELECT filter_name, permission FROM %scommands WHERE command_name=?;".formatted(this.tablePrefix)
             )) {
                 statement.setString(1, cmd);
@@ -222,7 +217,7 @@ public class MySQLStorage extends Storage {
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve command data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve command data!", ex);
                 return null;
             }
         });
@@ -232,7 +227,7 @@ public class MySQLStorage extends Storage {
     protected void removeNPCBookStack(int npcId, Side side) {
         super.cache.npcs.remove(Pair.of(npcId, side));
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "DELETE FROM %snpc_books WHERE npc_id=? AND side=? AND server=?;".formatted(this.tablePrefix)
             )) {
                 statement.setInt(1, npcId);
@@ -240,7 +235,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(3, this.serverName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to remove book data!", ex);
             }
         });
     }
@@ -250,13 +245,13 @@ public class MySQLStorage extends Storage {
         super.cache.filters.remove(filterName);
         super.cache.filterBooks.invalidate(filterName);
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "DELETE FROM %sfilters WHERE filter_name=?;".formatted(this.tablePrefix)
             )) {
                 statement.setString(1, filterName);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to remove book data!", ex);
             }
         });
     }
@@ -266,13 +261,13 @@ public class MySQLStorage extends Storage {
         super.cache.commands.remove(cmd);
         super.cache.commandFilters.invalidate(cmd);
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "DELETE FROM %scommands WHERE command_name=?;".formatted(this.tablePrefix)
             )) {
                 statement.setString(1, cmd);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to remove command data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to remove command data!", ex);
             }
         });
     }
@@ -283,10 +278,10 @@ public class MySQLStorage extends Storage {
         super.cache.npcs.add(pairKey);
         super.cache.npcBooks.put(pairKey, book);
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "INSERT INTO %snpc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;".formatted(this.tablePrefix)
             )) {
-                String encoded = this.plugin.getAPI().encodeItemStack(book);
+                String encoded = super.plugin.getAPI().encodeItemStack(book);
                 statement.setInt(1, npcId);
                 statement.setString(2, side.toString());
                 statement.setString(3, this.serverName);
@@ -294,7 +289,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(5, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
             }
         });
     }
@@ -304,16 +299,16 @@ public class MySQLStorage extends Storage {
         super.cache.filters.add(filterName);
         super.cache.filterBooks.put(filterName, book);
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "INSERT INTO %sfilters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;".formatted(this.tablePrefix)
             )) {
-                String encoded = this.plugin.getAPI().encodeItemStack(book);
+                String encoded = super.plugin.getAPI().encodeItemStack(book);
                 statement.setString(1, filterName);
                 statement.setString(2, encoded);
                 statement.setString(3, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save book data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
             }
         });
     }
@@ -323,7 +318,7 @@ public class MySQLStorage extends Storage {
         super.cache.commands.add(cmd);
         super.cache.commandFilters.put(cmd, Pair.of(filterName, permission));
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement(
+            try (PreparedStatement statement = super.connection.prepareStatement(
                     "INSERT INTO %scommands (command_name, filter_name, permission) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE filter_name=?, permission=?;".formatted(this.tablePrefix)
             )) {
                 statement.setString(1, cmd);
@@ -333,7 +328,7 @@ public class MySQLStorage extends Storage {
                 statement.setString(5, permission);
                 statement.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save command data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save command data!", ex);
             }
         });
     }
@@ -341,7 +336,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Pair<Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<Pair<java.util.Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp
                     FROM %1$ssecurity_books books
@@ -357,7 +352,7 @@ public class MySQLStorage extends Storage {
                     WHERE player = ?
                     ORDER BY timestamp DESC;
                     """;
-            try (PreparedStatement statement = this.connection.prepareStatement(query.formatted(this.tablePrefix))) {
+            try (PreparedStatement statement = super.connection.prepareStatement(query.formatted(this.tablePrefix))) {
                 statement.setString(1, uuid.toString());
                 if (page > -1) {
                     statement.setInt(2, amount);
@@ -365,14 +360,14 @@ public class MySQLStorage extends Storage {
                 }
                 try (ResultSet result = statement.executeQuery()) {
                     while (result.next()) {
-                        Date date = new Date(result.getLong("timestamp"));
-                        ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("book"));
+                        java.util.Date date = new java.util.Date(result.getLong("timestamp"));
+                        ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
                         list.add(Pair.of(date, book));
                     }
                     return list;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book security data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve book security data!", ex);
                 return list;
             }
         });
@@ -381,7 +376,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Triplet<UUID, Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<Triplet<UUID, java.util.Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp, player
                     FROM %1$ssecurity_books books
@@ -395,7 +390,7 @@ public class MySQLStorage extends Storage {
                     ON books.book_hash=players.book_hash
                     ORDER BY timestamp DESC;
                     """;
-            try (PreparedStatement statement = this.connection.prepareStatement(query.formatted(this.tablePrefix))) {
+            try (PreparedStatement statement = super.connection.prepareStatement(query.formatted(this.tablePrefix))) {
                 if (page > -1) {
                     statement.setInt(1, amount);
                     statement.setInt(2, page * amount);
@@ -403,28 +398,28 @@ public class MySQLStorage extends Storage {
                 try (ResultSet result = statement.executeQuery()) {
                     while (result.next()) {
                         UUID uuid = UUID.fromString(result.getString("player"));
-                        Date date = new Date(result.getLong("timestamp"));
-                        ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("book"));
+                        java.util.Date date = new java.util.Date(result.getLong("timestamp"));
+                        ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
                         list.add(Triplet.of(uuid, date, book));
                     }
                     return list;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve book security data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve book security data!", ex);
                 return list;
             }
         });
     }
 
     @Override
-    protected void putBookSecurityStack(UUID uuid, Date date, ItemStack book) {
+    protected void putBookSecurityStack(UUID uuid, java.util.Date date, ItemStack book) {
         super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statementPlayers = this.connection.prepareStatement(
+            try (PreparedStatement statementPlayers = super.connection.prepareStatement(
                     "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix));
-                 PreparedStatement statementBooks = this.connection.prepareStatement(
+                 PreparedStatement statementBooks = super.connection.prepareStatement(
                          "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix))
             ) {
-                String encodedBook = this.plugin.getAPI().encodeItemStack(book);
+                String encodedBook = super.plugin.getAPI().encodeItemStack(book);
                 String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
                 statementPlayers.setString(1, uuid.toString());
                 statementPlayers.setLong(2, date.getTime());
@@ -436,15 +431,15 @@ public class MySQLStorage extends Storage {
                 statementBooks.setString(3, encodedBook);
                 statementBooks.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save security player data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save security player data!", ex);
             }
         });
     }
 
     @Override
-    protected Future<ItemStack> getSecurityBookStack(UUID uuid, Date date) {
+    protected Future<ItemStack> getSecurityBookStack(UUID uuid, java.util.Date date) {
         return super.cache.poolExecutor.submit(() -> {
-            try (PreparedStatement statement = this.connection.prepareStatement("""
+            try (PreparedStatement statement = super.connection.prepareStatement("""
                     SELECT book
                     FROM %1$ssecurity_books
                     INNER JOIN %1$ssecurity_players USING(book_hash)
@@ -456,11 +451,11 @@ public class MySQLStorage extends Storage {
                 statement.setLong(2, date.getTime());
                 try (ResultSet result = statement.executeQuery()) {
                     if (result.next())
-                        return this.plugin.getAPI().decodeItemStack(result.getString("book"));
+                        return super.plugin.getAPI().decodeItemStack(result.getString("book"));
                     return null;
                 }
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve command data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve command data!", ex);
                 return null;
             }
         });
@@ -469,7 +464,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
         Queue<Triplet<Integer, Side, ItemStack>> queue = new LinkedList<>();
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT npc_id, side, npc_book FROM %snpc_books WHERE server=?;".formatted(this.tablePrefix)
         )) {
             statement.setString(1, this.serverName);
@@ -477,12 +472,12 @@ public class MySQLStorage extends Storage {
                 while (result.next()) {
                     int npcId = result.getInt("npc_id");
                     Side side = Side.fromString(result.getString("side"));
-                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
+                    ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
                     queue.add(Triplet.of(npcId, side, book));
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all book data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve all book data!", ex);
             failed.set(true);
             return queue;
         }
@@ -492,18 +487,18 @@ public class MySQLStorage extends Storage {
     @Override
     protected Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
         Queue<Pair<String, ItemStack>> queue = new LinkedList<>();
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT filter_name, filter_book FROM %sfilters;".formatted(this.tablePrefix)
         )) {
             try (ResultSet result = statement.executeQuery()) {
                 while (result.next()) {
                     String filterName = result.getString("filter_name");
-                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
+                    ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
                     queue.add(Pair.of(filterName, book));
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all filter book data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve all filter book data!", ex);
             failed.set(true);
             return queue;
         }
@@ -513,7 +508,7 @@ public class MySQLStorage extends Storage {
     @Override
     protected Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
         Queue<Triplet<String, String, String>> queue = new LinkedList<>();
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT command_name, filter_name, permission FROM %scommands;".formatted(this.tablePrefix)
         )) {
             try (ResultSet result = statement.executeQuery()) {
@@ -525,7 +520,7 @@ public class MySQLStorage extends Storage {
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all command data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve all command data!", ex);
             failed.set(true);
             return queue;
         }
@@ -533,9 +528,9 @@ public class MySQLStorage extends Storage {
     }
 
     @Override
-    protected Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
-        Queue<Triplet<UUID, Date, ItemStack>> queue = new LinkedList<>();
-        try (PreparedStatement statement = this.connection.prepareStatement("""
+    protected Queue<Triplet<UUID, java.util.Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
+        Queue<Triplet<UUID, java.util.Date, ItemStack>> queue = new LinkedList<>();
+        try (PreparedStatement statement = super.connection.prepareStatement("""
                 SELECT book, timestamp, player
                 FROM %1$ssecurity_books books
                 INNER JOIN %1$ssecurity_players players
@@ -545,13 +540,13 @@ public class MySQLStorage extends Storage {
             try (ResultSet result = statement.executeQuery()) {
                 while (result.next()) {
                     UUID uuid = UUID.fromString(result.getString("player"));
-                    Date date = new Date(result.getLong("timestamp"));
-                    ItemStack book = this.plugin.getAPI().decodeItemStack(result.getString("book"));
+                    java.util.Date date = new java.util.Date(result.getLong("timestamp"));
+                    ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
                     queue.add(Triplet.of(uuid, date, book));
                 }
             }
         } catch (SQLException ex) {
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to retrieve all book security data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to retrieve all book security data!", ex);
             failed.set(true);
             return queue;
         }
@@ -560,12 +555,12 @@ public class MySQLStorage extends Storage {
 
     @Override
     protected void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %snpc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;".formatted(this.tablePrefix)
         )) {
             Triplet<Integer, Side, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
-                String encoded = this.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
+                String encoded = super.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
                 statement.setInt(1, triplet.getFirstValue());
                 statement.setString(2, triplet.getSecondValue().toString());
                 statement.setString(3, this.serverName);
@@ -576,18 +571,18 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all npc book data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save all npc book data!", ex);
         }
     }
 
     @Override
     protected void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed) {
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %sfilters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;".formatted(this.tablePrefix)
         )) {
             Pair<String, ItemStack> pair;
             while ((pair = queue.poll()) != null) {
-                String encoded = this.plugin.getAPI().encodeItemStack(pair.getSecondValue());
+                String encoded = super.plugin.getAPI().encodeItemStack(pair.getSecondValue());
                 statement.setString(1, pair.getFirstValue());
                 statement.setString(2, encoded);
                 statement.setString(3, encoded);
@@ -596,13 +591,13 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all filter book data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save all filter book data!", ex);
         }
     }
 
     @Override
     protected void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed) {
-        try (PreparedStatement statement = this.connection.prepareStatement(
+        try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %scommands (command_name, filter_name, permission) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE filter_name=?, permission=?;".formatted(this.tablePrefix)
         )) {
             Triplet<String, String, String> triplet;
@@ -617,20 +612,20 @@ public class MySQLStorage extends Storage {
             statement.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all command data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save all command data!", ex);
         }
     }
 
     @Override
-    protected void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed) {
-        try (PreparedStatement statementPlayers = this.connection.prepareStatement(
+    protected void setAllBookSecurityStacks(Queue<Triplet<UUID, java.util.Date, ItemStack>> queue, AtomicBoolean failed) {
+        try (PreparedStatement statementPlayers = super.connection.prepareStatement(
                 "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix));
-             PreparedStatement statementBooks = this.connection.prepareStatement(
+             PreparedStatement statementBooks = super.connection.prepareStatement(
                      "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix))
         ) {
-            Triplet<UUID, Date, ItemStack> triplet;
+            Triplet<UUID, java.util.Date, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
-                String encodedBook = this.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
+                String encodedBook = super.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
                 String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
                 statementPlayers.setString(1, triplet.getFirstValue().toString());
                 statementPlayers.setLong(2, triplet.getSecondValue().getTime());
@@ -646,7 +641,7 @@ public class MySQLStorage extends Storage {
             statementBooks.executeBatch();
         } catch (SQLException ex) {
             failed.set(true);
-            this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to save all security books data!", ex);
+            super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save all security books data!", ex);
         }
     }
 
@@ -654,13 +649,13 @@ public class MySQLStorage extends Storage {
     protected Map<UUID, Set<Date>> cleanOldSecurityBookStacks() {
         try {
             super.lock.lock();
-            Map<UUID, Set<Date>> map = new HashMap<>();
-            long interval = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(this.purgeSecurityBooksOlderThan);
-            try (PreparedStatement statementSelectPlayers = this.connection.prepareStatement(
+            Map<UUID, Set<java.util.Date>> map = new HashMap<>();
+            long interval = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(super.purgeSecurityBooksOlderThan);
+            try (PreparedStatement statementSelectPlayers = super.connection.prepareStatement(
                     ("SELECT player, timestamp FROM %ssecurity_players WHERE timestamp < " + interval + ";").formatted(this.tablePrefix));
-                 PreparedStatement statementDeletePlayers = this.connection.prepareStatement(
+                 PreparedStatement statementDeletePlayers = super.connection.prepareStatement(
                          ("DELETE FROM %ssecurity_players WHERE timestamp < " + interval + ";").formatted(this.tablePrefix));
-                 PreparedStatement statementBooks = this.connection.prepareStatement("""
+                 PreparedStatement statementBooks = super.connection.prepareStatement("""
                          DELETE books
                          FROM %1$ssecurity_books books
                          LEFT JOIN %1$ssecurity_players players
@@ -671,14 +666,14 @@ public class MySQLStorage extends Storage {
                 try (ResultSet result = statementSelectPlayers.executeQuery()) {
                     while (result.next()) {
                         UUID uuid = UUID.fromString(result.getString("player"));
-                        Date timestamp = new Date(result.getLong("timestamp"));
+                        java.util.Date timestamp = new Date(result.getLong("timestamp"));
                         map.computeIfAbsent(uuid, key -> new HashSet<>()).add(timestamp);
                     }
                 }
                 statementDeletePlayers.executeUpdate();
                 statementBooks.executeUpdate();
             } catch (SQLException ex) {
-                this.plugin.getLogger().log(Level.WARNING, "(MySQL) Failed to clean old security books data!", ex);
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to clean old security books data!", ex);
             }
             return map;
         } finally {

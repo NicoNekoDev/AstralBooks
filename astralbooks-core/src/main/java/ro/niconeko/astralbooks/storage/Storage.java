@@ -7,17 +7,22 @@ import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 
 public abstract class Storage {
     public final AstralBooksPlugin plugin;
+    protected Connection connection;
     protected final StorageCache cache;
-    private final StorageType storageType;
+    protected final StorageType storageType;
     protected boolean loaded;
+    protected int purgeSecurityBooksOlderThan = 30;
     public final ReentrantLock lock = new ReentrantLock();
 
     protected Storage(AstralBooksPlugin plugin, StorageType storageType) {
@@ -34,9 +39,57 @@ public abstract class Storage {
         return this.loaded;
     }
 
-    protected abstract boolean load(StorageSettings settings) throws SQLException;
+    protected boolean load() throws SQLException {
+        try {
+            this.lock.lock();
+            this.plugin.getLogger().info("Loading " + this.storageType.getFormattedName() + " database...");
+            this.loadSettings(this.plugin.getSettings().getStorageSettings());
+            Class.forName(this.getDriver());
+            this.connection = DriverManager.getConnection(this.getURL());
+            this.connection.setAutoCommit(true);
+            if (!this.createTables())
+                return false;
+            if (!this.preloadCache())
+                return false;
+            this.loaded = true;
+            return true;
+        } catch (ClassNotFoundException ex) {
+            this.plugin.getLogger().log(Level.SEVERE, "(" + this.storageType.getFormattedName() + ") Failed to find " + this.storageType.getFormattedName() + " driver!", ex);
+            return false;
+        } finally {
+            this.lock.unlock();
+        }
+    }
 
-    protected abstract void unload();
+    protected void unload() {
+        try {
+            this.lock.lock();
+            this.plugin.getLogger().info("Unloading " + this.storageType.getFormattedName() + " database...");
+            this.loaded = false;
+            try {
+                this.connection.close();
+            } catch (SQLException ex) {
+                this.plugin.getLogger().log(Level.SEVERE, "(" + this.storageType.getFormattedName() + ") Failed to unload database!", ex);
+            }
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+
+    protected String getDriver() {
+        throw new IllegalStateException("Tried to get " + this.storageType.getFormattedName() + " driver... please report this issue!");
+    }
+
+    protected String getURL() {
+        throw new IllegalStateException("Tried to get " + this.storageType.getFormattedName() + " url... please report this issue!");
+    }
+
+    protected abstract void loadSettings(StorageSettings storageSettings);
+
+    protected abstract boolean createTables();
+
+    protected abstract boolean preloadCache();
 
     protected abstract Future<ItemStack> getFilterBookStack(String filterName);
 

@@ -16,10 +16,7 @@ import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
-import ro.niconeko.astralbooks.storage.types.H2Storage;
-import ro.niconeko.astralbooks.storage.types.JsonStorage;
-import ro.niconeko.astralbooks.storage.types.MySQLStorage;
-import ro.niconeko.astralbooks.storage.types.SQLiteStorage;
+import ro.niconeko.astralbooks.storage.types.impl.*;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.io.File;
@@ -56,6 +53,7 @@ public class PluginStorage {
             case MYSQL -> new MySQLStorage(plugin);
             case SQLITE -> new SQLiteStorage(plugin);
             case H2 -> new H2Storage(plugin);
+            case MARIADB -> new MariaDBStorage(plugin);
         };
         new StorageConvertor(this.plugin, this.storage, convertFrom).convert();
     }
@@ -85,10 +83,11 @@ public class PluginStorage {
             case MYSQL -> new MySQLStorage(plugin);
             case SQLITE -> new SQLiteStorage(plugin);
             case H2 -> new H2Storage(plugin);
+            case MARIADB -> new MariaDBStorage(plugin);
         };
         this.cache = this.storage.cache;
         this.cache.load();
-        return this.storage.load(settings);
+        return this.storage.load();
     }
 
     public void unload() {
