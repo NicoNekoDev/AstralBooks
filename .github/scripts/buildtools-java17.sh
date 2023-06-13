@@ -29,4 +29,4 @@ java -jar BuildTools.jar --rev 1.18.2 --remapped
 java -jar BuildTools.jar --rev 1.19.2 --remapped
 java -jar BuildTools.jar --rev 1.19.3 --remapped
 java -jar BuildTools.jar --rev 1.19.4 --remapped
-java -jar BuildTools.jar --rev 1.20 --remapped
+java -jar BuildTools.jar --rev 1.20.1 --remapped
