@@ -23,8 +23,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
-import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -82,7 +80,8 @@ public class AstralBooksCore implements AstralBooksAPI {
     private final Pattern namePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final Pattern permissionPattern = Pattern.compile("^[a-zA-Z0-9\\._-]+$");
 
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final Gson PRETTY_GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final Gson DATABASE_GSON = new GsonBuilder().create();
 
     public AstralBooksCore(final AstralBooksPlugin plugin) {
         this.plugin = plugin;
@@ -144,10 +143,6 @@ public class AstralBooksCore implements AstralBooksAPI {
         this.plugin.getLogger().warning("Done :)");
     }
 
-    public boolean noNBTAPIRequired() {
-        return this.distribution.noNBTAPIRequired();
-    }
-
     public void deployBooksForChunk(Chunk chunk, Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks) {
         this.clickableBlocks.putAll(clickableBlocks);
         this.blocksPairedToChunk.put(chunk, new HashSet<>(clickableBlocks.keySet()));
@@ -198,7 +193,7 @@ public class AstralBooksCore implements AstralBooksAPI {
             };
             if (stringJsonBook == null)
                 return null;
-            return this.distribution.convertJsonToBook(GSON.fromJson(stringJsonBook, JsonObject.class));
+            return this.distribution.convertJsonToBook(PRETTY_GSON.fromJson(stringJsonBook, JsonObject.class));
         } catch (IllegalAccessException ignored) {
             return null;
         }
@@ -276,7 +271,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     public ItemData itemDataFactory(ItemStack stack) {
-        if (this.noNBTAPIRequired()) {
+        if (!this.distribution.isNBTAPIRequired()) {
             return new PersistentItemData(stack);
         } else if (this.plugin.isNBTAPIEnabled()) {
             return new NBTAPIItemData(stack);
@@ -285,7 +280,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     public EntityData entityDataFactory(Entity entity) {
-        if (this.noNBTAPIRequired()) {
+        if (!this.distribution.isNBTAPIRequired()) {
             return new PersistentEntityData(entity);
         } else if (this.plugin.isNBTAPIEnabled()) {
             return new NBTAPIEntityData(entity);
@@ -294,7 +289,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     public ChunkData chunkDataFactory(Chunk chunk) {
-        if (this.noNBTAPIRequired()) {
+        if (!this.distribution.isNBTAPIRequired()) {
             return new PersistentChunkData(chunk);
         } else if (this.plugin.isNBTAPIEnabled()) {
             return new NBTAPIChunkData(chunk);
@@ -312,37 +307,7 @@ public class AstralBooksCore implements AstralBooksAPI {
             final Class<?> clazz = Class.forName("ro.niconeko.astralbooks.dist." + version + ".DistributionHandler");
             if (Distribution.class.isAssignableFrom(clazz)) {
                 this.plugin.getLogger().info("Loading support for version " + version + "...");
-                TripletFunction<Player, String, Optional<NPC>, String> papiString = (player, arg, optionalNPC) -> {
-                    if (!AstralBooksCore.this.plugin.isPlaceholderAPIEnabled())
-                        return arg;
-                    if (optionalNPC.isEmpty())
-                        return PlaceholderAPI.setPlaceholders(player, arg);
-                    else {
-                        NPC npc = optionalNPC.get();
-                        return PlaceholderAPI.setPlaceholders(player, arg).replace("%npc_name%", npc.getName())
-                                .replace("%npc_id%", String.valueOf(npc.getId()))
-                                .replace("%npc_loc_x%", String.valueOf(npc.getEntity().getLocation().getX()))
-                                .replace("%npc_loc_y%", String.valueOf(npc.getEntity().getLocation().getY()))
-                                .replace("%npc_loc_z%", String.valueOf(npc.getEntity().getLocation().getZ()))
-                                .replace("%npc_loc_world%", npc.getEntity().getWorld().getName());
-                    }
-                };
-                TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStringList = (player, argList, optionalNPC) -> {
-                    if (!AstralBooksCore.this.plugin.isPlaceholderAPIEnabled())
-                        return argList;
-                    if (optionalNPC.isEmpty())
-                        return PlaceholderAPI.setPlaceholders(player, argList);
-                    else {
-                        NPC npc = optionalNPC.get();
-                        return PlaceholderAPI.setPlaceholders(player, argList).stream().map(str -> str.replace("%npc_name%", npc.getName())
-                                .replace("%npc_id%", String.valueOf(npc.getId()))
-                                .replace("%npc_loc_x%", String.valueOf(npc.getEntity().getLocation().getX()))
-                                .replace("%npc_loc_y%", String.valueOf(npc.getEntity().getLocation().getY()))
-                                .replace("%npc_loc_z%", String.valueOf(npc.getEntity().getLocation().getZ()))
-                                .replace("%npc_loc_world%", npc.getEntity().getWorld().getName())).toList();
-                    }
-                };
-                this.distribution = (Distribution) clazz.getConstructor(TripletFunction.class, TripletFunction.class).newInstance(papiString, papiStringList);
+                this.distribution = (Distribution) clazz.getConstructor(AstralBooksPlugin.class).newInstance(this.plugin);
                 return true;
             }
         } catch (final Exception ex) {
@@ -398,9 +363,6 @@ public class AstralBooksCore implements AstralBooksAPI {
         return this.distribution;
     }
 
-    protected void rightClick(Player player) {
-        this.distribution.sendRightClick(player);
-    }
 
     @Override
     public boolean openBook(Player player, ItemStack book) {
@@ -414,7 +376,7 @@ public class AstralBooksCore implements AstralBooksAPI {
         PlayerInventory pi = player.getInventory();
         pi.setItem(slot, book);
         try {
-            this.rightClick(player);
+            this.distribution.sendRightClick(player);
         } catch (Exception ex) {
             return false;
         }

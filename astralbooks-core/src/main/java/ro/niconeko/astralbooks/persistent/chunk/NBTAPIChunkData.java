@@ -55,11 +55,11 @@ public class NBTAPIChunkData implements ChunkData {
                 String leftBookJson = blockDataContainer.getString(PersistentKey.BLOCK_LEFT_BOOK.getValue());
                 ItemStack leftBook = (leftBookJson == null || leftBookJson.isEmpty()) ?
                         null :
-                        distribution.convertJsonToBook(AstralBooksCore.GSON.fromJson(leftBookJson, JsonObject.class));
+                        distribution.convertJsonToBook(AstralBooksCore.PRETTY_GSON.fromJson(leftBookJson, JsonObject.class));
                 String rightBookJson = blockDataContainer.getString((PersistentKey.BLOCK_RIGHT_BOOK.getValue()));
                 ItemStack rightBook = (rightBookJson == null || rightBookJson.isEmpty()) ?
                         null :
-                        distribution.convertJsonToBook(AstralBooksCore.GSON.fromJson(rightBookJson, JsonObject.class));
+                        distribution.convertJsonToBook(AstralBooksCore.PRETTY_GSON.fromJson(rightBookJson, JsonObject.class));
                 Block block = this.chunk.getWorld().getBlockAt(
                         blockDataContainer.getInteger(PersistentKey.BLOCK_LOCATION_X.getValue()),
                         blockDataContainer.getInteger(PersistentKey.BLOCK_LOCATION_Y.getValue()),

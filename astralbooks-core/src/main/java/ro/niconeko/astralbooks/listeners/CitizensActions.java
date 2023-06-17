@@ -46,7 +46,7 @@ public class CitizensActions implements Listener {
     public void rightClick(NPCRightClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
                 ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                 String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
@@ -77,7 +77,7 @@ public class CitizensActions implements Listener {
     public void leftCLick(NPCLeftClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
                 ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                 String filterName = data.getString(PersistentKey.ITEM_LEFT_KEY);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {

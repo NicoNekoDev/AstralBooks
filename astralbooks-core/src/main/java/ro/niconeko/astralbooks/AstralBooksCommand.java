@@ -419,7 +419,7 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!(this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired())) {
+                    if (!this.plugin.isNBTAPIEnabled() || this.api.getDistribution().isNBTAPIRequired()) {
                         sender.sendMessage(messageSettings.getMessage(Message.NBTAPI_NOT_ENABLED));
                         break;
                     }

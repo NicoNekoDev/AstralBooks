@@ -112,7 +112,7 @@ public class JsonStorage extends EmbedStorage {
 
     private void readJsonStorage() {
         try (FileReader reader = new FileReader(this.jsonStorageFile)) {
-            this.jsonStorage = AstralBooksCore.GSON.fromJson(reader, JsonObject.class);
+            this.jsonStorage = AstralBooksCore.PRETTY_GSON.fromJson(reader, JsonObject.class);
             if (this.jsonStorage == null || !this.jsonStorage.isJsonObject()) this.jsonStorage = new JsonObject();
         } catch (Exception ex) {
             super.plugin.getLogger().log(Level.WARNING, "Failed to read database.json!", ex);
@@ -121,7 +121,7 @@ public class JsonStorage extends EmbedStorage {
 
     private void writeJsonStorage() {
         try (FileWriter writer = new FileWriter(this.jsonStorageFile)) {
-            AstralBooksCore.GSON.toJson(this.jsonStorage, writer);
+            AstralBooksCore.PRETTY_GSON.toJson(this.jsonStorage, writer);
         } catch (Exception ex) {
             super.plugin.getLogger().log(Level.WARNING, "Failed to save database.json!", ex);
         }

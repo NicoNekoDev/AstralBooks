@@ -149,7 +149,7 @@ public class PlayerActions implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (event.hasItem() && (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired())) {
+        if (event.hasItem() && (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired())) {
             ItemStack item = event.getItem();
             ItemData data = this.api.itemDataFactory(item);
             String filterName =
@@ -212,7 +212,7 @@ public class PlayerActions implements Listener {
         }
         ItemStack itemInPlayerHand = event.getPlayer().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
                 ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                 String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
@@ -241,7 +241,7 @@ public class PlayerActions implements Listener {
             Entity entity = event.getEntity();
             ItemStack itemInPlayerHand = player.getInventory().getItemInMainHand();
             if (itemInPlayerHand.getType() != Material.AIR) {
-                if (this.plugin.isNBTAPIEnabled() || this.api.noNBTAPIRequired()) {
+                if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
                     ItemData data = this.api.itemDataFactory(itemInPlayerHand);
                     String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
                     if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {

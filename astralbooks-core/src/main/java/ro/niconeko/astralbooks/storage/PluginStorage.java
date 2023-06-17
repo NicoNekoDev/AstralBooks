@@ -132,7 +132,7 @@ public class PluginStorage {
 
     private JsonObject readJsonFile(File jsonFile) throws JsonParseException {
         try (FileReader fileReader = new FileReader(jsonFile)) {
-            return AstralBooksCore.GSON.fromJson(fileReader, JsonObject.class);
+            return AstralBooksCore.PRETTY_GSON.fromJson(fileReader, JsonObject.class);
         } catch (Exception ex) {
             throw new JsonParseException("Failed to parse the json file " + jsonFile.getName());
         }
@@ -140,7 +140,7 @@ public class PluginStorage {
 
     private void writeJsonFile(File jsonFile, JsonObject jsonObject) {
         try (FileWriter fileWriter = new FileWriter(jsonFile)) {
-            AstralBooksCore.GSON.toJson(jsonObject, fileWriter);
+            AstralBooksCore.PRETTY_GSON.toJson(jsonObject, fileWriter);
         } catch (Exception ex) {
             throw new JsonParseException("Failed to put the data the json file " + jsonFile.getName());
         }

@@ -140,12 +140,12 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                 this.AuthMeEnabled = true;
             }
             if (!manager.isPluginEnabled("NBTAPI"))
-                if (this.API.noNBTAPIRequired())
+                if (!this.API.getDistribution().isNBTAPIRequired())
                     this.getLogger().info("NBTAPI not found, but support for it it's not required!");
                 else
                     this.getLogger().info("NBTAPI not found!");
             else {
-                if (this.API.noNBTAPIRequired()) {
+                if (!this.API.getDistribution().isNBTAPIRequired()) {
                     this.getLogger().info("NBTAPI found, but support for it it's not required!");
                 } else {
                     this.getLogger().info("NBTAPI found, try hooking!");

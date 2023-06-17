@@ -53,11 +53,11 @@ public class PersistentChunkData implements ChunkData {
                 String leftBookJson = blockDataContainer.leftBook();
                 ItemStack leftBook = (leftBookJson == null || leftBookJson.isEmpty()) ?
                         null :
-                        distribution.convertJsonToBook(AstralBooksCore.GSON.fromJson(leftBookJson, JsonObject.class));
+                        distribution.convertJsonToBook(AstralBooksCore.PRETTY_GSON.fromJson(leftBookJson, JsonObject.class));
                 String rightBookJson = blockDataContainer.rightBook();
                 ItemStack rightBook = (rightBookJson == null || rightBookJson.isEmpty()) ?
                         null :
-                        distribution.convertJsonToBook(AstralBooksCore.GSON.fromJson(rightBookJson, JsonObject.class));
+                        distribution.convertJsonToBook(AstralBooksCore.PRETTY_GSON.fromJson(rightBookJson, JsonObject.class));
                 Block block = chunk.getWorld().getBlockAt(blockDataContainer.x(), blockDataContainer.y(), blockDataContainer.z());
                 chunkBlocks.put(block, Pair.of(leftBook, rightBook));
             }

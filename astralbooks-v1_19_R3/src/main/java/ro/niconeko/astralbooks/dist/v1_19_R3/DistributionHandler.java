@@ -22,7 +22,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import io.github.NicoNekoDev.SimpleTuples.func.TripletFunction;
 import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
@@ -36,20 +35,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.dist.Distribution;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class DistributionHandler extends Distribution {
-    private final Field pagesField;
 
-    public DistributionHandler(TripletFunction<Player, String, Optional<NPC>, String> papiStr, TripletFunction<Player, List<String>, Optional<NPC>, List<String>> papiStrList) throws NoSuchFieldException {
-        super("1_19_R3", papiStr, papiStrList, true, true);
-        this.pagesField = CraftMetaBook.class.getDeclaredField("pages");
-        this.pagesField.setAccessible(true);
+    public DistributionHandler(AstralBooksPlugin plugin) throws NoSuchFieldException {
+        super(plugin, CraftMetaBook.class.getDeclaredField("pages"));
     }
 
     @Override
@@ -62,6 +58,7 @@ public class DistributionHandler extends Distribution {
         return entity.getPersistentDataContainer();
     }
 
+    @Override
     public void sendRightClick(Player player) {
         ((CraftPlayer) player).getHandle().connection.send(new ClientboundOpenBookPacket(InteractionHand.MAIN_HAND));
     }
@@ -115,6 +112,11 @@ public class DistributionHandler extends Distribution {
     }
 
     @Override
+    public String getVersion() {
+        return "1_19_R3";
+    }
+
+    @Override
     public void setConfigComment(ConfigurationSection config, String path, Optional<List<String>> comments) {
         comments.ifPresent(strings -> config.setComments(path, strings));
     }
@@ -127,9 +129,9 @@ public class DistributionHandler extends Distribution {
         Preconditions.checkArgument(book.getType() == Material.WRITTEN_BOOK, "The ItemStack is not a written book! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         BookMeta bookMeta = (BookMeta) book.getItemMeta();
-        List<String> pages = bookMeta.hasPages() ? super.papiReplaceStrList.apply(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
-        String author = bookMeta.hasAuthor() ? super.papiReplaceStr.apply(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
-        String title = bookMeta.hasTitle() ? super.papiReplaceStr.apply(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
+        List<String> pages = bookMeta.hasPages() ? super.placeholders(player, (List<String>) this.pagesField.get(bookMeta), Optional.ofNullable(npc)) : new ArrayList<>();
+        String author = bookMeta.hasAuthor() ? super.placeholders(player, bookMeta.getAuthor(), Optional.ofNullable(npc)) : "Server";
+        String title = bookMeta.hasTitle() ? super.placeholders(player, bookMeta.getTitle(), Optional.ofNullable(npc)) : "Title";
         ItemStack newBook = new ItemStack(Material.WRITTEN_BOOK);
         bookMeta.setAuthor(author);
         bookMeta.setTitle(title);
