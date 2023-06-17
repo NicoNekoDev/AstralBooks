@@ -56,6 +56,47 @@ public class H2Storage extends EmbedStorage {
     }
 
     @Override
+    protected boolean preloadCache() {
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT filter_name FROM filters;"
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.filters.add(preload.getString("filter_name"));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'filters' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT command_name FROM commands;"
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.commands.add(preload.getString("command_name"));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'commands' table!", ex);
+            return false;
+        }
+        try (PreparedStatement statement = super.connection.prepareStatement(
+                "SELECT npc_id, side FROM npc_books;"
+        )) {
+            try (ResultSet preload = statement.executeQuery()) {
+                while (preload.next()) {
+                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                }
+            }
+        } catch (SQLException ex) {
+            super.plugin.getLogger().log(Level.SEVERE, "(" + super.storageType.getFormattedName() + ") Failed to preload 'npc_books' table!", ex);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     protected Future<ItemStack> getFilterBookStack(String filterName) {
         return super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(

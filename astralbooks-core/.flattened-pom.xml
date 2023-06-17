@@ -87,6 +87,18 @@
       <version>3.1.4</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.comphenix.protocol</groupId>
+      <artifactId>ProtocolLib</artifactId>
+      <version>4.8.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>4.1.82.Final</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
   <build>
     <resources>

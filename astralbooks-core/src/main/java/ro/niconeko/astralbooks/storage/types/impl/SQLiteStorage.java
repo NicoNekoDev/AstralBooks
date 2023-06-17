@@ -51,7 +51,7 @@ public class SQLiteStorage extends EmbedStorage {
 
     @Override
     protected String getURL() {
-        return "jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + super.fileName;
+        return "jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + super.fileName + ".db";
     }
 
     @Override
@@ -237,13 +237,12 @@ public class SQLiteStorage extends EmbedStorage {
         super.cache.npcBooks.put(pairKey, book);
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
-                    "INSERT INTO 'npc_books' (npc_id, side, npc_book) VALUES(?, ?, ?) ON CONFLICT(npc_id, side) DO UPDATE SET npc_book=?;"
+                    "REPLACE INTO 'npc_books' (npc_id, side, npc_book) VALUES(?, ?, ?);"
             )) {
                 String encoded = super.plugin.getAPI().encodeItemStack(book);
                 statement.setInt(1, npcId);
                 statement.setString(2, side.toString());
                 statement.setString(3, encoded);
-                statement.setString(4, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
@@ -257,12 +256,11 @@ public class SQLiteStorage extends EmbedStorage {
         super.cache.filterBooks.put(filterName, book);
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
-                    "INSERT INTO 'filters' (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;"
+                    "REPLACE INTO 'filters' (filter_name, filter_book) VALUES(?, ?);"
             )) {
                 String encoded = super.plugin.getAPI().encodeItemStack(book);
                 statement.setString(1, filterName);
                 statement.setString(2, encoded);
-                statement.setString(3, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
@@ -276,13 +274,11 @@ public class SQLiteStorage extends EmbedStorage {
         super.cache.commandFilters.put(cmd, Pair.of(filterName, permission));
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
-                    "INSERT INTO 'commands' (command_name, filter_name, permission) VALUES(?, ?, ?) ON CONFLICT(command_name) DO UPDATE SET filter_name=?, permission=?;"
+                    "REPLACE INTO 'commands' (command_name, filter_name, permission) VALUES(?, ?, ?);"
             )) {
                 statement.setString(1, cmd);
                 statement.setString(2, filterName);
                 statement.setString(3, permission);
-                statement.setString(4, filterName);
-                statement.setString(5, permission);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
@@ -382,18 +378,16 @@ public class SQLiteStorage extends EmbedStorage {
             String encodedBook = super.plugin.getAPI().encodeItemStack(book);
             String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
             try (PreparedStatement statementPlayers = super.connection.prepareStatement(
-                    "INSERT INTO 'security_players' (player, timestamp, book_hash) VALUES(?, ?, ?) ON CONFLICT(player, timestamp) DO UPDATE SET book_hash=?;");
+                    "REPLACE INTO 'security_players' (player, timestamp, book_hash) VALUES(?, ?, ?);");
                  PreparedStatement statementBooks = super.connection.prepareStatement(
-                         "INSERT INTO 'security_books' (book_hash, book) VALUES(?, ?) ON CONFLICT(book_hash) DO UPDATE SET book=?;")
+                         "REPLACE INTO 'security_books' (book_hash, book) VALUES(?, ?);")
             ) {
                 statementPlayers.setString(1, uuid.toString());
                 statementPlayers.setTimestamp(2, timestamp);
                 statementPlayers.setString(3, hashBook);
-                statementPlayers.setString(4, hashBook);
                 statementPlayers.executeUpdate();
                 statementBooks.setString(1, hashBook);
                 statementBooks.setString(2, encodedBook);
-                statementBooks.setString(3, encodedBook);
                 statementBooks.executeUpdate();
             } catch (SQLException ex) {
                 super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save security player data!", ex);
@@ -523,7 +517,7 @@ public class SQLiteStorage extends EmbedStorage {
     @Override
     protected void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
-                "INSERT INTO 'npc_books' (npc_id, side, npc_book) VALUES(?, ?, ?) ON CONFLICT(npc_id, side) DO UPDATE SET npc_book=?;"
+                "REPLACE INTO 'npc_books' (npc_id, side, npc_book) VALUES(?, ?, ?));"
         )) {
             Triplet<Integer, Side, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
@@ -531,7 +525,6 @@ public class SQLiteStorage extends EmbedStorage {
                 statement.setInt(1, triplet.getFirstValue());
                 statement.setString(2, triplet.getSecondValue().toString());
                 statement.setString(3, encoded);
-                statement.setString(4, encoded);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -544,14 +537,13 @@ public class SQLiteStorage extends EmbedStorage {
     @Override
     protected void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
-                "INSERT INTO 'filters' (filter_name, filter_book) VALUES(?, ?) ON CONFLICT(filter_name) DO UPDATE SET filter_book=?;"
+                "REPLACE INTO 'filters' (filter_name, filter_book) VALUES(?, ?);"
         )) {
             Pair<String, ItemStack> pair;
             while ((pair = queue.poll()) != null) {
                 String encoded = super.plugin.getAPI().encodeItemStack(pair.getSecondValue());
                 statement.setString(1, pair.getFirstValue());
                 statement.setString(2, encoded);
-                statement.setString(3, encoded);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -564,15 +556,13 @@ public class SQLiteStorage extends EmbedStorage {
     @Override
     protected void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
-                "INSERT INTO 'commands' (command_name, filter_name, permission) VALUES(?, ?, ?) ON CONFLICT(command_name) DO UPDATE SET filter_name=?, permission=?;"
+                "REPLACE INTO 'commands' (command_name, filter_name, permission) VALUES(?, ?, ?);"
         )) {
             Triplet<String, String, String> triplet;
             while ((triplet = queue.poll()) != null) {
                 statement.setString(1, triplet.getFirstValue());
                 statement.setString(2, triplet.getSecondValue());
                 statement.setString(3, triplet.getThirdValue());
-                statement.setString(4, triplet.getSecondValue());
-                statement.setString(5, triplet.getThirdValue());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -585,9 +575,9 @@ public class SQLiteStorage extends EmbedStorage {
     @Override
     protected void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statementPlayers = super.connection.prepareStatement(
-                "INSERT INTO 'security_players' (player, timestamp, book_hash) VALUES(?, ?, ?) ON CONFLICT(player, timestamp) DO UPDATE SET book_hash=?;");
+                "REPLACE INTO 'security_players' (player, timestamp, book_hash) VALUES(?, ?, ?);");
              PreparedStatement statementBooks = super.connection.prepareStatement(
-                     "INSERT INTO 'security_books' (book_hash, book) VALUES(?, ?) ON CONFLICT(book_hash) DO UPDATE SET book=?;")
+                     "REPLACE INTO 'security_books' (book_hash, book) VALUES(?, ?);")
         ) {
             Triplet<UUID, Date, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
@@ -596,11 +586,9 @@ public class SQLiteStorage extends EmbedStorage {
                 statementPlayers.setString(1, triplet.getFirstValue().toString());
                 statementPlayers.setLong(2, triplet.getSecondValue().getTime());
                 statementPlayers.setString(3, hashBook);
-                statementPlayers.setString(4, hashBook);
                 statementPlayers.addBatch();
                 statementBooks.setString(1, hashBook);
                 statementBooks.setString(2, encodedBook);
-                statementBooks.setString(3, encodedBook);
                 statementBooks.addBatch();
             }
             statementPlayers.executeBatch();

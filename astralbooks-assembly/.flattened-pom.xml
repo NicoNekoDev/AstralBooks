@@ -27,6 +27,7 @@
   <artifactId>astralbooks-assembly</artifactId>
   <version>3.0.4-SNAPSHOT</version>
   <properties>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.deploy.skip>true</maven.deploy.skip>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

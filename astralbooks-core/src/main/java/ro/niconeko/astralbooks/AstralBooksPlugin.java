@@ -83,16 +83,17 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                 if (!manager.isPluginEnabled("Vault"))
                     this.getLogger().info("Vault not found!");
                 else {
-                    this.getLogger().info("Vault found, try hooking!");
+                    this.getLogger().info("Vault found, try hooking...");
                     RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
                     if (provider != null) {
                         this.VaultEnabled = true;
                         this.vaultPerms = provider.getProvider();
+                        this.getLogger().info("Successfully hooked into Vault!");
                     } else
                         this.getLogger().info("Failed to hook into Vault!");
                 }
             } else {
-                this.getLogger().info("LuckPerms found, try hooking!");
+                this.getLogger().info("LuckPerms found, try hooking...");
                 Plugin plugin = manager.getPlugin("LuckPerms");
                 if (plugin != null) {
                     if (plugin.getDescription().getVersion().startsWith("5")) {
@@ -102,6 +103,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                             this.luckPerms = provider.getProvider();
                             if (manager.isPluginEnabled("Vault"))
                                 this.getLogger().info("Vault plugin found, but we'll use LuckPerms!");
+                            this.getLogger().info("Successfully hooked into LuckPerms!");
                         } else
                             this.getLogger().info("Failed to hook into LuckPerms!");
                     } else {
@@ -109,9 +111,10 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                         if (manager.isPluginEnabled("Vault")) {
                             RegisteredServiceProvider<Permission> provider = this.getServer().getServicesManager().getRegistration(Permission.class);
                             if (provider != null) {
-                                this.getLogger().info("Vault found instead! Try hooking!");
+                                this.getLogger().info("Vault found instead! Try hooking...");
                                 this.VaultEnabled = true;
                                 this.vaultPerms = provider.getProvider();
+                                this.getLogger().info("Successfully hooked into Vault!");
                             } else // do we need it?
                                 this.getLogger().info("Failed to hook into Vault!");
                         }
@@ -122,34 +125,38 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
             if (!manager.isPluginEnabled("PlaceholderAPI"))
                 this.getLogger().info("PlaceholderAPI not found!");
             else {
-                this.getLogger().info("PlaceholderAPI found, try hooking!");
+                this.getLogger().info("PlaceholderAPI found, try hooking...");
                 this.PlaceholderAPIEnabled = true;
+                this.getLogger().info("Successfully hooked into PlaceholderAPI!");
             }
             if (!manager.isPluginEnabled("Citizens"))
                 this.getLogger().info("Citizens not found!");
             else {
-                this.getLogger().info("Citizens found, try hooking!");
+                this.getLogger().info("Citizens found, try hooking...");
                 manager.registerEvents(new CitizensActions(this), this);
                 this.CitizensEnabled = true;
+                this.getLogger().info("Successfully hooked into Citizens!");
             }
             if (!manager.isPluginEnabled("Authme"))
                 this.getLogger().info("Authme not found!");
             else {
-                this.getLogger().info("Authme found, try hooking!");
+                this.getLogger().info("AuthMe found, try hooking...");
                 manager.registerEvents(new AuthmeActions(this), this);
                 this.AuthMeEnabled = true;
+                this.getLogger().info("Successfully hooked into AuthMe!");
             }
             if (!manager.isPluginEnabled("NBTAPI"))
                 if (!this.API.getDistribution().isNBTAPIRequired())
-                    this.getLogger().info("NBTAPI not found, but support for it it's not required!");
+                    this.getLogger().info("NBTAPI not found, but support for it's not required!");
                 else
                     this.getLogger().info("NBTAPI not found!");
             else {
                 if (!this.API.getDistribution().isNBTAPIRequired()) {
-                    this.getLogger().info("NBTAPI found, but support for it it's not required!");
+                    this.getLogger().info("NBTAPI found, but support for it's not required!");
                 } else {
-                    this.getLogger().info("NBTAPI found, try hooking!");
+                    this.getLogger().info("NBTAPI found, try hooking...");
                     this.NBTAPIEnabled = true;
+                    this.getLogger().info("Successfully hooked into NBTAPI!");
                 }
             }
 

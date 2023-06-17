@@ -119,8 +119,10 @@ public class PlayerActions implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND)
-            return;
+        try {
+            if (event.getClass().getMethod("getHand").invoke(event) != EquipmentSlot.HAND)
+                return;
+        } catch (Exception ignored) {} // old versions doesn't have PlayerInteractEvent#getHand() method
         if (this.interactionBookBlockOperatorsMap.containsKey(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null && !event.getPlayer().isSneaking()) {
             Pair<ItemStack, Side> pair = this.interactionBookBlockOperatorsMap.remove(event.getPlayer());
             Block block = event.getClickedBlock();
@@ -181,8 +183,10 @@ public class PlayerActions implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractAtEntityEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND)
-            return;
+        try {
+            if (event.getClass().getMethod("getHand").invoke(event) != EquipmentSlot.HAND)
+                return;
+        } catch (Exception ignored) {} // old versions doesn't have PlayerInteractEvent#getHand() method
         Entity entity = event.getRightClicked();
         if (this.interactionBookEntityOperatorsMap.containsKey(event.getPlayer()) && !event.getPlayer().isSneaking()) {
             if (this.plugin.isCitizensEnabled()) {
