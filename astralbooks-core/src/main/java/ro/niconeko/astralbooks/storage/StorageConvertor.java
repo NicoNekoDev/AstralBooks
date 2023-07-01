@@ -17,11 +17,11 @@
 
 package ro.niconeko.astralbooks.storage;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.sql.SQLException;
@@ -71,19 +71,19 @@ public class StorageConvertor {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
 
-            Queue<Triplet<Integer, Side, ItemStack>> allNPCBookStacks = this.previousStorage.getAllNPCBookStacks(failed);
+            Queue<TripletTuple<Integer, Side, ItemStack>> allNPCBookStacks = this.previousStorage.getAllNPCBookStacks(failed);
             this.plugin.getLogger().info("Converting [" + allNPCBookStacks.size() + "] npc books...");
             this.currentStorage.setAllNPCBookStacks(allNPCBookStacks, failed);
 
-            Queue<Pair<String, ItemStack>> allFilterBookStacks = this.previousStorage.getAllFilterBookStacks(failed);
+            Queue<PairTuple<String, ItemStack>> allFilterBookStacks = this.previousStorage.getAllFilterBookStacks(failed);
             this.plugin.getLogger().info("Converting [" + allFilterBookStacks.size() + "] filter books...");
             this.currentStorage.setAllFilterBookStacks(allFilterBookStacks, failed);
 
-            Queue<Triplet<String, String, String>> allCommandFilterStacks = this.previousStorage.getAllCommandFilterStacks(failed);
+            Queue<TripletTuple<String, String, String>> allCommandFilterStacks = this.previousStorage.getAllCommandFilterStacks(failed);
             this.plugin.getLogger().info("Converting [" + allCommandFilterStacks.size() + "] command filters...");
             this.currentStorage.setAllCommandFilterStacks(allCommandFilterStacks, failed);
 
-            Queue<Triplet<UUID, Date, ItemStack>> allBookSecurityStacks = this.previousStorage.getAllBookSecurityStacks(failed);
+            Queue<TripletTuple<UUID, Date, ItemStack>> allBookSecurityStacks = this.previousStorage.getAllBookSecurityStacks(failed);
             this.plugin.getLogger().info("Converting [" + allBookSecurityStacks.size() + "] security books...");
             this.currentStorage.setAllBookSecurityStacks(allBookSecurityStacks, failed);
 

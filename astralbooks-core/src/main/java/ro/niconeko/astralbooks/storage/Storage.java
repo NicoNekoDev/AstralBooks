@@ -17,10 +17,10 @@
 
 package ro.niconeko.astralbooks.storage;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 
@@ -112,7 +112,7 @@ public abstract class Storage {
 
     protected abstract Future<ItemStack> getNPCBookStack(int npcId, Side side);
 
-    protected abstract Future<Pair<String, String>> getCommandFilterStack(String cmd);
+    protected abstract Future<PairTuple<String, String>> getCommandFilterStack(String cmd);
 
     protected abstract void removeFilterBookStack(String filterName);
 
@@ -126,29 +126,29 @@ public abstract class Storage {
 
     protected abstract void putCommandFilterStack(String cmd, String filterName, String permission);
 
-    protected abstract Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount);
+    protected abstract Future<LinkedList<PairTuple<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount);
 
-    protected abstract Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount);
+    protected abstract Future<LinkedList<TripletTuple<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount);
 
     protected abstract void putBookSecurityStack(UUID uuid, Date date, ItemStack book);
 
     protected abstract Future<ItemStack> getSecurityBookStack(UUID uuid, Date date);
 
-    protected abstract Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed);
+    protected abstract Queue<TripletTuple<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed);
 
-    protected abstract Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed);
+    protected abstract Queue<PairTuple<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed);
 
-    protected abstract Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed);
+    protected abstract Queue<TripletTuple<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed);
 
-    protected abstract Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed);
+    protected abstract Queue<TripletTuple<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed);
 
-    protected abstract void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed);
+    protected abstract void setAllNPCBookStacks(Queue<TripletTuple<Integer, Side, ItemStack>> queue, AtomicBoolean failed);
 
-    protected abstract void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed);
+    protected abstract void setAllFilterBookStacks(Queue<PairTuple<String, ItemStack>> queue, AtomicBoolean failed);
 
-    protected abstract void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed);
+    protected abstract void setAllCommandFilterStacks(Queue<TripletTuple<String, String, String>> queue, AtomicBoolean failed);
 
-    protected abstract void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed);
+    protected abstract void setAllBookSecurityStacks(Queue<TripletTuple<UUID, Date, ItemStack>> queue, AtomicBoolean failed);
 
     protected abstract Map<UUID, Set<Date>> cleanOldSecurityBookStacks();
 

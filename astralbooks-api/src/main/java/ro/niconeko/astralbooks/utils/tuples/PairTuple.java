@@ -15,20 +15,7 @@
  *     limitations under the License.
  */
 
-package ro.niconeko.astralbooks.persistent.chunk;
+package ro.niconeko.astralbooks.utils.tuples;
 
-import org.bukkit.block.Block;
-import org.bukkit.inventory.ItemStack;
-import ro.niconeko.astralbooks.AstralBooksCore;
-import ro.niconeko.astralbooks.dist.Distribution;
-import ro.niconeko.astralbooks.utils.tuples.PairTuple;
-
-import java.util.Map;
-
-public interface ChunkData {
-
-    Map<Block, PairTuple<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException;
-
-    void unloadChunk(Distribution distribution, AstralBooksCore core) throws IllegalAccessException;
-
+public record PairTuple<K1, K2>(K1 firstValue, K2 secondValue) {
 }

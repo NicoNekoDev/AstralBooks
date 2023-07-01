@@ -22,13 +22,13 @@ import de.tr7zw.nbtapi.NBTChunk;
 import de.tr7zw.nbtapi.NBTCompound;
 import de.tr7zw.nbtapi.NBTCompoundList;
 import de.tr7zw.nbtapi.NBTContainer;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.dist.Distribution;
 import ro.niconeko.astralbooks.utils.PersistentKey;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,8 +43,8 @@ public class NBTAPIChunkData implements ChunkData {
     }
 
     @Override
-    public Map<Block, Pair<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException {
-        Map<Block, Pair<ItemStack, ItemStack>> chunkBlocks = new HashMap<>();
+    public Map<Block, PairTuple<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException {
+        Map<Block, PairTuple<ItemStack, ItemStack>> chunkBlocks = new HashMap<>();
         if (nbtChunk.getPersistentDataContainer().hasKey(PersistentKey.CHUNK_TAG.getValue())) {
             NBTCompoundList blocksDataContainers = nbtChunk.getPersistentDataContainer().getCompoundList(PersistentKey.CHUNK_TAG.getValue());
             for (NBTCompound blockDataContainer : blocksDataContainers) {
@@ -64,7 +64,7 @@ public class NBTAPIChunkData implements ChunkData {
                         blockDataContainer.getInteger(PersistentKey.BLOCK_LOCATION_X.getValue()),
                         blockDataContainer.getInteger(PersistentKey.BLOCK_LOCATION_Y.getValue()),
                         blockDataContainer.getInteger(PersistentKey.BLOCK_LOCATION_Z.getValue()));
-                chunkBlocks.put(block, Pair.of(leftBook, rightBook));
+                chunkBlocks.put(block, new PairTuple<>(leftBook, rightBook));
             }
         }
         return chunkBlocks;
@@ -74,11 +74,11 @@ public class NBTAPIChunkData implements ChunkData {
     public void unloadChunk(Distribution distribution, AstralBooksCore core) throws IllegalAccessException {
         this.nbtChunk.getPersistentDataContainer().removeKey(PersistentKey.CHUNK_TAG.getValue());
         NBTCompoundList blocksDataContainers = this.nbtChunk.getPersistentDataContainer().getCompoundList(PersistentKey.CHUNK_TAG.getValue());
-        for (Map.Entry<Block, Pair<ItemStack, ItemStack>> blockPairEntry : core.getBlocksEntriesPairedToChunk(chunk).entrySet()) {
+        for (Map.Entry<Block, PairTuple<ItemStack, ItemStack>> blockPairEntry : core.getBlocksEntriesPairedToChunk(chunk).entrySet()) {
             Block block = blockPairEntry.getKey();
-            Pair<ItemStack, ItemStack> pair = blockPairEntry.getValue();
-            ItemStack left = pair.getFirstValue();
-            ItemStack right = pair.getSecondValue();
+            PairTuple<ItemStack, ItemStack> pair = blockPairEntry.getValue();
+            ItemStack left = pair.firstValue();
+            ItemStack right = pair.secondValue();
             String leftJson = left != null ? distribution.convertBookToJson(left).toString() : null;
             String rightJson = right != null ? distribution.convertBookToJson(right).toString() : null;
             NBTContainer blockDataContainer = new NBTContainer();

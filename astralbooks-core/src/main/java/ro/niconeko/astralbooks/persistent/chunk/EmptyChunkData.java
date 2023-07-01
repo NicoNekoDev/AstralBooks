@@ -17,18 +17,18 @@
 
 package ro.niconeko.astralbooks.persistent.chunk;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.dist.Distribution;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.Map;
 
 public class EmptyChunkData implements ChunkData {
 
     @Override
-    public Map<Block, Pair<ItemStack, ItemStack>> loadChunk(Distribution distribution) {
+    public Map<Block, PairTuple<ItemStack, ItemStack>> loadChunk(Distribution distribution) {
         throw new UnsupportedOperationException("PersistentDataContainer or NBTAPI is not enabled! This is not an issue with CitizensBooks!");
     }
 

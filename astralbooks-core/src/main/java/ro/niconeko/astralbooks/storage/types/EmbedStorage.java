@@ -17,13 +17,13 @@
 
 package ro.niconeko.astralbooks.storage.types;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageEmbedSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -79,7 +79,7 @@ public abstract class EmbedStorage extends Storage {
         )) {
             try (ResultSet preload = statement.executeQuery()) {
                 while (preload.next()) {
-                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                    super.cache.npcs.add(new PairTuple<>(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
                 }
             }
         } catch (SQLException ex) {

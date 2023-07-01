@@ -18,7 +18,6 @@
 package ro.niconeko.astralbooks.persistent.chunk;
 
 import com.google.gson.JsonObject;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -30,6 +29,7 @@ import ro.niconeko.astralbooks.persistent.BlockToBookPair;
 import ro.niconeko.astralbooks.persistent.BlocksToBooksPairs;
 import ro.niconeko.astralbooks.persistent.BlocksToBooksPairsDataType;
 import ro.niconeko.astralbooks.utils.PersistentKey;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +44,8 @@ public class PersistentChunkData implements ChunkData {
 
     @SuppressWarnings("DataFlowIssue")
     @Override
-    public Map<Block, Pair<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException {
-        Map<Block, Pair<ItemStack, ItemStack>> chunkBlocks = new HashMap<>();
+    public Map<Block, PairTuple<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException {
+        Map<Block, PairTuple<ItemStack, ItemStack>> chunkBlocks = new HashMap<>();
         PersistentDataContainer chunkPersistentDataContainer = distribution.getChunkDataContainer(chunk);
         if (chunkPersistentDataContainer.has(PersistentKey.CHUNK_TAG.getKey(), PersistentDataType.TAG_CONTAINER_ARRAY)) {
             BlocksToBooksPairs blocksDataContainers = chunkPersistentDataContainer.get(PersistentKey.CHUNK_TAG.getKey(), new BlocksToBooksPairsDataType());
@@ -59,7 +59,7 @@ public class PersistentChunkData implements ChunkData {
                         null :
                         distribution.convertJsonToBook(AstralBooksCore.PRETTY_GSON.fromJson(rightBookJson, JsonObject.class));
                 Block block = chunk.getWorld().getBlockAt(blockDataContainer.x(), blockDataContainer.y(), blockDataContainer.z());
-                chunkBlocks.put(block, Pair.of(leftBook, rightBook));
+                chunkBlocks.put(block, new PairTuple<>(leftBook, rightBook));
             }
         }
         return chunkBlocks;
@@ -70,11 +70,11 @@ public class PersistentChunkData implements ChunkData {
         PersistentDataContainer chunkPersistentDataContainer = distribution.getChunkDataContainer(chunk);
         chunkPersistentDataContainer.remove(PersistentKey.CHUNK_TAG.getKey());
         BlocksToBooksPairs blocksToBooksPairs = new BlocksToBooksPairs();
-        for (Map.Entry<Block, Pair<ItemStack, ItemStack>> blockPairEntry : core.getBlocksEntriesPairedToChunk(chunk).entrySet()) {
+        for (Map.Entry<Block, PairTuple<ItemStack, ItemStack>> blockPairEntry : core.getBlocksEntriesPairedToChunk(chunk).entrySet()) {
             Block block = blockPairEntry.getKey();
-            Pair<ItemStack, ItemStack> pair = blockPairEntry.getValue();
-            ItemStack left = pair.getFirstValue();
-            ItemStack right = pair.getSecondValue();
+            PairTuple<ItemStack, ItemStack> pair = blockPairEntry.getValue();
+            ItemStack left = pair.firstValue();
+            ItemStack right = pair.secondValue();
             BlockToBookPair blockToBookPair = new BlockToBookPair(block.getX(), block.getY(), block.getZ(),
                     left != null ? distribution.convertBookToJson(left).toString() : null,
                     right != null ? distribution.convertBookToJson(right).toString() : null);

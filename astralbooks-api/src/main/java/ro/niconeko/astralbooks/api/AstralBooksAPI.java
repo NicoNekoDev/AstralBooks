@@ -17,13 +17,13 @@
 
 package ro.niconeko.astralbooks.api;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.Set;
 
@@ -289,7 +289,7 @@ public interface AstralBooksAPI {
      * @param cmd The command
      * @return A pair of filter name and permission
      */
-    Pair<String, String> getCommandFilter(String cmd);
+    PairTuple<String, String> getCommandFilter(String cmd);
 
     /**
      * Checks if the given command exists

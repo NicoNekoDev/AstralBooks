@@ -17,7 +17,6 @@
 
 package ro.niconeko.astralbooks.listeners;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -40,6 +39,7 @@ import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -56,9 +56,9 @@ public class PlayerActions implements Listener {
     private BukkitTask pullTask;
     private final DelayQueue<DelayedPlayer> delayedJoinBookPlayers = new DelayQueue<>();
     private final DelayQueue<DelayedPlayer> delayedInteractionBookBlockOperators = new DelayQueue<>();
-    private final Map<Player, Pair<ItemStack, Side>> interactionBookBlockOperatorsMap = new HashMap<>();
+    private final Map<Player, PairTuple<ItemStack, Side>> interactionBookBlockOperatorsMap = new HashMap<>();
     private final DelayQueue<DelayedPlayer> delayedInteractionBookEntityOperators = new DelayQueue<>();
-    private final Map<Player, Pair<ItemStack, Side>> interactionBookEntityOperatorsMap = new HashMap<>();
+    private final Map<Player, PairTuple<ItemStack, Side>> interactionBookEntityOperatorsMap = new HashMap<>();
 
     public PlayerActions(AstralBooksPlugin plugin) {
         this.plugin = plugin;
@@ -67,12 +67,12 @@ public class PlayerActions implements Listener {
 
     public void setBookBlockOperator(Player player, ItemStack book, Side side) {
         this.delayedInteractionBookBlockOperators.add(new DelayedPlayer(player, 1000 * 60)); // 1 minute
-        this.interactionBookBlockOperatorsMap.put(player, Pair.of(book, side));
+        this.interactionBookBlockOperatorsMap.put(player, new PairTuple<>(book, side));
     }
 
     public void setBookEntityOperator(Player player, ItemStack book, Side side) {
         this.delayedInteractionBookEntityOperators.add(new DelayedPlayer(player, 1000 * 60)); // 1 minute
-        this.interactionBookEntityOperatorsMap.put(player, Pair.of(book, side));
+        this.interactionBookEntityOperatorsMap.put(player, new PairTuple<>(book, side));
     }
 
     public void onDisable() {
@@ -124,10 +124,10 @@ public class PlayerActions implements Listener {
                 return;
         } catch (Exception ignored) {} // old versions doesn't have PlayerInteractEvent#getHand() method
         if (this.interactionBookBlockOperatorsMap.containsKey(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null && !event.getPlayer().isSneaking()) {
-            Pair<ItemStack, Side> pair = this.interactionBookBlockOperatorsMap.remove(event.getPlayer());
+            PairTuple<ItemStack, Side> pair = this.interactionBookBlockOperatorsMap.remove(event.getPlayer());
             Block block = event.getClickedBlock();
-            if (pair.getFirstValue() == null) {
-                this.api.removeBookOfBlock(block, pair.getSecondValue());
+            if (pair.firstValue() == null) {
+                this.api.removeBookOfBlock(block, pair.secondValue());
                 event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK)
                         .replace("%player%", event.getPlayer().getName())
                         .replace("%block_x%", String.valueOf(block.getX()))
@@ -139,7 +139,7 @@ public class PlayerActions implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            this.api.putBookOnBlock(block, pair.getFirstValue(), pair.getSecondValue());
+            this.api.putBookOnBlock(block, pair.firstValue(), pair.secondValue());
             event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
                     .replace("%player%", event.getPlayer().getName())
                     .replace("%block_x%", String.valueOf(block.getX()))
@@ -196,9 +196,9 @@ public class PlayerActions implements Listener {
                     return;
                 }
             }
-            Pair<ItemStack, Side> pair = this.interactionBookEntityOperatorsMap.remove(event.getPlayer());
-            if (pair.getFirstValue() == null) {
-                this.api.removeBookOfEntity(entity, pair.getSecondValue());
+            PairTuple<ItemStack, Side> pair = this.interactionBookEntityOperatorsMap.remove(event.getPlayer());
+            if (pair.firstValue() == null) {
+                this.api.removeBookOfEntity(entity, pair.secondValue());
                 event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY)
                         .replace("%player%", event.getPlayer().getName())
                         .replace("%type%", entity.getType().name())
@@ -206,7 +206,7 @@ public class PlayerActions implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            this.api.putBookOnEntity(entity, pair.getFirstValue(), pair.getSecondValue());
+            this.api.putBookOnEntity(entity, pair.firstValue(), pair.secondValue());
             event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_ENTITY)
                     .replace("%player%", event.getPlayer().getName())
                     .replace("%type%", entity.getType().name())
@@ -278,9 +278,9 @@ public class PlayerActions implements Listener {
         if (!this.plugin.getPluginStorage().hasCommandFilter(command))
             return;
         event.setCancelled(true);
-        Pair<String, String> filter = this.plugin.getPluginStorage().getCommandFilter(command);
-        String filterName = filter.getFirstValue();
-        String permission = filter.getSecondValue() != null || !filter.getSecondValue().isEmpty() ? filter.getSecondValue() : "none";
+        PairTuple<String, String> filter = this.plugin.getPluginStorage().getCommandFilter(command);
+        String filterName = filter.firstValue();
+        String permission = filter.secondValue() != null && !filter.secondValue().isEmpty() ? filter.secondValue() : "none";
         if (!("none".equalsIgnoreCase(permission) || this.api.hasPermission(player, permission)))
             return;
         if (!this.plugin.getPluginStorage().hasFilterBook(filterName)) {

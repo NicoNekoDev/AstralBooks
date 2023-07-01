@@ -21,8 +21,6 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -58,9 +56,11 @@ import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.persistent.item.NBTAPIItemData;
 import ro.niconeko.astralbooks.persistent.item.PersistentItemData;
 import ro.niconeko.astralbooks.storage.PluginStorage;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
 
@@ -76,7 +76,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     private final AstralBooksPlugin plugin;
     private Distribution distribution = null;
     private final Map<Chunk, Set<Block>> blocksPairedToChunk = new HashMap<>();
-    private final Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
+    private final Map<Block, PairTuple<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
     private final Pattern namePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final Pattern permissionPattern = Pattern.compile("^[a-zA-Z0-9\\._-]+$");
 
@@ -143,7 +143,7 @@ public class AstralBooksCore implements AstralBooksAPI {
         this.plugin.getLogger().warning("Done :)");
     }
 
-    public void deployBooksForChunk(Chunk chunk, Map<Block, Pair<ItemStack, ItemStack>> clickableBlocks) {
+    public void deployBooksForChunk(Chunk chunk, Map<Block, PairTuple<ItemStack, ItemStack>> clickableBlocks) {
         this.clickableBlocks.putAll(clickableBlocks);
         this.blocksPairedToChunk.put(chunk, new HashSet<>(clickableBlocks.keySet()));
     }
@@ -159,8 +159,8 @@ public class AstralBooksCore implements AstralBooksAPI {
         return this.blocksPairedToChunk.get(chunk);
     }
 
-    public Map<Block, Pair<ItemStack, ItemStack>> getBlocksEntriesPairedToChunk(Chunk chunk) {
-        Map<Block, Pair<ItemStack, ItemStack>> reducedMap = new HashMap<>();
+    public Map<Block, PairTuple<ItemStack, ItemStack>> getBlocksEntriesPairedToChunk(Chunk chunk) {
+        Map<Block, PairTuple<ItemStack, ItemStack>> reducedMap = new HashMap<>();
         Set<Block> blocks = this.blocksPairedToChunk.get(chunk);
         if (blocks != null)
             for (Block block : blocks) {
@@ -169,18 +169,18 @@ public class AstralBooksCore implements AstralBooksAPI {
         return reducedMap;
     }
 
-    public Map<Block, Pair<ItemStack, ItemStack>> getClickableBlocks() {
+    public Map<Block, PairTuple<ItemStack, ItemStack>> getClickableBlocks() {
         return this.clickableBlocks;
     }
 
     @Override
     public ItemStack getBookOfBlock(Block block, Side side) {
-        Pair<ItemStack, ItemStack> pairBook = clickableBlocks.get(block);
+        PairTuple<ItemStack, ItemStack> pairBook = clickableBlocks.get(block);
         if (pairBook == null)
             return null;
         return switch (side) {
-            case LEFT -> pairBook.getFirstValue();
-            case RIGHT -> pairBook.getSecondValue();
+            case LEFT -> pairBook.firstValue();
+            case RIGHT -> pairBook.secondValue();
         };
     }
 
@@ -230,14 +230,14 @@ public class AstralBooksCore implements AstralBooksAPI {
         }
         switch (side) {
             case LEFT -> {
-                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
-                if (pair == null || pair.getSecondValue() == null) break;
-                clickableBlocks.put(block, Pair.of(null, pair.getSecondValue()));
+                PairTuple<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                if (pair == null || pair.secondValue() == null) break;
+                clickableBlocks.put(block, new PairTuple<>(null, pair.secondValue()));
             }
             case RIGHT -> {
-                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
-                if (pair == null || pair.getFirstValue() == null) break;
-                clickableBlocks.put(block, Pair.of(pair.getFirstValue(), null));
+                PairTuple<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                if (pair == null || pair.firstValue() == null) break;
+                clickableBlocks.put(block, new PairTuple<>(pair.firstValue(), null));
             }
         }
     }
@@ -259,12 +259,12 @@ public class AstralBooksCore implements AstralBooksAPI {
     public void putBookOnBlock(Block block, ItemStack book, Side side) {
         switch (side) {
             case LEFT -> {
-                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
-                clickableBlocks.put(block, Pair.of(book, pair == null ? null : pair.getSecondValue()));
+                PairTuple<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                clickableBlocks.put(block, new PairTuple<>(book, pair == null ? null : pair.secondValue()));
             }
             case RIGHT -> {
-                Pair<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
-                clickableBlocks.put(block, Pair.of(pair == null ? null : pair.getFirstValue(), book));
+                PairTuple<ItemStack, ItemStack> pair = clickableBlocks.remove(block);
+                clickableBlocks.put(block, new PairTuple<>(pair == null ? null : pair.firstValue(), book));
             }
         }
         this.blocksPairedToChunk.computeIfAbsent(block.getChunk(), k -> new HashSet<>()).add(block);
@@ -502,7 +502,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
 
-    public Set<Pair<Integer, Side>> getNPCBooks() {
+    public Set<PairTuple<Integer, Side>> getNPCBooks() {
         return this.plugin.getPluginStorage().getNPCBooks();
     }
 
@@ -549,7 +549,7 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     @Override
-    public Pair<String, String> getCommandFilter(String cmd) {
+    public PairTuple<String, String> getCommandFilter(String cmd) {
         return this.plugin.getPluginStorage().getCommandFilter(cmd);
     }
 
@@ -563,11 +563,11 @@ public class AstralBooksCore implements AstralBooksAPI {
         return this.plugin.getPluginStorage().getCommandFilterNames();
     }
 
-    public LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
+    public LinkedList<PairTuple<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
         return this.plugin.getPluginStorage().getAllBookSecurity(uuid, page, amount);
     }
 
-    public LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
+    public LinkedList<TripletTuple<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
         return this.plugin.getPluginStorage().getAllBookSecurity(page, amount);
     }
 

@@ -23,8 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -32,6 +30,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.storage.types.impl.*;
 import ro.niconeko.astralbooks.utils.Side;
@@ -277,7 +277,7 @@ public class PluginStorage {
         return this.cache.hasNPCBook(npcId, side);
     }
 
-    public Set<Pair<Integer, Side>> getNPCBooks() {
+    public Set<PairTuple<Integer, Side>> getNPCBooks() {
         return this.cache.getNPCBooks();
     }
 
@@ -355,7 +355,7 @@ public class PluginStorage {
         return this.cache.removeCommandFilter(cmd);
     }
 
-    public Pair<String, String> getCommandFilter(String cmd) {
+    public PairTuple<String, String> getCommandFilter(String cmd) {
         Preconditions.checkNotNull(cmd, "The command is null! This is not an error with CitizensBooks," +
                 " so please don't report it. Make sure the plugins that uses CitizensBooks as dependency are correctly configured.");
         Preconditions.checkArgument(!cmd.isEmpty(), "The command is empty! This is not an error with CitizensBooks," +
@@ -377,22 +377,22 @@ public class PluginStorage {
         return this.cache.getCommandFilterNames();
     }
 
-    public LinkedList<Pair<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
+    public LinkedList<PairTuple<Date, ItemStack>> getAllBookSecurity(UUID uuid, int page, int amount) {
         try {
-            LinkedList<Pair<Date, ItemStack>> list = this.storage.getAllBookSecurityStack(uuid, page, amount).get(); // no cache sadly :(
-            for (Pair<Date, ItemStack> pair : list)
-                this.cache.playerTimestamps.get(uuid).add(pair.getFirstValue());
+            LinkedList<PairTuple<Date, ItemStack>> list = this.storage.getAllBookSecurityStack(uuid, page, amount).get(); // no cache sadly :(
+            for (PairTuple<Date, ItemStack> pair : list)
+                this.cache.playerTimestamps.get(uuid).add(pair.firstValue());
             return list;
         } catch (ExecutionException | InterruptedException e) {
             return new LinkedList<>();
         }
     }
 
-    public LinkedList<Triplet<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
+    public LinkedList<TripletTuple<UUID, Date, ItemStack>> getAllBookSecurity(int page, int amount) {
         try {
-            LinkedList<Triplet<UUID, Date, ItemStack>> list = this.storage.getAllBookSecurityStack(page, amount).get();
-            for (Triplet<UUID, Date, ItemStack> triplet : list)
-                this.cache.playerTimestamps.get(triplet.getFirstValue()).add(triplet.getSecondValue());
+            LinkedList<TripletTuple<UUID, Date, ItemStack>> list = this.storage.getAllBookSecurityStack(page, amount).get();
+            for (TripletTuple<UUID, Date, ItemStack> triplet : list)
+                this.cache.playerTimestamps.get(triplet.firstValue()).add(triplet.secondValue());
             return list;
         } catch (ExecutionException | InterruptedException e) {
             return new LinkedList<>();

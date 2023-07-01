@@ -17,8 +17,6 @@
 
 package ro.niconeko.astralbooks;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -39,6 +37,8 @@ import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -1231,23 +1231,23 @@ public class AstralBooksCommand implements TabExecutor {
             this.plugin.getLogger().warning("The date format for \"book_security_date_format\" is not correctly set. Please check the settings!");
             dateFormat = new SimpleDateFormat("dd/MM/yyyy-HH:mm:ss");
         }
-        LinkedList<Pair<Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(player.getUniqueId(), page - 1, 10);
+        LinkedList<PairTuple<Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(player.getUniqueId(), page - 1, 10);
         if (securityBooks.isEmpty()) {
             sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND));
             return;
         }
         sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT).replace("%page%", String.valueOf(page)));
         int count = 0;
-        for (Pair<Date, ItemStack> securityBook : securityBooks) {
-            ItemStack book = securityBook.getSecondValue();
+        for (PairTuple<Date, ItemStack> securityBook : securityBooks) {
+            ItemStack book = securityBook.secondValue();
             String title = "<no title>";
             if (book.hasItemMeta() && book.getItemMeta() instanceof BookMeta bookMeta && bookMeta.hasTitle())
                 title = bookMeta.getTitle();
             sender.sendMessage(messageSettings.parseMessage(
                     "&c&l  " + (((page - 1) * 10) + count + 1) +
                             ") &f" + player.getName() +
-                            " &e- &f" + dateFormat.format(securityBook.getFirstValue()) +
-                            " &c(&b" + securityBook.getFirstValue().getTime() + "&c) &e- &f" +
+                            " &e- &f" + dateFormat.format(securityBook.firstValue()) +
+                            " &c(&b" + securityBook.firstValue().getTime() + "&c) &e- &f" +
                             title
             ));
             count++;
@@ -1263,24 +1263,24 @@ public class AstralBooksCommand implements TabExecutor {
             this.plugin.getLogger().warning("The date format for \"book_security_date_format\" is not correctly set. Please check the settings!");
             dateFormat = new SimpleDateFormat("dd/MM/yyyy-HH:mm:ss");
         }
-        LinkedList<Triplet<UUID, Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(page - 1, 10);
+        LinkedList<TripletTuple<UUID, Date, ItemStack>> securityBooks = this.plugin.getPluginStorage().getAllBookSecurity(page - 1, 10);
         if (securityBooks.isEmpty()) {
             sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_NOT_FOUND).replace("%page%", String.valueOf(page)));
             return;
         }
         sender.sendMessage(messageSettings.getMessage(Message.BOOK_SECURITY_LIST_PRESENT));
         int count = 0;
-        for (Triplet<UUID, Date, ItemStack> securityBook : securityBooks) {
-            OfflinePlayer player = Bukkit.getOfflinePlayer(securityBook.getFirstValue());
-            ItemStack book = securityBook.getThirdValue();
+        for (TripletTuple<UUID, Date, ItemStack> securityBook : securityBooks) {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(securityBook.firstValue());
+            ItemStack book = securityBook.thirdValue();
             String title = "<no title>";
             if (book.hasItemMeta() && book.getItemMeta() instanceof BookMeta bookMeta && bookMeta.hasTitle())
                 title = bookMeta.getTitle();
             sender.sendMessage(messageSettings.parseMessage(
                     "&c&l  " + (((page - 1) * 10) + count + 1) +
                             ") &f" + player.getName() +
-                            " &e- &f" + dateFormat.format(securityBook.getSecondValue()) +
-                            " &c(&b" + securityBook.getSecondValue().getTime() + "&c) &e- &f" +
+                            " &e- &f" + dateFormat.format(securityBook.secondValue()) +
+                            " &c(&b" + securityBook.secondValue().getTime() + "&c) &e- &f" +
                             title
             ));
             count++;

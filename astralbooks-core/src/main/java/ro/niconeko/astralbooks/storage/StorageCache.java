@@ -20,10 +20,10 @@ package ro.niconeko.astralbooks.storage;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.Side;
 
 import java.util.Date;
@@ -40,10 +40,10 @@ public class StorageCache {
     protected final Storage storage;
     public ExecutorService poolExecutor;
     public LoadingCache<String, ItemStack> filterBooks;
-    public LoadingCache<Pair<Integer, Side>, ItemStack> npcBooks;
-    public LoadingCache<String, Pair<String, String>> commandFilters;
+    public LoadingCache<PairTuple<Integer, Side>, ItemStack> npcBooks;
+    public LoadingCache<String, PairTuple<String, String>> commandFilters;
     public final Set<String> filters = new HashSet<>();
-    public final Set<Pair<Integer, Side>> npcs = new HashSet<>();
+    public final Set<PairTuple<Integer, Side>> npcs = new HashSet<>();
     public final Set<String> commands = new HashSet<>();
 
     public LoadingCache<UUID, Set<Date>> playerTimestamps;
@@ -67,7 +67,7 @@ public class StorageCache {
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {
                     @Override
-                    public @NotNull Pair<String, String> load(@NotNull String key) throws Exception {
+                    public @NotNull PairTuple<String, String> load(@NotNull String key) throws Exception {
                         return storage.getCommandFilterStack(key).get();
                     }
                 });
@@ -75,8 +75,8 @@ public class StorageCache {
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {
                     @Override
-                    public @NotNull ItemStack load(@NotNull Pair<Integer, Side> key) throws Exception {
-                        return storage.getNPCBookStack(key.getFirstValue(), key.getSecondValue()).get();
+                    public @NotNull ItemStack load(@NotNull PairTuple<Integer, Side> key) throws Exception {
+                        return storage.getNPCBookStack(key.firstValue(), key.secondValue()).get();
                     }
                 });
         this.playerTimestamps = CacheBuilder.newBuilder()
@@ -123,17 +123,17 @@ public class StorageCache {
 
     protected ItemStack getNPCBook(int npcId, Side side, ItemStack def) {
         try {
-            return this.npcBooks.get(Pair.of(npcId, side));
+            return this.npcBooks.get(new PairTuple<>(npcId, side));
         } catch (Exception e) {
             return def;
         }
     }
 
     protected boolean hasNPCBook(int npcId, Side side) {
-        return this.npcs.contains(Pair.of(npcId, side));
+        return this.npcs.contains(new PairTuple<>(npcId, side));
     }
 
-    protected Set<Pair<Integer, Side>> getNPCBooks() {
+    protected Set<PairTuple<Integer, Side>> getNPCBooks() {
         return this.npcs;
     }
 
@@ -189,7 +189,7 @@ public class StorageCache {
         }
     }
 
-    protected Pair<String, String> getCommandFilter(String cmd) {
+    protected PairTuple<String, String> getCommandFilter(String cmd) {
         try {
             return this.commandFilters.get(cmd);
         } catch (Exception ignore) {

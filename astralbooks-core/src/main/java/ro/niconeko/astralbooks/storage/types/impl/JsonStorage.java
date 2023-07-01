@@ -21,14 +21,14 @@ import com.google.common.hash.Hashing;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.StorageType;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.types.EmbedStorage;
 import ro.niconeko.astralbooks.utils.Side;
 
@@ -78,7 +78,7 @@ public class JsonStorage extends EmbedStorage {
                     if (npcBookJson != null && npcBookJson.isJsonObject())
                         for (String sideKey : ((JsonObject) npcBookJson).keySet())
                             try {
-                                super.cache.npcs.add(Pair.of(Integer.parseInt(npcKey), Side.fromString(sideKey)));
+                                super.cache.npcs.add(new PairTuple<>(Integer.parseInt(npcKey), Side.fromString(sideKey)));
                             } catch (NumberFormatException ignore) {
                             }
                 }
@@ -152,20 +152,20 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected Future<Pair<String, String>> getCommandFilterStack(String cmd) {
+    protected Future<PairTuple<String, String>> getCommandFilterStack(String cmd) {
         return super.cache.poolExecutor.submit(() -> {
             JsonElement commandsJson = this.jsonStorage.get("commands");
             if (commandsJson == null || !commandsJson.isJsonObject()) return null;
             JsonElement commandJson = ((JsonObject) commandsJson).get(cmd);
             if (commandJson == null || !commandJson.isJsonPrimitive()) return null;
             String[] data = commandJson.getAsString().split(";");
-            return Pair.of(data[0], data[1]);
+            return new PairTuple<>(data[0], data[1]);
         });
     }
 
     @Override
     protected void putNPCBookStack(int npcId, Side side, ItemStack book) {
-        Pair<Integer, Side> pairKey = Pair.of(npcId, side);
+        PairTuple<Integer, Side> pairKey = new PairTuple<>(npcId, side);
         super.cache.npcs.add(pairKey);
         super.cache.npcBooks.put(pairKey, book);
         super.cache.poolExecutor.submit(() -> {
@@ -210,7 +210,7 @@ public class JsonStorage extends EmbedStorage {
     @Override
     protected void putCommandFilterStack(String cmd, String filterName, String permission) {
         super.cache.commands.add(filterName);
-        super.cache.commandFilters.put(cmd, Pair.of(filterName, permission));
+        super.cache.commandFilters.put(cmd, new PairTuple<>(filterName, permission));
         super.cache.poolExecutor.submit(() -> {
             JsonElement commandsJson = this.jsonStorage.get("commands");
             if (commandsJson == null || !commandsJson.isJsonObject()) {
@@ -223,9 +223,9 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
+    protected Future<LinkedList<PairTuple<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Pair<Date, ItemStack>> temporaryList = new LinkedList<>();
+            LinkedList<PairTuple<Date, ItemStack>> temporaryList = new LinkedList<>();
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) return temporaryList;
             JsonElement allBooksSecurity = ((JsonObject) bookSecurity).get("saved_books");
@@ -243,13 +243,13 @@ public class JsonStorage extends EmbedStorage {
                 try {
                     ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                     Date date = new Date(Long.parseLong(timeStamp));
-                    temporaryList.add(Pair.of(date, book));
+                    temporaryList.add(new PairTuple<>(date, book));
                 } catch (IllegalAccessException | NumberFormatException ignored) {
                 }
             }
-            temporaryList.sort(Comparator.comparing(pair -> pair.getFirstValue(), Comparator.reverseOrder()));
+            temporaryList.sort(Comparator.comparing(PairTuple::firstValue, Comparator.reverseOrder()));
             if (page < 0) return temporaryList;
-            LinkedList<Pair<Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<PairTuple<Date, ItemStack>> list = new LinkedList<>();
             for (int i = page * amount; i < (page * amount) + amount; i++) {
                 if (i >= temporaryList.size()) break;
                 list.add(temporaryList.get(i));
@@ -259,9 +259,9 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
+    protected Future<LinkedList<TripletTuple<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Triplet<UUID, Date, ItemStack>> temporaryList = new LinkedList<>();
+            LinkedList<TripletTuple<UUID, Date, ItemStack>> temporaryList = new LinkedList<>();
             JsonElement bookSecurity = this.jsonStorage.get("book_security");
             if (bookSecurity == null || !bookSecurity.isJsonObject()) return temporaryList;
             JsonElement allBooksSecurity = ((JsonObject) bookSecurity).get("saved_books");
@@ -281,16 +281,16 @@ public class JsonStorage extends EmbedStorage {
                             if (bookJson == null || !bookJson.isJsonObject()) continue;
                             ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                             Date date = new Date(Long.parseLong(timeStamp));
-                            temporaryList.add(Triplet.of(UUID.fromString(uuidString), date, book));
+                            temporaryList.add(new TripletTuple<>(UUID.fromString(uuidString), date, book));
                         } catch (IllegalAccessException ignored) {
                         }
                     }
                 } catch (IllegalArgumentException ignored) {
                 }
             }
-            temporaryList.sort(Comparator.comparing(pair -> pair.getSecondValue(), Comparator.reverseOrder()));
+            temporaryList.sort(Comparator.comparing(TripletTuple::secondValue, Comparator.reverseOrder()));
             if (page < 0) return temporaryList;
-            LinkedList<Triplet<UUID, Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<TripletTuple<UUID, Date, ItemStack>> list = new LinkedList<>();
             for (int i = page * amount; i < (page * amount) + amount; i++) {
                 if (i >= temporaryList.size()) break;
                 list.add(temporaryList.get(i));
@@ -353,8 +353,8 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
-        Queue<Triplet<Integer, Side, ItemStack>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<Integer, Side, ItemStack>> queue = new LinkedList<>();
         JsonElement npcBooksJson = this.jsonStorage.get("npcbooks");
         if (npcBooksJson == null || !npcBooksJson.isJsonObject()) return queue;
         for (String npcId : ((JsonObject) npcBooksJson).keySet()) {
@@ -364,7 +364,7 @@ public class JsonStorage extends EmbedStorage {
                 try {
                     JsonElement npcBookJsonSide = ((JsonObject) npcBookJson).get(side);
                     if (npcBookJsonSide == null || !npcBookJsonSide.isJsonObject()) continue;
-                    queue.add(Triplet.of(Integer.parseInt(npcId), Side.fromString(side), super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide)));
+                    queue.add(new TripletTuple<>(Integer.parseInt(npcId), Side.fromString(side), super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) npcBookJsonSide)));
                 } catch (IllegalAccessException ignored) {
                 }
         }
@@ -372,37 +372,37 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
-        Queue<Pair<String, ItemStack>> queue = new LinkedList<>();
+    protected Queue<PairTuple<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
+        Queue<PairTuple<String, ItemStack>> queue = new LinkedList<>();
         JsonElement filtersJson = this.jsonStorage.get("filters");
         if (filtersJson == null || !filtersJson.isJsonObject()) return queue;
         for (String filterName : ((JsonObject) filtersJson).keySet())
             try {
                 JsonElement filterJson = ((JsonObject) filtersJson).get(filterName);
                 if (filterJson == null || !filterJson.isJsonObject()) continue;
-                queue.add(Pair.of(filterName, super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson)));
+                queue.add(new PairTuple<>(filterName, super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) filterJson)));
             } catch (IllegalAccessException ignored) {
             }
         return queue;
     }
 
     @Override
-    protected Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
-        Queue<Triplet<String, String, String>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<String, String, String>> queue = new LinkedList<>();
         JsonElement commandsJson = this.jsonStorage.get("commands");
         if (commandsJson == null || !commandsJson.isJsonObject()) return queue;
         for (String cmd : ((JsonObject) commandsJson).keySet()) {
             JsonElement commandJson = ((JsonObject) commandsJson).get(cmd);
             if (commandJson == null || !commandJson.isJsonPrimitive()) return null;
             String[] data = commandJson.getAsString().split(";");
-            queue.add(Triplet.of(cmd, data[0], data[1]));
+            queue.add(new TripletTuple<>(cmd, data[0], data[1]));
         }
         return queue;
     }
 
     @Override
-    protected Queue<Triplet<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
-        Queue<Triplet<UUID, Date, ItemStack>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<UUID, Date, ItemStack>> queue = new LinkedList<>();
         JsonElement bookSecurity = this.jsonStorage.get("book_security");
         if (bookSecurity == null || !bookSecurity.isJsonObject()) return queue;
         JsonElement allBooksSecurity = ((JsonObject) bookSecurity).get("saved_books");
@@ -422,7 +422,7 @@ public class JsonStorage extends EmbedStorage {
                         if (bookJson == null || !bookJson.isJsonObject()) continue;
                         ItemStack book = super.plugin.getAPI().getDistribution().convertJsonToBook((JsonObject) bookJson);
                         Date date = new Date(Long.parseLong(timeStamp));
-                        queue.add(Triplet.of(UUID.fromString(uuidString), date, book));
+                        queue.add(new TripletTuple<>(UUID.fromString(uuidString), date, book));
                     } catch (IllegalAccessException ignored) {
                     }
             } catch (IllegalArgumentException ignored) {
@@ -431,57 +431,57 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllNPCBookStacks(Queue<TripletTuple<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
         JsonElement npcBooksJson = this.jsonStorage.get("npcbooks");
         if (npcBooksJson == null || !npcBooksJson.isJsonObject()) {
             npcBooksJson = new JsonObject();
             this.jsonStorage.add("npcbooks", npcBooksJson);
         }
-        Triplet<Integer, Side, ItemStack> triplet;
+        TripletTuple<Integer, Side, ItemStack> triplet;
         while ((triplet = queue.poll()) != null)
             try {
-                JsonElement npcBookJson = ((JsonObject) npcBooksJson).get(String.valueOf(triplet.getFirstValue()));
+                JsonElement npcBookJson = ((JsonObject) npcBooksJson).get(String.valueOf(triplet.firstValue()));
                 if (npcBookJson == null || !npcBookJson.isJsonObject()) {
                     npcBookJson = new JsonObject();
-                    ((JsonObject) npcBooksJson).add(String.valueOf(triplet.getFirstValue()), npcBookJson);
+                    ((JsonObject) npcBooksJson).add(String.valueOf(triplet.firstValue()), npcBookJson);
                 }
-                ((JsonObject) npcBookJson).add(triplet.getSecondValue().toString(), super.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue()));
+                ((JsonObject) npcBookJson).add(triplet.secondValue().toString(), super.plugin.getAPI().getDistribution().convertBookToJson(triplet.thirdValue()));
             } catch (IllegalAccessException ignored) {
             }
         this.writeJsonStorage();
     }
 
     @Override
-    protected void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllFilterBookStacks(Queue<PairTuple<String, ItemStack>> queue, AtomicBoolean failed) {
         JsonElement filtersJson = this.jsonStorage.get("filters");
         if (filtersJson == null || !filtersJson.isJsonObject()) {
             filtersJson = new JsonObject();
             this.jsonStorage.add("filters", filtersJson);
         }
-        Pair<String, ItemStack> pair;
+        PairTuple<String, ItemStack> pair;
         while ((pair = queue.poll()) != null) try {
-            ((JsonObject) filtersJson).add(pair.getFirstValue(), super.plugin.getAPI().getDistribution().convertBookToJson(pair.getSecondValue()));
+            ((JsonObject) filtersJson).add(pair.firstValue(), super.plugin.getAPI().getDistribution().convertBookToJson(pair.secondValue()));
         } catch (IllegalAccessException ignored) {
         }
         this.writeJsonStorage();
     }
 
     @Override
-    protected void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean
+    protected void setAllCommandFilterStacks(Queue<TripletTuple<String, String, String>> queue, AtomicBoolean
             failed) {
         JsonElement commandsJson = this.jsonStorage.get("commands");
         if (commandsJson == null || !commandsJson.isJsonObject()) {
             commandsJson = new JsonObject();
             this.jsonStorage.add("commands", commandsJson);
         }
-        Triplet<String, String, String> triplet; // command name, filter name, permission!
+        TripletTuple<String, String, String> triplet; // command name, filter name, permission!
         while ((triplet = queue.poll()) != null)
-            ((JsonObject) commandsJson).add(triplet.getFirstValue(), new JsonPrimitive(triplet.getSecondValue() + ";" + triplet.getThirdValue()));
+            ((JsonObject) commandsJson).add(triplet.firstValue(), new JsonPrimitive(triplet.secondValue() + ";" + triplet.thirdValue()));
         this.writeJsonStorage();
     }
 
     @Override
-    protected void setAllBookSecurityStacks(Queue<Triplet<UUID, Date, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllBookSecurityStacks(Queue<TripletTuple<UUID, Date, ItemStack>> queue, AtomicBoolean failed) {
         JsonElement bookSecurity = this.jsonStorage.get("book_security");
         if (bookSecurity == null || !bookSecurity.isJsonObject()) {
             bookSecurity = new JsonObject();
@@ -497,18 +497,18 @@ public class JsonStorage extends EmbedStorage {
             allPlayersSecurity = new JsonObject();
             ((JsonObject) bookSecurity).add("saved_players", allPlayersSecurity);
         }
-        Triplet<UUID, Date, ItemStack> triplet;
+        TripletTuple<UUID, Date, ItemStack> triplet;
         while ((triplet = queue.poll()) != null)
             try {
-                JsonObject bookJson = super.plugin.getAPI().getDistribution().convertBookToJson(triplet.getThirdValue());
+                JsonObject bookJson = super.plugin.getAPI().getDistribution().convertBookToJson(triplet.thirdValue());
                 String bookHash = Hashing.sha256().hashString(bookJson.toString(), StandardCharsets.UTF_8).toString();
                 ((JsonObject) allBooksSecurity).add(bookHash, bookJson);
-                JsonElement playerSecurity = ((JsonObject) allPlayersSecurity).get(triplet.getFirstValue().toString());
+                JsonElement playerSecurity = ((JsonObject) allPlayersSecurity).get(triplet.firstValue().toString());
                 if (playerSecurity == null || !playerSecurity.isJsonObject()) {
                     playerSecurity = new JsonObject();
-                    ((JsonObject) allPlayersSecurity).add(triplet.getFirstValue().toString(), playerSecurity);
+                    ((JsonObject) allPlayersSecurity).add(triplet.firstValue().toString(), playerSecurity);
                 }
-                ((JsonObject) playerSecurity).add(String.valueOf(triplet.getSecondValue().getTime()), new JsonPrimitive(bookHash));
+                ((JsonObject) playerSecurity).add(String.valueOf(triplet.secondValue().getTime()), new JsonPrimitive(bookHash));
             } catch (IllegalAccessException ignored) {
             }
         this.writeJsonStorage();
@@ -516,7 +516,7 @@ public class JsonStorage extends EmbedStorage {
 
     @Override
     protected void removeNPCBookStack(int npcId, Side side) {
-        super.cache.npcs.remove(Pair.of(npcId, side));
+        super.cache.npcs.remove(new PairTuple<>(npcId, side));
         super.cache.poolExecutor.submit(() -> {
             JsonElement npcBooksJson = this.jsonStorage.get("npcbooks");
             if (npcBooksJson == null || !npcBooksJson.isJsonObject()) return;

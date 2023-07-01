@@ -18,8 +18,6 @@
 package ro.niconeko.astralbooks.storage.types;
 
 import com.google.common.hash.Hashing;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
@@ -27,6 +25,8 @@ import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.storage.settings.StorageRemoteSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
@@ -171,7 +171,7 @@ public abstract class RemoteStorage extends Storage {
         )) {
             try (ResultSet preload = statement.executeQuery()) {
                 while (preload.next()) {
-                    super.cache.npcs.add(Pair.of(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
+                    super.cache.npcs.add(new PairTuple<>(preload.getInt("npc_id"), Side.fromString(preload.getString("side"))));
                 }
             }
         } catch (SQLException ex) {
@@ -222,7 +222,7 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Future<Pair<String, String>> getCommandFilterStack(String cmd) {
+    protected Future<PairTuple<String, String>> getCommandFilterStack(String cmd) {
         return super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
                     "SELECT filter_name, permission FROM %scommands WHERE command_name=?;".formatted(this.tablePrefix)
@@ -230,7 +230,7 @@ public abstract class RemoteStorage extends Storage {
                 statement.setString(1, cmd);
                 try (ResultSet result = statement.executeQuery()) {
                     if (result.next())
-                        return Pair.of(result.getString("filter_name"), result.getString("permission"));
+                        return new PairTuple<>(result.getString("filter_name"), result.getString("permission"));
                     return null;
                 }
             } catch (SQLException ex) {
@@ -242,7 +242,7 @@ public abstract class RemoteStorage extends Storage {
 
     @Override
     protected void removeNPCBookStack(int npcId, Side side) {
-        super.cache.npcs.remove(Pair.of(npcId, side));
+        super.cache.npcs.remove(new PairTuple<>(npcId, side));
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
                     "DELETE FROM %snpc_books WHERE npc_id=? AND side=? AND server=?;".formatted(this.tablePrefix)
@@ -291,7 +291,7 @@ public abstract class RemoteStorage extends Storage {
 
     @Override
     protected void putNPCBookStack(int npcId, Side side, ItemStack book) {
-        Pair<Integer, Side> pairKey = Pair.of(npcId, side);
+        PairTuple<Integer, Side> pairKey = new PairTuple<>(npcId, side);
         super.cache.npcs.add(pairKey);
         super.cache.npcBooks.put(pairKey, book);
         super.cache.poolExecutor.submit(() -> {
@@ -333,7 +333,7 @@ public abstract class RemoteStorage extends Storage {
     @Override
     protected void putCommandFilterStack(String cmd, String filterName, String permission) {
         super.cache.commands.add(cmd);
-        super.cache.commandFilters.put(cmd, Pair.of(filterName, permission));
+        super.cache.commandFilters.put(cmd, new PairTuple<>(filterName, permission));
         super.cache.poolExecutor.submit(() -> {
             try (PreparedStatement statement = super.connection.prepareStatement(
                     "INSERT INTO %scommands (command_name, filter_name, permission) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE filter_name=?, permission=?;".formatted(this.tablePrefix)
@@ -351,9 +351,9 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Future<LinkedList<Pair<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
+    protected Future<LinkedList<PairTuple<Date, ItemStack>>> getAllBookSecurityStack(UUID uuid, int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Pair<java.util.Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<PairTuple<Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp
                     FROM %1$ssecurity_books books
@@ -379,7 +379,7 @@ public abstract class RemoteStorage extends Storage {
                     while (result.next()) {
                         java.util.Date date = new java.util.Date(result.getLong("timestamp"));
                         ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
-                        list.add(Pair.of(date, book));
+                        list.add(new PairTuple<>(date, book));
                     }
                     return list;
                 }
@@ -391,9 +391,9 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Future<LinkedList<Triplet<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
+    protected Future<LinkedList<TripletTuple<UUID, Date, ItemStack>>> getAllBookSecurityStack(int page, int amount) {
         return super.cache.poolExecutor.submit(() -> {
-            LinkedList<Triplet<UUID, java.util.Date, ItemStack>> list = new LinkedList<>();
+            LinkedList<TripletTuple<UUID, Date, ItemStack>> list = new LinkedList<>();
             String query = page > -1 ? """
                     SELECT book, timestamp, player
                     FROM %1$ssecurity_books books
@@ -417,7 +417,7 @@ public abstract class RemoteStorage extends Storage {
                         UUID uuid = UUID.fromString(result.getString("player"));
                         java.util.Date date = new java.util.Date(result.getLong("timestamp"));
                         ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
-                        list.add(Triplet.of(uuid, date, book));
+                        list.add(new TripletTuple<>(uuid, date, book));
                     }
                     return list;
                 }
@@ -479,8 +479,8 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Queue<Triplet<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
-        Queue<Triplet<Integer, Side, ItemStack>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<Integer, Side, ItemStack>> getAllNPCBookStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<Integer, Side, ItemStack>> queue = new LinkedList<>();
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT npc_id, side, npc_book FROM %snpc_books WHERE server=?;".formatted(this.tablePrefix)
         )) {
@@ -490,7 +490,7 @@ public abstract class RemoteStorage extends Storage {
                     int npcId = result.getInt("npc_id");
                     Side side = Side.fromString(result.getString("side"));
                     ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("npc_book"));
-                    queue.add(Triplet.of(npcId, side, book));
+                    queue.add(new TripletTuple<>(npcId, side, book));
                 }
             }
         } catch (SQLException ex) {
@@ -502,8 +502,8 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Queue<Pair<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
-        Queue<Pair<String, ItemStack>> queue = new LinkedList<>();
+    protected Queue<PairTuple<String, ItemStack>> getAllFilterBookStacks(AtomicBoolean failed) {
+        Queue<PairTuple<String, ItemStack>> queue = new LinkedList<>();
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT filter_name, filter_book FROM %sfilters;".formatted(this.tablePrefix)
         )) {
@@ -511,7 +511,7 @@ public abstract class RemoteStorage extends Storage {
                 while (result.next()) {
                     String filterName = result.getString("filter_name");
                     ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("filter_book"));
-                    queue.add(Pair.of(filterName, book));
+                    queue.add(new PairTuple<>(filterName, book));
                 }
             }
         } catch (SQLException ex) {
@@ -523,8 +523,8 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Queue<Triplet<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
-        Queue<Triplet<String, String, String>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<String, String, String>> getAllCommandFilterStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<String, String, String>> queue = new LinkedList<>();
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "SELECT command_name, filter_name, permission FROM %scommands;".formatted(this.tablePrefix)
         )) {
@@ -533,7 +533,7 @@ public abstract class RemoteStorage extends Storage {
                     String cmd = result.getString("command_name");
                     String filterName = result.getString("filter_name");
                     String permission = result.getString("permission");
-                    queue.add(Triplet.of(cmd, filterName, permission));
+                    queue.add(new TripletTuple<>(cmd, filterName, permission));
                 }
             }
         } catch (SQLException ex) {
@@ -545,8 +545,8 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected Queue<Triplet<UUID, java.util.Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
-        Queue<Triplet<UUID, java.util.Date, ItemStack>> queue = new LinkedList<>();
+    protected Queue<TripletTuple<UUID, Date, ItemStack>> getAllBookSecurityStacks(AtomicBoolean failed) {
+        Queue<TripletTuple<UUID, Date, ItemStack>> queue = new LinkedList<>();
         try (PreparedStatement statement = super.connection.prepareStatement("""
                 SELECT book, timestamp, player
                 FROM %1$ssecurity_books books
@@ -559,7 +559,7 @@ public abstract class RemoteStorage extends Storage {
                     UUID uuid = UUID.fromString(result.getString("player"));
                     java.util.Date date = new java.util.Date(result.getLong("timestamp"));
                     ItemStack book = super.plugin.getAPI().decodeItemStack(result.getString("book"));
-                    queue.add(Triplet.of(uuid, date, book));
+                    queue.add(new TripletTuple<>(uuid, date, book));
                 }
             }
         } catch (SQLException ex) {
@@ -571,15 +571,15 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected void setAllNPCBookStacks(Queue<Triplet<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllNPCBookStacks(Queue<TripletTuple<Integer, Side, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %snpc_books (npc_id, side, server, npc_book) VALUES(?, ?, ?, ?) ON DUPLICATE KEY UPDATE npc_book=?;".formatted(this.tablePrefix)
         )) {
-            Triplet<Integer, Side, ItemStack> triplet;
+            TripletTuple<Integer, Side, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
-                String encoded = super.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
-                statement.setInt(1, triplet.getFirstValue());
-                statement.setString(2, triplet.getSecondValue().toString());
+                String encoded = super.plugin.getAPI().encodeItemStack(triplet.thirdValue());
+                statement.setInt(1, triplet.firstValue());
+                statement.setString(2, triplet.secondValue().toString());
                 statement.setString(3, this.serverName);
                 statement.setString(4, encoded);
                 statement.setString(5, encoded);
@@ -593,14 +593,14 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected void setAllFilterBookStacks(Queue<Pair<String, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllFilterBookStacks(Queue<PairTuple<String, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %sfilters (filter_name, filter_book) VALUES(?, ?) ON DUPLICATE KEY UPDATE filter_book=?;".formatted(this.tablePrefix)
         )) {
-            Pair<String, ItemStack> pair;
+            PairTuple<String, ItemStack> pair;
             while ((pair = queue.poll()) != null) {
-                String encoded = super.plugin.getAPI().encodeItemStack(pair.getSecondValue());
-                statement.setString(1, pair.getFirstValue());
+                String encoded = super.plugin.getAPI().encodeItemStack(pair.secondValue());
+                statement.setString(1, pair.firstValue());
                 statement.setString(2, encoded);
                 statement.setString(3, encoded);
                 statement.addBatch();
@@ -613,17 +613,17 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected void setAllCommandFilterStacks(Queue<Triplet<String, String, String>> queue, AtomicBoolean failed) {
+    protected void setAllCommandFilterStacks(Queue<TripletTuple<String, String, String>> queue, AtomicBoolean failed) {
         try (PreparedStatement statement = super.connection.prepareStatement(
                 "INSERT INTO %scommands (command_name, filter_name, permission) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE filter_name=?, permission=?;".formatted(this.tablePrefix)
         )) {
-            Triplet<String, String, String> triplet;
+            TripletTuple<String, String, String> triplet;
             while ((triplet = queue.poll()) != null) {
-                statement.setString(1, triplet.getFirstValue());
-                statement.setString(2, triplet.getSecondValue());
-                statement.setString(3, triplet.getThirdValue());
-                statement.setString(4, triplet.getSecondValue());
-                statement.setString(5, triplet.getThirdValue());
+                statement.setString(1, triplet.firstValue());
+                statement.setString(2, triplet.secondValue());
+                statement.setString(3, triplet.thirdValue());
+                statement.setString(4, triplet.secondValue());
+                statement.setString(5, triplet.thirdValue());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -634,18 +634,18 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected void setAllBookSecurityStacks(Queue<Triplet<UUID, java.util.Date, ItemStack>> queue, AtomicBoolean failed) {
+    protected void setAllBookSecurityStacks(Queue<TripletTuple<UUID, java.util.Date, ItemStack>> queue, AtomicBoolean failed) {
         try (PreparedStatement statementPlayers = super.connection.prepareStatement(
                 "INSERT INTO %ssecurity_players (player, timestamp, book_hash) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE book_hash=?;".formatted(this.tablePrefix));
              PreparedStatement statementBooks = super.connection.prepareStatement(
                      "INSERT INTO %ssecurity_books (book_hash, book) VALUES(?, ?) ON DUPLICATE KEY UPDATE book=?;".formatted(this.tablePrefix))
         ) {
-            Triplet<UUID, java.util.Date, ItemStack> triplet;
+            TripletTuple<UUID, java.util.Date, ItemStack> triplet;
             while ((triplet = queue.poll()) != null) {
-                String encodedBook = super.plugin.getAPI().encodeItemStack(triplet.getThirdValue());
+                String encodedBook = super.plugin.getAPI().encodeItemStack(triplet.thirdValue());
                 String hashBook = Hashing.sha256().hashString(encodedBook, StandardCharsets.UTF_8).toString();
-                statementPlayers.setString(1, triplet.getFirstValue().toString());
-                statementPlayers.setLong(2, triplet.getSecondValue().getTime());
+                statementPlayers.setString(1, triplet.firstValue().toString());
+                statementPlayers.setLong(2, triplet.secondValue().getTime());
                 statementPlayers.setString(3, hashBook);
                 statementPlayers.setString(4, hashBook);
                 statementPlayers.addBatch();
