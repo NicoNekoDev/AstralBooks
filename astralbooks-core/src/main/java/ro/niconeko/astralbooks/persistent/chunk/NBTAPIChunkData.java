@@ -19,12 +19,13 @@ package ro.niconeko.astralbooks.persistent.chunk;
 
 import com.google.gson.JsonObject;
 import de.tr7zw.nbtapi.NBTChunk;
-import de.tr7zw.nbtapi.NBTCompound;
 import de.tr7zw.nbtapi.NBTCompoundList;
 import de.tr7zw.nbtapi.NBTContainer;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.dist.Distribution;
 import ro.niconeko.astralbooks.utils.PersistentKey;
@@ -45,12 +46,12 @@ public class NBTAPIChunkData implements ChunkData {
     @Override
     public Map<Block, PairTuple<ItemStack, ItemStack>> loadChunk(Distribution distribution) throws IllegalAccessException {
         Map<Block, PairTuple<ItemStack, ItemStack>> chunkBlocks = new HashMap<>();
-        if (nbtChunk.getPersistentDataContainer().hasKey(PersistentKey.CHUNK_TAG.getValue())) {
+        if (nbtChunk.getPersistentDataContainer().hasTag(PersistentKey.CHUNK_TAG.getValue())) {
             NBTCompoundList blocksDataContainers = nbtChunk.getPersistentDataContainer().getCompoundList(PersistentKey.CHUNK_TAG.getValue());
-            for (NBTCompound blockDataContainer : blocksDataContainers) {
-                if (!blockDataContainer.hasKey(PersistentKey.BLOCK_LOCATION_X.getValue())
-                        || !blockDataContainer.hasKey(PersistentKey.BLOCK_LOCATION_Y.getValue())
-                        || !blockDataContainer.hasKey(PersistentKey.BLOCK_LOCATION_Z.getValue()))
+            for (ReadWriteNBT blockDataContainer : blocksDataContainers) {
+                if (!blockDataContainer.hasTag(PersistentKey.BLOCK_LOCATION_X.getValue())
+                        || !blockDataContainer.hasTag(PersistentKey.BLOCK_LOCATION_Y.getValue())
+                        || !blockDataContainer.hasTag(PersistentKey.BLOCK_LOCATION_Z.getValue()))
                     continue;
                 String leftBookJson = blockDataContainer.getString(PersistentKey.BLOCK_LEFT_BOOK.getValue());
                 ItemStack leftBook = (leftBookJson == null || leftBookJson.isEmpty()) ?
@@ -81,16 +82,22 @@ public class NBTAPIChunkData implements ChunkData {
             ItemStack right = pair.secondValue();
             String leftJson = left != null ? distribution.convertBookToJson(left).toString() : null;
             String rightJson = right != null ? distribution.convertBookToJson(right).toString() : null;
-            NBTContainer blockDataContainer = new NBTContainer();
-            blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_X.getValue(), block.getX());
-            blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_Y.getValue(), block.getY());
-            blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_Z.getValue(), block.getZ());
-            if (leftJson != null)
-                blockDataContainer.setString(PersistentKey.BLOCK_LEFT_BOOK.getValue(), leftJson);
-            if (rightJson != null)
-                blockDataContainer.setString(PersistentKey.BLOCK_RIGHT_BOOK.getValue(), rightJson);
+            NBTContainer blockDataContainer = getNbtContainer(block, leftJson, rightJson);
             blocksDataContainers.addCompound(blockDataContainer);
         }
         core.concentrateBooksForChunk(chunk);
+    }
+
+    @NotNull
+    private static NBTContainer getNbtContainer(Block block, String leftJson, String rightJson) {
+        NBTContainer blockDataContainer = new NBTContainer();
+        blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_X.getValue(), block.getX());
+        blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_Y.getValue(), block.getY());
+        blockDataContainer.setInteger(PersistentKey.BLOCK_LOCATION_Z.getValue(), block.getZ());
+        if (leftJson != null)
+            blockDataContainer.setString(PersistentKey.BLOCK_LEFT_BOOK.getValue(), leftJson);
+        if (rightJson != null)
+            blockDataContainer.setString(PersistentKey.BLOCK_RIGHT_BOOK.getValue(), rightJson);
+        return blockDataContainer;
     }
 }

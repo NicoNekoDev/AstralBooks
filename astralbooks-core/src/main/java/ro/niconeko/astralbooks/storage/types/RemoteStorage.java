@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+@SuppressWarnings("SqlSourceToSinkFlow")
 public abstract class RemoteStorage extends Storage {
     protected String user;
     protected String pass;

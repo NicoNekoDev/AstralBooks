@@ -75,7 +75,7 @@ public class ServerActions implements Listener {
     }
 
     private void chunkLoad(Chunk chunk) {
-        if (!this.plugin.isNBTAPIEnabled() || this.api.getDistribution().isNBTAPIRequired())
+        if (!(this.api.getDistribution().isPersistentDataContainerEnabled() || this.plugin.isNBTAPIEnabled()))
             return;
         try {
             this.api.deployBooksForChunk(chunk, this.api.chunkDataFactory(chunk).loadChunk(this.distribution));
@@ -85,7 +85,7 @@ public class ServerActions implements Listener {
     }
 
     private void chunkUnload(Chunk chunk) {
-        if (!this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired())
+        if (!(this.api.getDistribution().isPersistentDataContainerEnabled() || this.plugin.isNBTAPIEnabled()))
             return;
         try {
             this.api.chunkDataFactory(chunk).unloadChunk(this.distribution, this.api);

@@ -25,15 +25,16 @@ import ro.niconeko.astralbooks.settings.Settings;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
 public class StorageRemoteSettings extends Settings {
-    @Getter private String host = "localhost";
-    @Getter private int port = 3306;
-    @Getter private String database = "astralbooks";
-    @Getter private String username = "root";
-    @Getter private String password = "";
-    @Getter private boolean SSLEnabled = false;
-    @Getter private String tablePrefix = "abooks_";
-    @Getter private String serverName = "default";
+    private String host = "localhost";
+    private int port = 3306;
+    private String database = "astralbooks";
+    private String username = "root";
+    private String password = "";
+    private boolean SSLEnabled = false;
+    private String tablePrefix = "abooks_";
+    private String serverName = "default";
 
     public StorageRemoteSettings(AstralBooksPlugin plugin) {
         super(plugin);

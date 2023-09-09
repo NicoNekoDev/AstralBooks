@@ -17,6 +17,7 @@
 
 package ro.niconeko.astralbooks.listeners;
 
+import lombok.Getter;
 import net.citizensnpcs.api.CitizensAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -332,17 +333,14 @@ public class PlayerActions implements Listener {
     }
 
     private static class DelayedPlayer implements Delayed {
-        private final long startTime = System.currentTimeMillis();
+        private final long startTime;
         private final long maxLifeTimeMillis;
-        private final Player player;
+        @Getter private final Player player;
 
         public DelayedPlayer(Player player, long maxLifeTimeMillis) {
+            this.startTime = System.currentTimeMillis();
             this.maxLifeTimeMillis = maxLifeTimeMillis;
             this.player = player;
-        }
-
-        public Player getPlayer() {
-            return this.player;
         }
 
         @Override
@@ -369,7 +367,9 @@ public class PlayerActions implements Listener {
 
         @Override
         public int compareTo(@NotNull Delayed that) {
-            return Long.compare(this.getDelayMillis(), ((DelayedPlayer) that).getDelayMillis());
+            if (that instanceof DelayedPlayer delayedPlayer)
+                return Long.compare(this.getDelayMillis(), delayedPlayer.getDelayMillis());
+            return 0;
         }
     }
 }

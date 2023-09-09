@@ -27,14 +27,15 @@ import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
 public class PluginSettings extends Settings {
-    @Getter private boolean metricsEnabled = true;
-    @Getter private boolean updateCheck = true;
-    @Getter @Setter private boolean joinBookEnabled = false;
-    @Getter private boolean joinBookAlwaysShow = false;
-    @Getter private boolean joinBookEnableDelay = false;
-    @Getter private int joinBookDelay = 0;
-    @Getter private boolean bookSignSecurityEnabled = false;
+    private boolean metricsEnabled = true;
+    private boolean updateCheck = true;
+    @Setter private boolean joinBookEnabled = false;
+    private boolean joinBookAlwaysShow = false;
+    private boolean joinBookEnableDelay = false;
+    private int joinBookDelay = 0;
+    private boolean bookSignSecurityEnabled = false;
 
     public PluginSettings(AstralBooksPlugin plugin) {
         super(plugin);
@@ -60,10 +61,8 @@ public class PluginSettings extends Settings {
     }
 
     @NonNull
-    @Getter
     private final StorageSettings storageSettings = new StorageSettings(super.plugin);
 
     @NonNull
-    @Getter
     private final MessageSettings messageSettings = new MessageSettings(super.plugin);
 }

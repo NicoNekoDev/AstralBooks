@@ -25,12 +25,10 @@ import ro.niconeko.astralbooks.settings.Settings;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
 public class StorageEmbedSettings extends Settings {
-    @Getter
     private String fileName = "database";
-    @Getter
     private boolean EncryptionEnabled = false;
-    @Getter
     private int saveInterval = 60;
 
     public StorageEmbedSettings(AstralBooksPlugin plugin) {

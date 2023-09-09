@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -46,7 +47,7 @@ import java.util.logging.Level;
 
 public class PluginStorage {
     private final AstralBooksPlugin plugin;
-    private StorageCache cache;
+    @Getter private StorageCache cache;
     private Storage storage;
     private final File joinBookFile;
     private JsonObject joinBookDatabase;
@@ -124,10 +125,6 @@ public class PluginStorage {
             this.cache.unload();
         if (this.storage != null)
             this.storage.unload();
-    }
-
-    public StorageCache getCache() {
-        return this.cache;
     }
 
     private JsonObject readJsonFile(File jsonFile) throws JsonParseException {

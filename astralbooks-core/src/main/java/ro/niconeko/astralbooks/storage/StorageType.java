@@ -17,6 +17,8 @@
 
 package ro.niconeko.astralbooks.storage;
 
+import lombok.Getter;
+
 public enum StorageType {
     JSON("json", "Json"),
     MYSQL("mysql", "MySQL"),
@@ -25,7 +27,7 @@ public enum StorageType {
     MARIADB("mariadb", "MariaDB");
 
     private final String type;
-    private final String formattedName;
+    @Getter private final String formattedName;
 
     StorageType(String type, String formattedName) {
         this.type = type;
@@ -35,10 +37,6 @@ public enum StorageType {
     @Override
     public String toString() {
         return this.type;
-    }
-
-    public String getFormattedName() {
-        return formattedName;
     }
 
     public static StorageType fromString(String type) {

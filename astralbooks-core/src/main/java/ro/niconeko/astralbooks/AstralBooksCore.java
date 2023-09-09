@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import lombok.Getter;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.luckperms.api.LuckPerms;
@@ -74,9 +75,9 @@ import java.util.regex.Pattern;
 @SuppressWarnings("RegExpRedundantEscape")
 public class AstralBooksCore implements AstralBooksAPI {
     private final AstralBooksPlugin plugin;
-    private Distribution distribution = null;
+    @Getter private Distribution distribution = null;
     private final Map<Chunk, Set<Block>> blocksPairedToChunk = new HashMap<>();
-    private final Map<Block, PairTuple<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
+    @Getter private final Map<Block, PairTuple<ItemStack, ItemStack>> clickableBlocks = new HashMap<>();
     private final Pattern namePattern = Pattern.compile("^[a-zA-Z0-9_-]+$");
     private final Pattern permissionPattern = Pattern.compile("^[a-zA-Z0-9\\._-]+$");
 
@@ -169,13 +170,9 @@ public class AstralBooksCore implements AstralBooksAPI {
         return reducedMap;
     }
 
-    public Map<Block, PairTuple<ItemStack, ItemStack>> getClickableBlocks() {
-        return this.clickableBlocks;
-    }
-
     @Override
     public ItemStack getBookOfBlock(Block block, Side side) {
-        PairTuple<ItemStack, ItemStack> pairBook = clickableBlocks.get(block);
+        PairTuple<ItemStack, ItemStack> pairBook = this.clickableBlocks.get(block);
         if (pairBook == null)
             return null;
         return switch (side) {
@@ -280,20 +277,18 @@ public class AstralBooksCore implements AstralBooksAPI {
     }
 
     public EntityData entityDataFactory(Entity entity) {
-        if (!this.distribution.isNBTAPIRequired()) {
+        if (this.distribution.isPersistentDataContainerEnabled())
             return new PersistentEntityData(entity);
-        } else if (this.plugin.isNBTAPIEnabled()) {
+        else if (this.plugin.isNBTAPIEnabled())
             return new NBTAPIEntityData(entity);
-        }
         return new EmptyEntityData();
     }
 
     public ChunkData chunkDataFactory(Chunk chunk) {
-        if (!this.distribution.isNBTAPIRequired()) {
+        if (this.distribution.isPersistentDataContainerEnabled())
             return new PersistentChunkData(chunk);
-        } else if (this.plugin.isNBTAPIEnabled()) {
+        else if (this.plugin.isNBTAPIEnabled())
             return new NBTAPIChunkData(chunk);
-        }
         return new EmptyChunkData();
     }
 
@@ -358,11 +353,6 @@ public class AstralBooksCore implements AstralBooksAPI {
             return false;
         return this.permissionPattern.matcher(permission).matches();
     }
-
-    public Distribution getDistribution() {
-        return this.distribution;
-    }
-
 
     @Override
     public boolean openBook(Player player, ItemStack book) {

@@ -17,9 +17,11 @@
 
 package ro.niconeko.astralbooks.persistent;
 
+import lombok.Getter;
 import org.bukkit.persistence.PersistentDataType;
 
 @SuppressWarnings("rawtypes")
+@Getter
 public enum NBTDataType {
     BYTE(PersistentDataType.BYTE),
     BYTE_ARRAY(PersistentDataType.BYTE_ARRAY),
@@ -40,7 +42,4 @@ public enum NBTDataType {
         this.type = type;
     }
 
-    public PersistentDataType getType() {
-        return this.type;
-    }
 }

@@ -26,13 +26,14 @@ import ro.niconeko.astralbooks.storage.StorageType;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
 public class StorageSettings extends Settings {
-    @Getter private StorageType databaseType = StorageType.H2;
-    @Getter private int databaseThreads = 2;
-    @Getter private boolean securityBookPurgeEnabled = true;
-    @Getter private int securityBookPurgeOlderThan = 30;
-    @Getter private final StorageRemoteSettings RemoteSettings = new StorageRemoteSettings(super.plugin);
-    @Getter private final StorageEmbedSettings EmbedSettings = new StorageEmbedSettings(super.plugin);
+    private StorageType databaseType = StorageType.H2;
+    private int databaseThreads = 2;
+    private boolean securityBookPurgeEnabled = true;
+    private int securityBookPurgeOlderThan = 30;
+    private final StorageRemoteSettings RemoteSettings = new StorageRemoteSettings(super.plugin);
+    private final StorageEmbedSettings EmbedSettings = new StorageEmbedSettings(super.plugin);
 
     public StorageSettings(AstralBooksPlugin plugin) {
         super(plugin);

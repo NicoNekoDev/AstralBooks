@@ -328,7 +328,7 @@ public class JsonStorage extends EmbedStorage {
                 }
                 ((JsonObject) playerSecurity).add(String.valueOf(date.getTime()), new JsonPrimitive(bookHash));
             } catch (IllegalAccessException ex) {
-                ex.printStackTrace();
+                super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save security player data!", ex);
             }
         });
     }
