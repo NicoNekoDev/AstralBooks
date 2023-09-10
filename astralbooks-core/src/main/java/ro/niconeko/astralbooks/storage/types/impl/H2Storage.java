@@ -214,8 +214,8 @@ public class H2Storage extends EmbedStorage {
                 String encoded = super.plugin.getAPI().encodeItemStack(book);
                 statement.setInt(1, npcId);
                 statement.setString(2, side.toString());
+                statement.setString(3, encoded);
                 statement.setString(4, encoded);
-                statement.setString(5, encoded);
                 statement.executeUpdate();
             } catch (SQLException ex) {
                 super.plugin.getLogger().log(Level.WARNING, "(" + super.storageType.getFormattedName() + ") Failed to save book data!", ex);
