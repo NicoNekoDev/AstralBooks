@@ -20,6 +20,8 @@ package ro.niconeko.astralbooks.utils;
 import org.bukkit.NamespacedKey;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 
+import java.util.logging.Level;
+
 public class PersistentKey {
     public static NamespacedKey ITEM_RIGHT_KEY = null;
     public static NamespacedKey ITEM_LEFT_KEY = null;
@@ -41,20 +43,21 @@ public class PersistentKey {
 
     public static boolean init(AstralBooksPlugin plugin) {
         try {
-            ITEM_RIGHT_KEY = NamespacedKey.fromString("RightBookValue", plugin);
-            ITEM_LEFT_KEY = NamespacedKey.fromString("LeftBookValue", plugin);
-            BOOK_PASSWORD = NamespacedKey.fromString("BookPassword", plugin);
-            BOOK_PASSWORD_FAILS = NamespacedKey.fromString("BookPasswordFails", plugin);
-            CHUNK_TAG = NamespacedKey.fromString("BooksOnChunk", plugin);
-            ENTITY_LEFT_BOOK = NamespacedKey.fromString("EntityLeftBook", plugin);
-            ENTITY_RIGHT_BOOK = NamespacedKey.fromString("EntityRightBook", plugin);
-            BLOCK_LOCATION_X = NamespacedKey.fromString("BookBlockXCoord", plugin);
-            BLOCK_LOCATION_Y = NamespacedKey.fromString("BookBlockYCoord", plugin);
-            BLOCK_LOCATION_Z = NamespacedKey.fromString("BookBlockZCoord", plugin);
-            BLOCK_LEFT_BOOK = NamespacedKey.fromString("BookBlockLeft", plugin);
-            BLOCK_RIGHT_BOOK = NamespacedKey.fromString("BookBlockRight", plugin);
+            ITEM_RIGHT_KEY = new NamespacedKey(plugin, "RightBookValue");
+            ITEM_LEFT_KEY = new NamespacedKey(plugin, "LeftBookValue");
+            BOOK_PASSWORD = new NamespacedKey(plugin, "BookPassword");
+            BOOK_PASSWORD_FAILS = new NamespacedKey(plugin, "BookPasswordFails");
+            CHUNK_TAG = new NamespacedKey(plugin, "BooksOnChunk");
+            ENTITY_LEFT_BOOK = new NamespacedKey(plugin, "EntityLeftBook");
+            ENTITY_RIGHT_BOOK = new NamespacedKey(plugin, "EntityRightBook");
+            BLOCK_LOCATION_X = new NamespacedKey(plugin, "BookBlockXCoord");
+            BLOCK_LOCATION_Y = new NamespacedKey(plugin, "BookBlockYCoord");
+            BLOCK_LOCATION_Z = new NamespacedKey(plugin, "BookBlockZCoord");
+            BLOCK_LEFT_BOOK = new NamespacedKey(plugin, "BookBlockLeft");
+            BLOCK_RIGHT_BOOK = new NamespacedKey(plugin, "BookBlockRight");
             return true;
         } catch (Exception ex) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load NamespacedKeys", ex);
             return false;
         }
     }
