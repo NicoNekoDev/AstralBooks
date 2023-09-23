@@ -32,11 +32,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
@@ -90,13 +91,11 @@ public class PlayerActions implements Listener {
         }
         this.pullTask = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
             DelayedPlayer delayedInteractionBookBlockOperator;
-            while ((delayedInteractionBookBlockOperator = this.delayedInteractionBookBlockOperators.poll()) != null) {
+            while ((delayedInteractionBookBlockOperator = this.delayedInteractionBookBlockOperators.poll()) != null)
                 this.interactionBookBlockOperatorsMap.remove(delayedInteractionBookBlockOperator.getPlayer());
-            }
             DelayedPlayer delayedInteractionBookEntityOperator;
             while ((delayedInteractionBookEntityOperator = this.delayedInteractionBookEntityOperators.poll()) != null)
                 this.interactionBookEntityOperatorsMap.remove(delayedInteractionBookEntityOperator.getPlayer());
-            //
             if (this.plugin.getSettings().isJoinBookEnabled()) {
                 DelayedPlayer delayedJoinPlayer;
                 while ((delayedJoinPlayer = this.delayedJoinBookPlayers.poll()) != null) {
@@ -120,13 +119,12 @@ public class PlayerActions implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        try {
-            if (event.getClass().getMethod("getHand").invoke(event) != EquipmentSlot.HAND)
-                return;
-        } catch (Exception ignored) {} // old versions doesn't have PlayerInteractEvent#getHand() method
+        if (event.getHand() != EquipmentSlot.HAND)
+            return;
         if (this.interactionBookBlockOperatorsMap.containsKey(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null && !event.getPlayer().isSneaking()) {
             PairTuple<ItemStack, Side> pair = this.interactionBookBlockOperatorsMap.remove(event.getPlayer());
             Block block = event.getClickedBlock();
+            event.setCancelled(true);
             if (pair.firstValue() == null) {
                 this.api.removeBookOfBlock(block, pair.secondValue());
                 event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK)
@@ -135,40 +133,36 @@ public class PlayerActions implements Listener {
                         .replace("%block_y%", String.valueOf(block.getY()))
                         .replace("%block_z%", String.valueOf(block.getZ()))
                         .replace("%world%", block.getWorld().getName())
-                        .replace("%type%", block.getType().name())
-                );
-                event.setCancelled(true);
-                return;
+                        .replace("%type%", block.getType().name()));
+            } else {
+                this.api.putBookOnBlock(block, pair.firstValue(), pair.secondValue());
+                event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
+                        .replace("%player%", event.getPlayer().getName())
+                        .replace("%block_x%", String.valueOf(block.getX()))
+                        .replace("%block_y%", String.valueOf(block.getY()))
+                        .replace("%block_z%", String.valueOf(block.getZ()))
+                        .replace("%world%", block.getWorld().getName())
+                        .replace("%type%", block.getType().name()));
             }
-            this.api.putBookOnBlock(block, pair.firstValue(), pair.secondValue());
-            event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
-                    .replace("%player%", event.getPlayer().getName())
-                    .replace("%block_x%", String.valueOf(block.getX()))
-                    .replace("%block_y%", String.valueOf(block.getY()))
-                    .replace("%block_z%", String.valueOf(block.getZ()))
-                    .replace("%world%", block.getWorld().getName())
-                    .replace("%type%", block.getType().name())
-            );
-            event.setCancelled(true);
-            return;
-        }
-        if (event.hasItem() && (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired())) {
+        } else if (event.hasItem()) {
             ItemStack item = event.getItem();
-            ItemData data = this.api.itemDataFactory(item);
+            if (item == null || !item.hasItemMeta())
+                return;
+            ItemMeta meta = item.getItemMeta();
             String filterName =
                     switch (event.getAction()) {
-                        case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> data.getString(PersistentKey.ITEM_LEFT_KEY);
-                        case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> data.getString(PersistentKey.ITEM_RIGHT_KEY);
+                        case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK ->
+                                meta.getPersistentDataContainer().get(PersistentKey.ITEM_LEFT_KEY, PersistentDataType.STRING);
+                        case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK ->
+                                meta.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                         default -> null;
                     };
             if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                 ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                 this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
                 event.setCancelled(true);
-                return;
             }
-        }
-        if (!(event.hasItem() && event.getPlayer().isSneaking()) && event.getClickedBlock() != null && this.api.getDistribution().isPersistentDataContainerEnabled()) {
+        } else if (!(event.hasItem() && event.getPlayer().isSneaking()) && event.getClickedBlock() != null) {
             Block block = event.getClickedBlock();
             ItemStack book = switch (event.getAction()) {
                 case LEFT_CLICK_BLOCK -> this.api.getBookOfBlock(block, Side.LEFT);
@@ -217,9 +211,9 @@ public class PlayerActions implements Listener {
         }
         ItemStack itemInPlayerHand = event.getPlayer().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
-                ItemData data = this.api.itemDataFactory(itemInPlayerHand);
-                String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
+            if (itemInPlayerHand.hasItemMeta()) {
+                ItemMeta data = itemInPlayerHand.getItemMeta();
+                String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                     this.api.openBook(event.getPlayer(), this.api.placeholderHook(event.getPlayer(), book));
@@ -246,9 +240,9 @@ public class PlayerActions implements Listener {
             Entity entity = event.getEntity();
             ItemStack itemInPlayerHand = player.getInventory().getItemInMainHand();
             if (itemInPlayerHand.getType() != Material.AIR) {
-                if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
-                    ItemData data = this.api.itemDataFactory(itemInPlayerHand);
-                    String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
+                if (itemInPlayerHand.hasItemMeta()) {
+                    ItemMeta data = itemInPlayerHand.getItemMeta();
+                    String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                     if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                         ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                         this.api.openBook(player, this.api.placeholderHook(player, book));

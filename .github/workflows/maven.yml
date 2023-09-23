@@ -16,20 +16,6 @@ jobs:
           restore-keys: |
             maven-
 
-      - name: Set up Java 8
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '8'
-          check-latest: true
-
-      - name: Install spigot (1.8 -> 1.16)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java8.sh
-          ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java8.sh
-        shell: bash
-
       - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
@@ -40,8 +26,8 @@ jobs:
       - name: Install spigot... (1.17 -> latest)
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java17.sh
-          ${GITHUB_WORKSPACE}/.github/scripts/buildtools-java17.sh
+          chmod +x ${GITHUB_WORKSPACE}/.github/scripts/buildtools.sh
+          ${GITHUB_WORKSPACE}/.github/scripts/buildtools.sh
         shell: bash
 
       - name: Build AstralBooks with Maven

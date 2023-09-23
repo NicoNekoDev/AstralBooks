@@ -18,72 +18,44 @@
 package ro.niconeko.astralbooks.utils;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.plugin.Plugin;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class PersistentKey {
-    public static PersistentKey ITEM_RIGHT_KEY = null;
-    public static PersistentKey ITEM_LEFT_KEY = null;
+    public static NamespacedKey ITEM_RIGHT_KEY = null;
+    public static NamespacedKey ITEM_LEFT_KEY = null;
     //
-    public static PersistentKey BOOK_PASSWORD = null;
-    public static PersistentKey BOOK_PASSWORD_FAILS = null;
+    public static NamespacedKey BOOK_PASSWORD = null;
+    public static NamespacedKey BOOK_PASSWORD_FAILS = null;
     //
-    public static PersistentKey CHUNK_TAG = null;
+    public static NamespacedKey CHUNK_TAG = null;
     //
-    public static PersistentKey ENTITY_LEFT_BOOK = null;
-    public static PersistentKey ENTITY_RIGHT_BOOK = null;
+    public static NamespacedKey ENTITY_LEFT_BOOK = null;
+    public static NamespacedKey ENTITY_RIGHT_BOOK = null;
     //
-    public static PersistentKey BLOCK_LOCATION_X = null;
-    public static PersistentKey BLOCK_LOCATION_Y = null;
-    public static PersistentKey BLOCK_LOCATION_Z = null;
+    public static NamespacedKey BLOCK_LOCATION_X = null;
+    public static NamespacedKey BLOCK_LOCATION_Y = null;
+    public static NamespacedKey BLOCK_LOCATION_Z = null;
     //
-    public static PersistentKey BLOCK_LEFT_BOOK = null;
-    public static PersistentKey BLOCK_RIGHT_BOOK = null;
-    public static Class<?> NAMESPACE_KEY = null;
+    public static NamespacedKey BLOCK_LEFT_BOOK = null;
+    public static NamespacedKey BLOCK_RIGHT_BOOK = null;
 
     public static boolean init(AstralBooksPlugin plugin) {
         try {
-            try {
-                NAMESPACE_KEY = Class.forName("org.bukkit.NamespacedKey");
-            } catch (ClassNotFoundException ignore) {}
-            ITEM_RIGHT_KEY = new PersistentKey("RightBookValue", plugin);
-            ITEM_LEFT_KEY = new PersistentKey("LeftBookValue", plugin);
-            BOOK_PASSWORD = new PersistentKey("BookPassword", plugin);
-            BOOK_PASSWORD_FAILS = new PersistentKey("BookPasswordFails", plugin);
-            CHUNK_TAG = new PersistentKey("BooksOnChunk", plugin);
-            ENTITY_LEFT_BOOK = new PersistentKey("EntityLeftBook", plugin);
-            ENTITY_RIGHT_BOOK = new PersistentKey("EntityRightBook", plugin);
-            BLOCK_LOCATION_X = new PersistentKey("BookBlockXCoord", plugin);
-            BLOCK_LOCATION_Y = new PersistentKey("BookBlockYCoord", plugin);
-            BLOCK_LOCATION_Z = new PersistentKey("BookBlockZCoord", plugin);
-            BLOCK_LEFT_BOOK = new PersistentKey("BookBlockLeft", plugin);
-            BLOCK_RIGHT_BOOK = new PersistentKey("BookBlockRight", plugin);
+            ITEM_RIGHT_KEY = NamespacedKey.fromString("RightBookValue", plugin);
+            ITEM_LEFT_KEY = NamespacedKey.fromString("LeftBookValue", plugin);
+            BOOK_PASSWORD = NamespacedKey.fromString("BookPassword", plugin);
+            BOOK_PASSWORD_FAILS = NamespacedKey.fromString("BookPasswordFails", plugin);
+            CHUNK_TAG = NamespacedKey.fromString("BooksOnChunk", plugin);
+            ENTITY_LEFT_BOOK = NamespacedKey.fromString("EntityLeftBook", plugin);
+            ENTITY_RIGHT_BOOK = NamespacedKey.fromString("EntityRightBook", plugin);
+            BLOCK_LOCATION_X = NamespacedKey.fromString("BookBlockXCoord", plugin);
+            BLOCK_LOCATION_Y = NamespacedKey.fromString("BookBlockYCoord", plugin);
+            BLOCK_LOCATION_Z = NamespacedKey.fromString("BookBlockZCoord", plugin);
+            BLOCK_LEFT_BOOK = NamespacedKey.fromString("BookBlockLeft", plugin);
+            BLOCK_RIGHT_BOOK = NamespacedKey.fromString("BookBlockRight", plugin);
             return true;
         } catch (Exception ex) {
             return false;
         }
-    }
-
-    Object key;
-    final String value;
-
-    private PersistentKey(String value, AstralBooksPlugin plugin) {
-        this.value = value;
-        try {
-            this.key = NAMESPACE_KEY != null ? NAMESPACE_KEY.getConstructor(Plugin.class, String.class).newInstance(plugin, this.value) : null;
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException |
-                 InstantiationException ignore) {
-            this.key = null;
-        }
-    }
-
-    public final NamespacedKey getKey() {
-        return (NamespacedKey) this.key;
-    }
-
-    public final String getValue() {
-        return this.value;
     }
 }

@@ -17,6 +17,7 @@
 
 package ro.niconeko.astralbooks.events;
 
+import lombok.Getter;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -37,7 +38,7 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
     private final static HandlerList handlers = new HandlerList();
     private final NPC npc;
     private final AstralBooksPlugin plugin; //Added this for devs who need to access the API
-    private ItemStack book;
+    @Getter private ItemStack book;
     private boolean usePlaceHolders = true;
     private boolean cancel;
     private final Side side;
@@ -65,15 +66,6 @@ public class BookNPCClickEvent extends PlayerEvent implements Cancellable {
      */
     public NPC getNPC() {
         return this.npc;
-    }
-
-    /**
-     * Get the books that is opened after
-     *
-     * @return the book
-     */
-    public ItemStack getBook() {
-        return this.book;
     }
 
     /**

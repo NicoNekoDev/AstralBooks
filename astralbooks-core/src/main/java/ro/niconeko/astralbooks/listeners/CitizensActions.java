@@ -19,17 +19,17 @@ package ro.niconeko.astralbooks.listeners;
 
 import net.citizensnpcs.api.event.NPCCloneEvent;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-
-import net.citizensnpcs.api.event.NPCRightClickEvent;
-import ro.niconeko.astralbooks.events.BookNPCClickEvent;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.persistent.item.ItemData;
+import ro.niconeko.astralbooks.events.BookNPCClickEvent;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 
@@ -46,9 +46,9 @@ public class CitizensActions implements Listener {
     public void rightClick(NPCRightClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
-                ItemData data = this.api.itemDataFactory(itemInPlayerHand);
-                String filterName = data.getString(PersistentKey.ITEM_RIGHT_KEY);
+            if (itemInPlayerHand.hasItemMeta()) {
+                ItemMeta data = itemInPlayerHand.getItemMeta();
+                String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                     this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));
@@ -77,9 +77,9 @@ public class CitizensActions implements Listener {
     public void leftCLick(NPCLeftClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (this.plugin.isNBTAPIEnabled() || !this.api.getDistribution().isNBTAPIRequired()) {
-                ItemData data = this.api.itemDataFactory(itemInPlayerHand);
-                String filterName = data.getString(PersistentKey.ITEM_LEFT_KEY);
+            if (itemInPlayerHand.hasItemMeta()) {
+                ItemMeta data = itemInPlayerHand.getItemMeta();
+                String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_LEFT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
                     this.api.openBook(event.getClicker(), this.api.placeholderHook(event.getClicker(), book));

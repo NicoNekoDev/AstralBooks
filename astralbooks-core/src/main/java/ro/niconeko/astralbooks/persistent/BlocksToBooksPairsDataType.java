@@ -45,11 +45,11 @@ public class BlocksToBooksPairsDataType implements PersistentDataType<Persistent
         List<PersistentDataContainer> list = new ArrayList<>();
         for (BlockToBookPair complexPart : complex.getList()) {
             PersistentDataContainer newContainer = persistentDataAdapterContext.newPersistentDataContainer();
-            newContainer.set(PersistentKey.BLOCK_LOCATION_X.getKey(), PersistentDataType.INTEGER, complexPart.x());
-            newContainer.set(PersistentKey.BLOCK_LOCATION_Y.getKey(), PersistentDataType.INTEGER, complexPart.y());
-            newContainer.set(PersistentKey.BLOCK_LOCATION_Z.getKey(), PersistentDataType.INTEGER, complexPart.z());
-            newContainer.set(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING, complexPart.leftBook() != null ? complexPart.leftBook() : "");
-            newContainer.set(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING, complexPart.rightBook() != null ? complexPart.rightBook() : "");
+            newContainer.set(PersistentKey.BLOCK_LOCATION_X, PersistentDataType.INTEGER, complexPart.x());
+            newContainer.set(PersistentKey.BLOCK_LOCATION_Y, PersistentDataType.INTEGER, complexPart.y());
+            newContainer.set(PersistentKey.BLOCK_LOCATION_Z, PersistentDataType.INTEGER, complexPart.z());
+            newContainer.set(PersistentKey.BLOCK_LEFT_BOOK, PersistentDataType.STRING, complexPart.leftBook() != null ? complexPart.leftBook() : "");
+            newContainer.set(PersistentKey.BLOCK_RIGHT_BOOK, PersistentDataType.STRING, complexPart.rightBook() != null ? complexPart.rightBook() : "");
             list.add(newContainer);
         }
         return list.toArray(new PersistentDataContainer[0]);
@@ -64,19 +64,19 @@ public class BlocksToBooksPairsDataType implements PersistentDataType<Persistent
             int blockX, blockY, blockZ;
             String leftBook = null;
             String rightBook = null;
-            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_X.getKey(), PersistentDataType.INTEGER))
+            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_X, PersistentDataType.INTEGER))
                 throw new IllegalStateException();
-            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_Y.getKey(), PersistentDataType.INTEGER))
+            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_Y, PersistentDataType.INTEGER))
                 throw new IllegalStateException();
-            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_Z.getKey(), PersistentDataType.INTEGER))
+            if (!primitivePart.has(PersistentKey.BLOCK_LOCATION_Z, PersistentDataType.INTEGER))
                 throw new IllegalStateException();
-            blockX = primitivePart.get(PersistentKey.BLOCK_LOCATION_X.getKey(), PersistentDataType.INTEGER);
-            blockY = primitivePart.get(PersistentKey.BLOCK_LOCATION_Y.getKey(), PersistentDataType.INTEGER);
-            blockZ = primitivePart.get(PersistentKey.BLOCK_LOCATION_Z.getKey(), PersistentDataType.INTEGER);
-            if (primitivePart.has(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING))
-                leftBook = primitivePart.get(PersistentKey.BLOCK_LEFT_BOOK.getKey(), PersistentDataType.STRING);
-            if (primitivePart.has(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING))
-                rightBook = primitivePart.get(PersistentKey.BLOCK_RIGHT_BOOK.getKey(), PersistentDataType.STRING);
+            blockX = primitivePart.get(PersistentKey.BLOCK_LOCATION_X, PersistentDataType.INTEGER);
+            blockY = primitivePart.get(PersistentKey.BLOCK_LOCATION_Y, PersistentDataType.INTEGER);
+            blockZ = primitivePart.get(PersistentKey.BLOCK_LOCATION_Z, PersistentDataType.INTEGER);
+            if (primitivePart.has(PersistentKey.BLOCK_LEFT_BOOK, PersistentDataType.STRING))
+                leftBook = primitivePart.get(PersistentKey.BLOCK_LEFT_BOOK, PersistentDataType.STRING);
+            if (primitivePart.has(PersistentKey.BLOCK_RIGHT_BOOK, PersistentDataType.STRING))
+                rightBook = primitivePart.get(PersistentKey.BLOCK_RIGHT_BOOK, PersistentDataType.STRING);
             blocksToBooksPairs.add(new BlockToBookPair(blockX, blockY, blockZ, leftBook, rightBook));
         }
         return blocksToBooksPairs;

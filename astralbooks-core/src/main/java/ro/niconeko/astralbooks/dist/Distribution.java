@@ -21,12 +21,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
-import org.bukkit.Chunk;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 
 import java.lang.reflect.Field;
@@ -78,33 +75,13 @@ public abstract class Distribution {
         }
     }
 
-    public boolean isNBTAPIRequired() {
-        return false;
-    }
-
-    public boolean isPersistentDataContainerEnabled() {
-        return true;
-    }
-
     public abstract String getVersion();
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public void setConfigComment(ConfigurationSection config, String path, Optional<List<String>> comments) {
     }
 
-    public PersistentDataContainer getEntityDataContainer(Entity entity) {
-        return null;
-    }
-
-    public PersistentDataContainer getChunkDataContainer(Chunk chunk) {
-        return null;
-    }
-
     public abstract void sendRightClick(Player player);
-
-    public abstract void setItemInHand(Player player, ItemStack item);
-
-    public abstract ItemStack getItemInHand(Player player);
 
     public abstract JsonObject convertBookToJson(ItemStack book) throws IllegalAccessException;
 

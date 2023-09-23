@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package ro.niconeko.astralbooks.dist.v1_19_R1;
+package ro.niconeko.astralbooks.dist.v1_20_R1;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
@@ -27,8 +27,8 @@ import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftMetaBook;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftMetaBook;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -90,7 +90,7 @@ public class DistributionHandler extends Distribution {
 
     @Override
     public String getVersion() {
-        return "1_19_R1";
+        return "1_20_R1";
     }
 
     @Override

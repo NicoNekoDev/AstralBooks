@@ -55,7 +55,7 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
     @Getter private final AstralBooksCore API = new AstralBooksCore(this);
     @Getter private final PluginSettings settings = new PluginSettings(this);
     @Getter private PluginStorage pluginStorage;
-    @Getter private boolean PlaceholderAPIEnabled, AuthMeEnabled, CitizensEnabled, LuckPermsEnabled, VaultEnabled, NBTAPIEnabled;
+    @Getter private boolean PlaceholderAPIEnabled, AuthMeEnabled, CitizensEnabled, LuckPermsEnabled, VaultEnabled;
     @Getter private PlayerActions playerActionsListener;
     @Getter private ServerActions serverActionsListener;
 
@@ -145,20 +145,6 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                 this.AuthMeEnabled = true;
                 this.getLogger().info("Successfully hooked into AuthMe!");
             }
-            if (!manager.isPluginEnabled("NBTAPI"))
-                if (!this.API.getDistribution().isNBTAPIRequired())
-                    this.getLogger().info("NBTAPI not found, but support for it's not required!");
-                else
-                    this.getLogger().info("NBTAPI not found!");
-            else {
-                if (!this.API.getDistribution().isNBTAPIRequired()) {
-                    this.getLogger().info("NBTAPI found, but support for it's not required!");
-                } else {
-                    this.getLogger().info("NBTAPI found, try hooking...");
-                    this.NBTAPIEnabled = true;
-                    this.getLogger().info("Successfully hooked into NBTAPI!");
-                }
-            }
 
             this.playerActionsListener = new PlayerActions(this);
             this.serverActionsListener = new ServerActions(this);
@@ -227,9 +213,8 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
     public boolean loadSettings() {
         try {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
-            try {
-                config.options().getClass()
-                        .getMethod("setHeader", List.class).invoke(config.options(), List.of("""
+            config.options().setHeader(
+                    List.of("""
                                                  _             _ ____              _       \s
                                        /\\       | |           | |  _ \\            | |      \s
                                       /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
@@ -238,8 +223,8 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                                    /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
                                                                                            \s
                                                                                            \s
-                                """.split("\n")));
-            } catch (NoSuchMethodException ignored) {}
+                                """.split("\n"))
+            );
             this.settings.load(config);
             return true;
         } catch (Exception ex) {
@@ -252,9 +237,8 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
         try {
             YamlConfiguration config = new YamlConfiguration();
             this.settings.load(config);
-            try {
-                config.options().getClass()
-                        .getMethod("setHeader", List.class).invoke(config.options(), List.of("""
+            config.options().setHeader(
+                    List.of("""
                                                  _             _ ____              _       \s
                                        /\\       | |           | |  _ \\            | |      \s
                                       /  \\   ___| |_ _ __ __ _| | |_) | ___   ___ | | _____\s
@@ -263,8 +247,8 @@ public class AstralBooksPlugin extends JavaPlugin implements AstralBooks {
                                    /_/    \\_\\___/\\__|_|  \\__,_|_|____/ \\___/ \\___/|_|\\_\\___/
                                                                                            \s
                                                                                            \s
-                                """.split("\n")));
-            } catch (NoSuchMethodException ignored) {}
+                                """.split("\n"))
+            );
             config.save(this.settingsFile);
             return true;
         } catch (Exception ex) {

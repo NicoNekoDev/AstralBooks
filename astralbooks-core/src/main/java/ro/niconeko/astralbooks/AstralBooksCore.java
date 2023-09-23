@@ -38,29 +38,18 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ro.niconeko.astralbooks.api.AstralBooksAPI;
 import ro.niconeko.astralbooks.dist.Distribution;
-import ro.niconeko.astralbooks.persistent.chunk.ChunkData;
-import ro.niconeko.astralbooks.persistent.chunk.EmptyChunkData;
-import ro.niconeko.astralbooks.persistent.chunk.NBTAPIChunkData;
-import ro.niconeko.astralbooks.persistent.chunk.PersistentChunkData;
-import ro.niconeko.astralbooks.persistent.entity.EmptyEntityData;
-import ro.niconeko.astralbooks.persistent.entity.EntityData;
-import ro.niconeko.astralbooks.persistent.entity.NBTAPIEntityData;
-import ro.niconeko.astralbooks.persistent.entity.PersistentEntityData;
-import ro.niconeko.astralbooks.persistent.item.EmptyItemData;
-import ro.niconeko.astralbooks.persistent.item.ItemData;
-import ro.niconeko.astralbooks.persistent.item.NBTAPIItemData;
-import ro.niconeko.astralbooks.persistent.item.PersistentItemData;
 import ro.niconeko.astralbooks.storage.PluginStorage;
-import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.UpdateChecker;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.nicuch.citizensbooks.CitizensBooksAPI;
 import ro.nicuch.citizensbooks.CitizensBooksPlugin;
@@ -185,8 +174,10 @@ public class AstralBooksCore implements AstralBooksAPI {
     public ItemStack getBookOfEntity(Entity entity, Side side) {
         try {
             String stringJsonBook = switch (side) {
-                case RIGHT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_RIGHT_BOOK);
-                case LEFT -> this.entityDataFactory(entity).getString(PersistentKey.ENTITY_LEFT_BOOK);
+                case RIGHT ->
+                        entity.getPersistentDataContainer().get(PersistentKey.ENTITY_RIGHT_BOOK, PersistentDataType.STRING);
+                case LEFT ->
+                        entity.getPersistentDataContainer().get(PersistentKey.ENTITY_LEFT_BOOK, PersistentDataType.STRING);
             };
             if (stringJsonBook == null)
                 return null;
@@ -204,13 +195,13 @@ public class AstralBooksCore implements AstralBooksAPI {
     @Override
     public void removeBookOfEntity(Entity entity, Side side) {
         if (side == null) {
-            this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_LEFT_BOOK);
-            this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_RIGHT_BOOK);
+            entity.getPersistentDataContainer().remove(PersistentKey.ENTITY_LEFT_BOOK);
+            entity.getPersistentDataContainer().remove(PersistentKey.ENTITY_RIGHT_BOOK);
             return;
         }
         switch (side) {
-            case LEFT -> this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_LEFT_BOOK);
-            case RIGHT -> this.entityDataFactory(entity).removeKey(PersistentKey.ENTITY_RIGHT_BOOK);
+            case LEFT -> entity.getPersistentDataContainer().remove(PersistentKey.ENTITY_LEFT_BOOK);
+            case RIGHT -> entity.getPersistentDataContainer().remove(PersistentKey.ENTITY_RIGHT_BOOK);
         }
     }
 
@@ -244,8 +235,10 @@ public class AstralBooksCore implements AstralBooksAPI {
         try {
             String stringJsonBook = this.distribution.convertBookToJson(book).toString();
             switch (side) {
-                case LEFT -> this.entityDataFactory(entity).putString(PersistentKey.ENTITY_LEFT_BOOK, stringJsonBook);
-                case RIGHT -> this.entityDataFactory(entity).putString(PersistentKey.ENTITY_RIGHT_BOOK, stringJsonBook);
+                case LEFT ->
+                        entity.getPersistentDataContainer().set(PersistentKey.ENTITY_LEFT_BOOK, PersistentDataType.STRING, stringJsonBook);
+                case RIGHT ->
+                        entity.getPersistentDataContainer().set(PersistentKey.ENTITY_RIGHT_BOOK, PersistentDataType.STRING, stringJsonBook);
             }
         } catch (IllegalAccessException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to put book on entity!", ex);
@@ -265,31 +258,6 @@ public class AstralBooksCore implements AstralBooksAPI {
             }
         }
         this.blocksPairedToChunk.computeIfAbsent(block.getChunk(), k -> new HashSet<>()).add(block);
-    }
-
-    public ItemData itemDataFactory(ItemStack stack) {
-        if (!this.distribution.isNBTAPIRequired()) {
-            return new PersistentItemData(stack);
-        } else if (this.plugin.isNBTAPIEnabled()) {
-            return new NBTAPIItemData(stack);
-        }
-        return new EmptyItemData(stack);
-    }
-
-    public EntityData entityDataFactory(Entity entity) {
-        if (this.distribution.isPersistentDataContainerEnabled())
-            return new PersistentEntityData(entity);
-        else if (this.plugin.isNBTAPIEnabled())
-            return new NBTAPIEntityData(entity);
-        return new EmptyEntityData();
-    }
-
-    public ChunkData chunkDataFactory(Chunk chunk) {
-        if (this.distribution.isPersistentDataContainerEnabled())
-            return new PersistentChunkData(chunk);
-        else if (this.plugin.isNBTAPIEnabled())
-            return new NBTAPIChunkData(chunk);
-        return new EmptyChunkData();
     }
 
     public boolean loadDistribution() {

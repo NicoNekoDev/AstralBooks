@@ -19,19 +19,17 @@ package ro.niconeko.astralbooks;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import ro.niconeko.astralbooks.persistent.item.ItemData;
 import ro.niconeko.astralbooks.settings.MessageSettings;
 import ro.niconeko.astralbooks.storage.StorageType;
 import ro.niconeko.astralbooks.utils.Message;
@@ -57,7 +55,7 @@ public class AstralBooksCommand implements TabExecutor {
         Optional<Player> player = this.isPlayer(sender) ? Optional.of((Player) sender) : Optional.empty();
         MessageSettings messageSettings = this.plugin.getSettings().getMessageSettings();
         Side side;
-        PersistentKey action;
+        NamespacedKey action;
         if (args.length > 0) {
             switch (args[0]) {
                 case "help" -> {
@@ -202,7 +200,7 @@ public class AstralBooksCommand implements TabExecutor {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
-                                ItemStack book = this.getItemFromHand(player.get());
+                                ItemStack book = player.get().getInventory().getItemInMainHand().clone();
                                 if (args.length > 2) {
                                     switch (args[2]) {
                                         case "block" -> {
@@ -220,7 +218,7 @@ public class AstralBooksCommand implements TabExecutor {
                                                     break;
                                                 }
                                             } else side = Side.RIGHT;
-                                            if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                                            if (book.getType() != Material.WRITTEN_BOOK) {
                                                 sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                                 break;
                                             }
@@ -242,7 +240,7 @@ public class AstralBooksCommand implements TabExecutor {
                                                     break;
                                                 }
                                             } else side = Side.RIGHT;
-                                            if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                                            if (book.getType() != Material.WRITTEN_BOOK) {
                                                 sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                                 break;
                                             }
@@ -329,7 +327,8 @@ public class AstralBooksCommand implements TabExecutor {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
-                                if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                                ItemStack book = player.get().getInventory().getItemInMainHand().clone();
+                                if (book.getType() != Material.WRITTEN_BOOK) {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                     break;
                                 }
@@ -348,7 +347,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 } else side = Side.RIGHT;
-                                if (!this.plugin.getPluginStorage().putNPCBook(npc.get().getId(), side, this.getItemFromHand(player.get()))) {
+                                if (!this.plugin.getPluginStorage().putNPCBook(npc.get().getId(), side, book)) {
                                     sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                     break;
                                 }
@@ -419,14 +418,11 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.plugin.isNBTAPIEnabled() || this.api.getDistribution().isNBTAPIRequired()) {
-                        sender.sendMessage(messageSettings.getMessage(Message.NBTAPI_NOT_ENABLED));
-                        break;
-                    }
                     if (player.isEmpty()) {
                         sender.sendMessage(messageSettings.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
+                    ItemStack book = player.get().getInventory().getItemInMainHand().clone();
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -444,7 +440,7 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NOT_FOUND));
                                         break;
                                     }
-                                    if (!this.hasItemInHand(player.get())) {
+                                    if (book.getType() != Material.AIR) {
                                         sender.sendMessage(messageSettings.getMessage(Message.NO_ITEM_IN_HAND));
                                         break;
                                     }
@@ -458,10 +454,10 @@ public class AstralBooksCommand implements TabExecutor {
                                             break;
                                         }
                                     } else action = PersistentKey.ITEM_RIGHT_KEY;
-                                    ItemStack item = this.getItemFromHand(player.get());
-                                    ItemData data = this.api.itemDataFactory(item);
-                                    data.putString(action, filter_name);
-                                    this.api.getDistribution().setItemInHand(player.get(), data.build());
+                                    ItemMeta data = book.getItemMeta();
+                                    data.getPersistentDataContainer().set(action, PersistentDataType.STRING, filter_name);
+                                    book.setItemMeta(data);
+                                    player.get().getInventory().setItemInMainHand(book);
                                     sender.sendMessage(messageSettings.getMessage(Message.FILTER_APPLIED_TO_ITEM).replace("%filter_name%", filter_name));
 
                                 } else
@@ -472,7 +468,7 @@ public class AstralBooksCommand implements TabExecutor {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
-                                if (!this.hasItemInHand(player.get())) {
+                                if (book.getType() != Material.AIR) {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_ITEM_IN_HAND));
                                     break;
                                 }
@@ -486,11 +482,11 @@ public class AstralBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 } else action = PersistentKey.ITEM_RIGHT_KEY;
-                                ItemStack item = this.getItemFromHand(player.get());
-                                ItemData data = this.api.itemDataFactory(item);
-                                if (data.hasStringKey(action))
-                                    data.removeKey(action);
-                                this.api.getDistribution().setItemInHand(player.get(), data.build());
+                                ItemMeta data = book.getItemMeta();
+                                if (data.getPersistentDataContainer().has(action, PersistentDataType.STRING))
+                                    data.getPersistentDataContainer().remove(action);
+                                book.setItemMeta(data);
+                                player.get().getInventory().setItemInMainHand(book);
                                 sender.sendMessage(messageSettings.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
                             }
                             default -> this.sendActionItemHelp(sender);
@@ -579,11 +575,12 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                    ItemStack item = player.get().getInventory().getItemInMainHand().clone();
+                    if (item.getType() != Material.WRITTEN_BOOK) {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
-                    if (!this.plugin.getPluginStorage().setJoinBook(this.getItemFromHand(player.get()))) {
+                    if (!this.plugin.getPluginStorage().setJoinBook(item)) {
                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                         break;
                     }
@@ -619,11 +616,12 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                         break;
                     }
-                    if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                    ItemStack item = player.get().getInventory().getItemInMainHand().clone();
+                    if (item.getType() != Material.WRITTEN_BOOK) {
                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                         break;
                     }
-                    this.openBook(player.get(), this.getItemFromHand(player.get()));
+                    this.openBook(player.get(), item);
                 }
                 case "closebook" -> {
                     if (player.isEmpty()) {
@@ -635,17 +633,14 @@ public class AstralBooksCommand implements TabExecutor {
                         break;
                     }
                     if (args.length > 2) {
-                        Material material = Material.getMaterial("BOOK_AND_QUILL");
-                        if (material == null)
-                            // 1.13+ (Thanks PikaMug)
-                            material = Material.getMaterial("WRITABLE_BOOK");
-                        if (!this.hasItemTypeInHand(player.get(), material)) {
+                        ItemStack item = player.get().getInventory().getItemInMainHand();
+                        if (item.getType() != Material.WRITABLE_BOOK) {
                             sender.sendMessage(messageSettings.getMessage(Message.NO_WRITABLE_BOOK_IN_HAND));
                             break;
                         }
                         String author = args[1];
                         String title = args.length > 3 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : args[2]; // copy if at least 2 title-args
-                        this.closeBook(player.get(), this.getItemFromHand(player.get()), author, title);
+                        this.closeBook(player.get(), item, author, title);
                     } else
                         sender.sendMessage(messageSettings.getMessage(Message.USAGE_CLOSEBOOK));
                 }
@@ -719,11 +714,11 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NAME_INVALID).replace("%invalid_filter%", filter_name));
                                         break;
                                     }
-                                    if (!this.hasItemTypeInHand(player.get(), Material.WRITTEN_BOOK)) {
+                                    if (player.get().getInventory().getItemInMainHand().getType() != Material.WRITTEN_BOOK) {
                                         sender.sendMessage(messageSettings.getMessage(Message.NO_WRITTEN_BOOK_IN_HAND));
                                         break;
                                     }
-                                    if (!this.plugin.getPluginStorage().putFilterBook(filter_name, this.getItemFromHand((Player) sender))) {
+                                    if (!this.plugin.getPluginStorage().putFilterBook(filter_name, ((Player) sender).getInventory().getItemInMainHand())) {
                                         sender.sendMessage(messageSettings.getMessage(Message.OPERATION_FAILED));
                                         break;
                                     }
@@ -1045,39 +1040,15 @@ public class AstralBooksCommand implements TabExecutor {
                 .collect(Collectors.toSet());
     }
 
-    private boolean hasItemTypeInHand(Player player, Material type) {
-        ItemStack item = this.api.getDistribution().getItemInHand(player);
-        if (item == null)
-            return false;
-        return item.getType() == type;
-    }
-
-    private boolean hasItemInHand(Player player) {
-        ItemStack item = this.api.getDistribution().getItemInHand(player);
-        if (item == null)
-            return false;
-        return item.getType() != Material.AIR;
-    }
-
     private boolean isPlayer(CommandSender sender) {
         return (sender instanceof Player);
     }
 
-    private ItemStack getItemFromHand(Player player) {
-        return this.api.getDistribution().getItemInHand(player);
-    }
-
     private void openBook(Player player, ItemStack book) {
         BookMeta meta = (BookMeta) book.getItemMeta();
-        Material material = Material.getMaterial("BOOK_AND_QUILL");
-        if (material == null)
-            // 1.13+
-            material = Material.getMaterial("WRITABLE_BOOK");
-        if (material == null)
-            throw new UnsupportedOperationException("Something went wrong with Bukkit Material!");
-        ItemStack item = new ItemStack(material, book.getAmount());
+        ItemStack item = new ItemStack(Material.WRITABLE_BOOK, book.getAmount());
         item.setItemMeta(meta);
-        this.api.getDistribution().setItemInHand(player, item);
+        player.getInventory().setItemInMainHand(item);
     }
 
     private void closeBook(Player player, ItemStack book, String author, String title) {
@@ -1088,7 +1059,7 @@ public class AstralBooksCommand implements TabExecutor {
             meta.setTitle(ChatColor.translateAlternateColorCodes('&', title));
             item.setItemMeta(meta);
         }
-        this.api.getDistribution().setItemInHand(player, item);
+        player.getInventory().setItemInMainHand(item);
     }
 
     private void sendAbout(CommandSender sender) {

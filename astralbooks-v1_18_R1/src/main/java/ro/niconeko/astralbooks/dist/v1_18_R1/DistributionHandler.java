@@ -25,16 +25,13 @@ import com.google.gson.JsonPrimitive;
 import net.citizensnpcs.api.npc.NPC;
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftMetaBook;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.dist.Distribution;
 
@@ -49,28 +46,8 @@ public class DistributionHandler extends Distribution {
     }
 
     @Override
-    public PersistentDataContainer getChunkDataContainer(Chunk chunk) {
-        return chunk.getPersistentDataContainer();
-    }
-
-    @Override
-    public PersistentDataContainer getEntityDataContainer(Entity entity) {
-        return entity.getPersistentDataContainer();
-    }
-
-    @Override
     public void sendRightClick(Player player) {
         ((CraftPlayer) player).getHandle().connection.send(new ClientboundOpenBookPacket(InteractionHand.MAIN_HAND));
-    }
-
-    @Override
-    public void setItemInHand(Player player, ItemStack item) {
-        player.getInventory().setItemInMainHand(item);
-    }
-
-    @Override
-    public ItemStack getItemInHand(Player player) {
-        return player.getInventory().getItemInMainHand();
     }
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
