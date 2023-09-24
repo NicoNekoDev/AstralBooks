@@ -51,6 +51,11 @@
         </dependency>
         <dependency>
             <groupId>ro.niconeko</groupId>
+            <artifactId>astralbooks-v1_20_R2</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>ro.niconeko</groupId>
             <artifactId>astralbooks-v1_20_R1</artifactId>
             <version>${revision}</version>
         </dependency>
