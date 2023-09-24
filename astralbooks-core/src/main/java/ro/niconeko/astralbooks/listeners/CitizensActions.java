@@ -46,8 +46,8 @@ public class CitizensActions implements Listener {
     public void rightClick(NPCRightClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (itemInPlayerHand.hasItemMeta()) {
-                ItemMeta data = itemInPlayerHand.getItemMeta();
+            ItemMeta data = itemInPlayerHand.getItemMeta();
+            if (data != null) {
                 String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
@@ -77,8 +77,8 @@ public class CitizensActions implements Listener {
     public void leftCLick(NPCLeftClickEvent event) {
         ItemStack itemInPlayerHand = event.getClicker().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (itemInPlayerHand.hasItemMeta()) {
-                ItemMeta data = itemInPlayerHand.getItemMeta();
+            ItemMeta data = itemInPlayerHand.getItemMeta();
+            if (data != null) {
                 String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_LEFT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);

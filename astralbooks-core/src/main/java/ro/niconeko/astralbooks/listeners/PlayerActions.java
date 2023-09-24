@@ -146,9 +146,11 @@ public class PlayerActions implements Listener {
             }
         } else if (event.hasItem()) {
             ItemStack item = event.getItem();
-            if (item == null || !item.hasItemMeta())
+            if (item == null)
                 return;
             ItemMeta meta = item.getItemMeta();
+            if (meta == null)
+                return;
             String filterName =
                     switch (event.getAction()) {
                         case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK ->
@@ -211,8 +213,8 @@ public class PlayerActions implements Listener {
         }
         ItemStack itemInPlayerHand = event.getPlayer().getInventory().getItemInMainHand();
         if (itemInPlayerHand.getType() != Material.AIR) {
-            if (itemInPlayerHand.hasItemMeta()) {
-                ItemMeta data = itemInPlayerHand.getItemMeta();
+            ItemMeta data = itemInPlayerHand.getItemMeta();
+            if (data != null) {
                 String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                 if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                     ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
@@ -240,8 +242,8 @@ public class PlayerActions implements Listener {
             Entity entity = event.getEntity();
             ItemStack itemInPlayerHand = player.getInventory().getItemInMainHand();
             if (itemInPlayerHand.getType() != Material.AIR) {
-                if (itemInPlayerHand.hasItemMeta()) {
-                    ItemMeta data = itemInPlayerHand.getItemMeta();
+                ItemMeta data = itemInPlayerHand.getItemMeta();
+                if (data != null) {
                     String filterName = data.getPersistentDataContainer().get(PersistentKey.ITEM_RIGHT_KEY, PersistentDataType.STRING);
                     if (filterName != null && !filterName.isEmpty() && this.plugin.getPluginStorage().hasFilterBook(filterName)) {
                         ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);

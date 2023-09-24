@@ -422,7 +422,7 @@ public class AstralBooksCommand implements TabExecutor {
                         sender.sendMessage(messageSettings.getMessage(Message.CONSOLE_CANNOT_USE_COMMAND));
                         break;
                     }
-                    ItemStack book = player.get().getInventory().getItemInMainHand().clone();
+                    ItemStack item = player.get().getInventory().getItemInMainHand().clone();
                     if (args.length > 1) {
                         switch (args[1]) {
                             case "set" -> {
@@ -440,7 +440,8 @@ public class AstralBooksCommand implements TabExecutor {
                                         sender.sendMessage(messageSettings.getMessage(Message.FILTER_NOT_FOUND));
                                         break;
                                     }
-                                    if (book.getType() != Material.AIR) {
+                                    ItemMeta data = item.getItemMeta();
+                                    if (item.getType() == Material.AIR || data == null) {
                                         sender.sendMessage(messageSettings.getMessage(Message.NO_ITEM_IN_HAND));
                                         break;
                                     }
@@ -454,10 +455,10 @@ public class AstralBooksCommand implements TabExecutor {
                                             break;
                                         }
                                     } else action = PersistentKey.ITEM_RIGHT_KEY;
-                                    ItemMeta data = book.getItemMeta();
+
                                     data.getPersistentDataContainer().set(action, PersistentDataType.STRING, filter_name);
-                                    book.setItemMeta(data);
-                                    player.get().getInventory().setItemInMainHand(book);
+                                    item.setItemMeta(data);
+                                    player.get().getInventory().setItemInMainHand(item);
                                     sender.sendMessage(messageSettings.getMessage(Message.FILTER_APPLIED_TO_ITEM).replace("%filter_name%", filter_name));
 
                                 } else
@@ -468,7 +469,8 @@ public class AstralBooksCommand implements TabExecutor {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_PERMISSION));
                                     break;
                                 }
-                                if (book.getType() != Material.AIR) {
+                                ItemMeta data = item.getItemMeta();
+                                if (item.getType() == Material.AIR || data == null) {
                                     sender.sendMessage(messageSettings.getMessage(Message.NO_ITEM_IN_HAND));
                                     break;
                                 }
@@ -482,11 +484,10 @@ public class AstralBooksCommand implements TabExecutor {
                                         break;
                                     }
                                 } else action = PersistentKey.ITEM_RIGHT_KEY;
-                                ItemMeta data = book.getItemMeta();
                                 if (data.getPersistentDataContainer().has(action, PersistentDataType.STRING))
                                     data.getPersistentDataContainer().remove(action);
-                                book.setItemMeta(data);
-                                player.get().getInventory().setItemInMainHand(book);
+                                item.setItemMeta(data);
+                                player.get().getInventory().setItemInMainHand(item);
                                 sender.sendMessage(messageSettings.getMessage(Message.FILTER_REMOVED_FROM_ITEM));
                             }
                             default -> this.sendActionItemHelp(sender);
