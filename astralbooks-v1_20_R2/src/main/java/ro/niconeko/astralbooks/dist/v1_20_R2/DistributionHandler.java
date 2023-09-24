@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package ro.niconeko.astralbooks.dist.v1_20_R1;
+package ro.niconeko.astralbooks.dist.v1_20_R2;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
