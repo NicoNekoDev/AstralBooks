@@ -90,7 +90,7 @@ public class DistributionHandler extends Distribution {
 
     @Override
     public String getVersion() {
-        return "1_20_R1";
+        return "1_20_R3";
     }
 
     @Override
