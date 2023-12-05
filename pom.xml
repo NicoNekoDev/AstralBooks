@@ -24,7 +24,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>3.0.8</revision>
+        <revision>3.0.9</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>17</java.version>
@@ -169,6 +169,7 @@
         <module>astralbooks-v1_19_R3</module>
         <module>astralbooks-v1_20_R1</module>
         <module>astralbooks-v1_20_R2</module>
+		<module>astralbooks-v1_20_R3</module>
         <module>astralbooks-assembly</module>
     </modules>
 
