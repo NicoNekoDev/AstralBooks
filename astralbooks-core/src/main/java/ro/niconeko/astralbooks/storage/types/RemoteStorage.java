@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
-import ro.niconeko.astralbooks.storage.settings.StorageRemoteSettings;
+import ro.niconeko.astralbooks.storage.settings.RemoteStorageSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.tuples.PairTuple;
@@ -54,17 +54,17 @@ public abstract class RemoteStorage extends Storage {
     }
 
     @Override
-    protected void loadSettings(StorageSettings storageSettings) {
-        StorageRemoteSettings remoteSettings = storageSettings.getRemoteSettings();
-        this.user = remoteSettings.getUsername();
-        this.pass = remoteSettings.getPassword();
-        this.host = remoteSettings.getHost();
-        this.port = remoteSettings.getPort();
-        this.database = remoteSettings.getDatabase();
-        this.sslEnabled = remoteSettings.isSSLEnabled();
-        this.tablePrefix = remoteSettings.getTablePrefix();
-        this.serverName = remoteSettings.getServerName();
-        super.purgeSecurityBooksOlderThan = storageSettings.getSecurityBookPurgeOlderThan();
+    protected void loadSettings(StorageSettings settings) {
+        RemoteStorageSettings remoteStorageSettings = settings.REMOTE.get();
+        this.user = remoteStorageSettings.USERNAME.get();
+        this.pass = remoteStorageSettings.PASSWORD.get();
+        this.host = remoteStorageSettings.HOST.get();
+        this.port = remoteStorageSettings.PORT.get();
+        this.database = remoteStorageSettings.DATABASE.get();
+        this.sslEnabled = remoteStorageSettings.SSL_ENABLED.get();
+        this.tablePrefix = remoteStorageSettings.TABLE_PREFIX.get();
+        this.serverName = remoteStorageSettings.SERVER_NAME.get();
+        super.purgeSecurityBooksOlderThan = settings.SECURITY_BOOK_PURGE_OLDER_THAN.get();
     }
 
     @Override

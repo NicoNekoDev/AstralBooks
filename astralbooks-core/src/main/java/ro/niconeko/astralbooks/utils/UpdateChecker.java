@@ -24,6 +24,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.values.Messages;
+import ro.niconeko.astralbooks.values.Permissions;
+import ro.niconeko.astralbooks.values.Settings;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -46,16 +49,15 @@ public class UpdateChecker implements Listener {
             //Checking for updates
             if (this.checkForUpdate()) {
                 Bukkit.getScheduler().runTask(this.plugin, () -> {
-                    this.plugin.getLogger().info("An update for AstralBooks (v" + latestVersion + ") is available at:");
-                    this.plugin.getLogger().info("https://www.spigotmc.org/resources/astralbooks-a-book-for-everything." + resourceId + "/");
-                    Bukkit.getScheduler().runTask(
-                            this.plugin, () -> Bukkit.getOnlinePlayers().stream()
-                                    .filter(player -> this.plugin.getAPI().hasPermission(player, "astralbooks.notify") || player.isOp()).forEach(player -> player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NEW_VERSION_AVAILABLE)
-                                            .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
+                    MessageUtils.sendMessage(Bukkit.getConsoleSender(), "&cAn update for AstralBooks (v" + latestVersion + ") is available!");
+                    MessageUtils.sendMessage(Bukkit.getConsoleSender(), "&aPlease download it from https://www.spigotmc.org/resources/astralbooks-a-book-for-everything." + resourceId + "/");
+                    Bukkit.getScheduler().runTask(this.plugin,
+                            () -> Bukkit.getOnlinePlayers().stream().filter(Permissions.NOTIFY::has).forEach(
+                                    player -> Messages.NEW_VERSION_AVAILABLE.send(
+                                            player, str -> str.replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()))));
                 });
             } else
-                Bukkit.getScheduler().runTask(this.plugin, () ->
-                        this.plugin.getLogger().info("No new version available!"));
+                Bukkit.getScheduler().runTask(this.plugin, () -> this.plugin.getLogger().info("No new version available!"));
         }, 0, 30 * 60 * 20);
     }
 
@@ -88,14 +90,11 @@ public class UpdateChecker implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        if (!this.plugin.getSettings().isUpdateCheck())
-            return;
+        if (!Settings.UPDATE_CHECK.get()) return;
         Player player = event.getPlayer();
-        if (!this.plugin.getAPI().hasPermission(player, "astralbooks.notify"))
-            return;
-        if (!updateAvailable)
-            return;
-        player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NEW_VERSION_AVAILABLE)
-                .replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
+        if (!Permissions.NOTIFY.has(player)) return;
+        if (!updateAvailable) return;
+        Messages.NEW_VERSION_AVAILABLE.send(
+                player, str -> str.replace("%latest_version%", latestVersion == null ? "" : latestVersion).replace("%current_version%", this.plugin.getDescription().getVersion()));
     }
 }

@@ -19,6 +19,7 @@ package ro.niconeko.astralbooks.dist;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.configuration.ConfigurationSection;
@@ -74,6 +75,8 @@ public abstract class Distribution {
                     .replace("%npc_loc_world%", npc.getEntity().getWorld().getName())).toList();
         }
     }
+
+    public abstract void register(LiteralArgumentBuilder<?> builder);
 
     public abstract String getVersion();
 

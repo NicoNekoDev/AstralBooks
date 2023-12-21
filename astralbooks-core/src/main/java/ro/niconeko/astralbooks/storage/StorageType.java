@@ -18,36 +18,41 @@
 package ro.niconeko.astralbooks.storage;
 
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
+@Getter
 public enum StorageType {
-    JSON("json", "Json"),
-    MYSQL("mysql", "MySQL"),
-    SQLITE("sqlite", "SQLite"),
-    H2("h2", "H2"),
-    MARIADB("mariadb", "MariaDB");
+    JSON("Json"),
+    MYSQL("MySQL"),
+    SQLITE("SQLite"),
+    H2("H2"),
+    MARIADB("MariaDB");
 
-    private final String type;
-    @Getter private final String formattedName;
+    private final String formattedName;
 
-    StorageType(String type, String formattedName) {
-        this.type = type;
+    StorageType(String formattedName) {
         this.formattedName = formattedName;
     }
 
+    @NotNull
     @Override
     public String toString() {
-        return this.type;
+        return switch (this) {
+            case H2 -> "h2";
+            case MYSQL -> "mysql";
+            case JSON -> "json";
+            case SQLITE -> "sqlite";
+            case MARIADB -> "mariadb";
+        };
     }
 
     public static StorageType fromString(String type) {
-        if (type.equalsIgnoreCase("mysql"))
-            return MYSQL;
-        else if (type.equalsIgnoreCase("sqlite"))
-            return SQLITE;
-        else if (type.equalsIgnoreCase("json"))
-            return JSON;
-        else if (type.equalsIgnoreCase("mariadb"))
-            return MARIADB;
-        return H2;
+        return switch (type.toUpperCase()) {
+            case "MARIADB" -> MARIADB;
+            case "MYSQL" -> MYSQL;
+            case "SQLITE" -> SQLITE;
+            case "JSON" -> JSON;
+            default -> H2;
+        };
     }
 }

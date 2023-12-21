@@ -23,6 +23,7 @@ import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.values.Settings;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -61,8 +62,8 @@ public class StorageConvertor {
             }
         }, 1, TimeUnit.SECONDS);
         try {
-            this.previousStorage.cache.load();
-            this.previousStorage.load();
+            this.previousStorage.cache.load(Settings.STORAGE.get());
+            this.previousStorage.load(Settings.STORAGE.get());
         } catch (SQLException ex) {
             this.plugin.getLogger().log(Level.WARNING, "Failed to load previous storage type! Please check configuration...", ex);
             failed.set(true);

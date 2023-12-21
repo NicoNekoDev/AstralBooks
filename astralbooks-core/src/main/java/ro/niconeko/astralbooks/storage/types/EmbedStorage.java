@@ -20,7 +20,7 @@ package ro.niconeko.astralbooks.storage.types;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.Storage;
 import ro.niconeko.astralbooks.storage.StorageType;
-import ro.niconeko.astralbooks.storage.settings.StorageEmbedSettings;
+import ro.niconeko.astralbooks.storage.settings.EmbedStorageSettings;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.tuples.PairTuple;
@@ -41,11 +41,11 @@ public abstract class EmbedStorage extends Storage {
 
     @Override
     protected void loadSettings(StorageSettings settings) {
-        StorageEmbedSettings embedSettings = settings.getEmbedSettings();
-        this.fileName = embedSettings.getFileName();
-        this.encryptionEnabled = embedSettings.isEncryptionEnabled();
-        this.autoSaveInterval = embedSettings.getSaveInterval();
-        super.purgeSecurityBooksOlderThan = settings.getSecurityBookPurgeOlderThan();
+        EmbedStorageSettings embedStorageSettings = settings.EMBED.get();
+        this.fileName = embedStorageSettings.FILE_NAME.get();
+        this.encryptionEnabled = embedStorageSettings.ENCRYPTION_ENABLED.get();
+        this.autoSaveInterval = embedStorageSettings.SAVE_INTERVAL.get();
+        super.purgeSecurityBooksOlderThan = settings.SECURITY_BOOK_PURGE_OLDER_THAN.get();
     }
 
     @Override

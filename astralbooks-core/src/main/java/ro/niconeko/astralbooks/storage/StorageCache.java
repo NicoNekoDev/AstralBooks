@@ -23,8 +23,9 @@ import com.google.common.cache.LoadingCache;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -53,8 +54,8 @@ public class StorageCache {
         this.storage = storage;
     }
 
-    public void load() {
-        this.poolExecutor = Executors.newFixedThreadPool(this.plugin.getSettings().getStorageSettings().getDatabaseThreads());
+    public void load(StorageSettings settings) {
+        this.poolExecutor = Executors.newFixedThreadPool(settings.THREADS.get());
         this.filterBooks = CacheBuilder.newBuilder()
                 .expireAfterAccess(5, TimeUnit.MINUTES)
                 .build(new CacheLoader<>() {

@@ -27,6 +27,7 @@ import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
 import ro.niconeko.astralbooks.storage.StorageType;
+import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.tuples.PairTuple;
 import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.types.EmbedStorage;
@@ -59,11 +60,11 @@ public class JsonStorage extends EmbedStorage {
     }
 
     @Override
-    protected boolean load() {
+    protected boolean load(StorageSettings settings) {
         try {
             this.lock.lock();
             super.plugin.getLogger().info("Loading " + super.storageType.getFormattedName() + " database...");
-            super.loadSettings(super.plugin.getSettings().getStorageSettings());
+            super.loadSettings(settings);
             this.readJsonStorage();
             JsonElement filtersJson = this.jsonStorage.get("filters");
             if (filtersJson != null && filtersJson.isJsonObject())

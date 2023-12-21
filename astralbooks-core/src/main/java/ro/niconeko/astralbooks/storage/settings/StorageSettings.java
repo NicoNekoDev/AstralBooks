@@ -17,39 +17,19 @@
 
 package ro.niconeko.astralbooks.storage.settings;
 
-import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
-import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.settings.Settings;
 import ro.niconeko.astralbooks.storage.StorageType;
+import ro.niconeko.astralbooks.utils.Section;
+import ro.niconeko.astralbooks.utils.settings.*;
 
-import java.util.List;
-import java.util.Optional;
+public class StorageSettings extends Section {
+    public final StorageTypeSetting TYPE = new StorageTypeSetting("type", StorageType.H2);
+    public final IntegerSetting THREADS = new IntegerSetting("threads", 2);
+    public final BooleanSetting SECURITY_BOOK_PURGE_ENABLED = new BooleanSetting("security_book_purge_enabled", true);
+    public final IntegerSetting SECURITY_BOOK_PURGE_OLDER_THAN = new IntegerSetting("security_book_purge_older_than", 30);
+    public final SectionSetting<RemoteStorageSettings> REMOTE = new SectionSetting<>(new RemoteStorageSettings());
+    public final SectionSetting<EmbedStorageSettings> EMBED = new SectionSetting<>(new EmbedStorageSettings());
 
-@Getter
-public class StorageSettings extends Settings {
-    private StorageType databaseType = StorageType.H2;
-    private int databaseThreads = 2;
-    private boolean securityBookPurgeEnabled = true;
-    private int securityBookPurgeOlderThan = 30;
-    private final StorageRemoteSettings RemoteSettings = new StorageRemoteSettings(super.plugin);
-    private final StorageEmbedSettings EmbedSettings = new StorageEmbedSettings(super.plugin);
-
-    public StorageSettings(AstralBooksPlugin plugin) {
-        super(plugin);
-    }
-
-    @Override
-    public void load(ConfigurationSection section) {
-        this.databaseType = StorageType.fromString(super.getOrSetStringFunction(section, "type", this.databaseType.toString(), Optional.of(List.of("Options: h2, sqlite, mysql, json"))));
-        this.databaseThreads = super.getOrSetIntFunction(section, "threads", this.databaseThreads, Optional.of(List.of("Number of threads the cache will use")));
-        this.securityBookPurgeEnabled = super.getOrSetBooleanFunction(section, "security_books_purge_enabled", this.securityBookPurgeEnabled, Optional.of(List.of(
-                "Enable if you want to clean old saved books created by players"
-        )));
-        this.securityBookPurgeOlderThan = super.getOrSetIntFunction(section, "security_books_purge_older_than", this.securityBookPurgeOlderThan, Optional.of(List.of(
-                "In days, default: 30"
-        )));
-        this.RemoteSettings.load(super.getOrCreateSection(section, "remote"));
-        this.EmbedSettings.load(super.getOrCreateSection(section, "embed"));
+    public StorageSettings() {
+        super("storage");
     }
 }

@@ -23,6 +23,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
+import ro.niconeko.astralbooks.values.Permissions;
+import ro.niconeko.astralbooks.values.Settings;
 
 @SuppressWarnings("unused")
 public class AuthmeActions implements Listener {
@@ -36,14 +38,14 @@ public class AuthmeActions implements Listener {
 
     @EventHandler
     public void onLogin(LoginEvent event) {
-        if (!this.plugin.getSettings().isJoinBookEnabled())
+        if (!Settings.JOIN_BOOK_ENABLED.get())
             return;
         if (!this.plugin.getPluginStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
-        if (this.api.hasPermission(player, "astralbooks.nojoinbook"))
+        if (Permissions.NO_JOIN_BOOK.has(player))
             return;
-        if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
+        if (!Settings.JOIN_BOOK_ALWAYS_SHOW.get()) {
             if (this.plugin.getPluginStorage().hasJoinBookLastSeen(player))
                 if (this.plugin.getPluginStorage().getJoinBookLastSeen(player) >= this.plugin.getPluginStorage().getJoinBookLastChange())
                     return;

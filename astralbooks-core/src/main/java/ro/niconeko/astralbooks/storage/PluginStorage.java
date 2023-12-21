@@ -31,11 +31,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.utils.tuples.PairTuple;
-import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
+import ro.niconeko.astralbooks.values.Settings;
 import ro.niconeko.astralbooks.storage.types.impl.*;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 
 import java.io.File;
 import java.io.FileReader;
@@ -77,7 +78,7 @@ public class PluginStorage {
     }
 
     public boolean load(StorageSettings settings) throws SQLException {
-        if (this.plugin.getSettings().isJoinBookEnabled()) {
+        if (Settings.JOIN_BOOK_ENABLED.get()) {
             if (joinBookFile.exists())
                 this.joinBookDatabase = this.readJsonFile(this.joinBookFile);
             this.needsJoinBookAutoSave = false;
@@ -96,7 +97,7 @@ public class PluginStorage {
             this.cache.unload();
         if (this.storage != null)
             this.storage.unload();
-        this.storage = switch (settings.getDatabaseType()) {
+        this.storage = switch (settings.TYPE.get()) {
             case JSON -> new JsonStorage(plugin);
             case MYSQL -> new MySQLStorage(plugin);
             case SQLITE -> new SQLiteStorage(plugin);
@@ -104,8 +105,8 @@ public class PluginStorage {
             case MARIADB -> new MariaDBStorage(plugin);
         };
         this.cache = this.storage.cache;
-        this.cache.load();
-        return this.storage.load();
+        this.cache.load(Settings.STORAGE.get());
+        return this.storage.load(Settings.STORAGE.get());
     }
 
     public void unload() {

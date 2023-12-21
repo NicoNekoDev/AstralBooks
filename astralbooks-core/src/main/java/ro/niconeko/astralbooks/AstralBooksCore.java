@@ -24,16 +24,10 @@ import com.google.gson.JsonObject;
 import lombok.Getter;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.context.ContextManager;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.query.QueryOptions;
-import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -343,28 +337,6 @@ public class AstralBooksCore implements AstralBooksAPI {
         else
             pi.setItem(slot, null);
         return true;
-    }
-
-    public boolean hasPermission(CommandSender sender, String permission) {
-        try {
-            if (sender.isOp()) return true;
-            Optional<LuckPerms> luckPerms = this.plugin.isLuckPermsEnabled() ? Optional.of(this.plugin.getLuckPerms()) : Optional.empty(); //If LuckPerms not enabled, this will return empty
-            Optional<Permission> vaultPerms = this.plugin.isVaultEnabled() ? Optional.of(this.plugin.getVaultPerms()) : Optional.empty(); //If vault not enabled or luckperms is used, this will return empty
-
-            return (luckPerms.isPresent() && this.hasLuckPermission(luckPerms.get().getUserManager().getUser(sender.getName()), permission)) ||
-                    (vaultPerms.isPresent() && vaultPerms.get().has(sender, permission)) || sender.hasPermission(permission);
-        } catch (NullPointerException ex) {
-            return false;
-        }
-    }
-
-    protected boolean hasLuckPermission(User user, String permission) {
-        if (user == null)
-            throw new NullPointerException();
-        ContextManager contextManager = this.plugin.getLuckPerms().getContextManager();
-        return user.getCachedData().getPermissionData(
-                QueryOptions.contextual(contextManager.getContext(user).orElseGet(contextManager::getStaticContext))
-        ).checkPermission(permission).asBoolean();
     }
 
     public String encodeItemStack(ItemStack item) {

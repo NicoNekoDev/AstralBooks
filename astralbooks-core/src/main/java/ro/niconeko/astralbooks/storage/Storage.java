@@ -19,10 +19,10 @@ package ro.niconeko.astralbooks.storage;
 
 import org.bukkit.inventory.ItemStack;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.utils.tuples.PairTuple;
-import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 import ro.niconeko.astralbooks.storage.settings.StorageSettings;
 import ro.niconeko.astralbooks.utils.Side;
+import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.utils.tuples.TripletTuple;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -56,11 +56,11 @@ public abstract class Storage {
         return this.loaded;
     }
 
-    protected boolean load() throws SQLException {
+    protected boolean load(StorageSettings settings) throws SQLException {
         try {
             this.lock.lock();
             this.plugin.getLogger().info("Loading " + this.storageType.getFormattedName() + " database...");
-            this.loadSettings(this.plugin.getSettings().getStorageSettings());
+            this.loadSettings(settings);
             Class.forName(this.getDriver());
             this.connection = DriverManager.getConnection(this.getURL());
             this.connection.setAutoCommit(true);
@@ -102,7 +102,7 @@ public abstract class Storage {
         throw new IllegalStateException("Tried to get " + this.storageType.getFormattedName() + " url... please report this issue!");
     }
 
-    protected abstract void loadSettings(StorageSettings storageSettings);
+    protected abstract void loadSettings(StorageSettings settings);
 
     protected abstract boolean createTables();
 

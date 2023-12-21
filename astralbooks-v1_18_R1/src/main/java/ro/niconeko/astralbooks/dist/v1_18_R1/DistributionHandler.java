@@ -22,11 +22,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.citizensnpcs.api.npc.NPC;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftMetaBook;
 import org.bukkit.entity.Player;
@@ -43,6 +47,17 @@ public class DistributionHandler extends Distribution {
 
     public DistributionHandler(AstralBooksPlugin plugin) throws NoSuchFieldException {
         super(plugin, CraftMetaBook.class.getDeclaredField("pages"));
+    }
+
+    @Override
+    public String getVersion() {
+        return "1_18_R1";
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void register(LiteralArgumentBuilder<?> builder) {
+        ((CraftServer) Bukkit.getServer()).getServer().vanillaCommandDispatcher.getDispatcher().register((LiteralArgumentBuilder<CommandSourceStack>) builder);
     }
 
     @Override
@@ -86,11 +101,6 @@ public class DistributionHandler extends Distribution {
         this.pagesField.set(bookMeta, pages);
         newBook.setItemMeta(bookMeta);
         return newBook;
-    }
-
-    @Override
-    public String getVersion() {
-        return "1_18_R1";
     }
 
     @Override

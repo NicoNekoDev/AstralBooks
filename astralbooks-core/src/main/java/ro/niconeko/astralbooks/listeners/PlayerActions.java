@@ -38,10 +38,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.niconeko.astralbooks.AstralBooksCore;
 import ro.niconeko.astralbooks.AstralBooksPlugin;
-import ro.niconeko.astralbooks.utils.Message;
 import ro.niconeko.astralbooks.utils.PersistentKey;
 import ro.niconeko.astralbooks.utils.Side;
 import ro.niconeko.astralbooks.utils.tuples.PairTuple;
+import ro.niconeko.astralbooks.values.Messages;
+import ro.niconeko.astralbooks.values.Permissions;
+import ro.niconeko.astralbooks.values.Settings;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -96,11 +98,11 @@ public class PlayerActions implements Listener {
             DelayedPlayer delayedInteractionBookEntityOperator;
             while ((delayedInteractionBookEntityOperator = this.delayedInteractionBookEntityOperators.poll()) != null)
                 this.interactionBookEntityOperatorsMap.remove(delayedInteractionBookEntityOperator.getPlayer());
-            if (this.plugin.getSettings().isJoinBookEnabled()) {
+            if (Settings.JOIN_BOOK_ENABLED.get()) {
                 DelayedPlayer delayedJoinPlayer;
                 while ((delayedJoinPlayer = this.delayedJoinBookPlayers.poll()) != null) {
                     Player player = delayedJoinPlayer.getPlayer();
-                    if (!this.plugin.getSettings().isJoinBookAlwaysShow()) {
+                    if (!Settings.JOIN_BOOK_ALWAYS_SHOW.get()) {
                         if (this.plugin.getPluginStorage().hasJoinBookLastSeen(player))
                             if (this.plugin.getPluginStorage().getJoinBookLastSeen(player) >= this.plugin.getPluginStorage().getJoinBookLastChange())
                                 continue;
@@ -127,22 +129,22 @@ public class PlayerActions implements Listener {
             event.setCancelled(true);
             if (pair.firstValue() == null) {
                 this.api.removeBookOfBlock(block, pair.secondValue());
-                event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK)
-                        .replace("%player%", event.getPlayer().getName())
-                        .replace("%block_x%", String.valueOf(block.getX()))
-                        .replace("%block_y%", String.valueOf(block.getY()))
-                        .replace("%block_z%", String.valueOf(block.getZ()))
-                        .replace("%world%", block.getWorld().getName())
-                        .replace("%type%", block.getType().name()));
+                Messages.BOOK_REMOVED_SUCCESSFULLY_FROM_BLOCK.send(event.getPlayer(), str ->
+                        str.replace("%player%", event.getPlayer().getName())
+                                .replace("%block_x%", String.valueOf(block.getX()))
+                                .replace("%block_y%", String.valueOf(block.getY()))
+                                .replace("%block_z%", String.valueOf(block.getZ()))
+                                .replace("%world%", block.getWorld().getName())
+                                .replace("%type%", block.getType().name()));
             } else {
                 this.api.putBookOnBlock(block, pair.firstValue(), pair.secondValue());
-                event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK)
-                        .replace("%player%", event.getPlayer().getName())
-                        .replace("%block_x%", String.valueOf(block.getX()))
-                        .replace("%block_y%", String.valueOf(block.getY()))
-                        .replace("%block_z%", String.valueOf(block.getZ()))
-                        .replace("%world%", block.getWorld().getName())
-                        .replace("%type%", block.getType().name()));
+                Messages.BOOK_APPLIED_SUCCESSFULLY_TO_BLOCK.send(event.getPlayer(), str ->
+                        str.replace("%player%", event.getPlayer().getName())
+                                .replace("%block_x%", String.valueOf(block.getX()))
+                                .replace("%block_y%", String.valueOf(block.getY()))
+                                .replace("%block_z%", String.valueOf(block.getZ()))
+                                .replace("%world%", block.getWorld().getName())
+                                .replace("%type%", block.getType().name()));
             }
         } else if (event.hasItem()) {
             ItemStack item = event.getItem();
@@ -188,7 +190,7 @@ public class PlayerActions implements Listener {
         if (this.interactionBookEntityOperatorsMap.containsKey(event.getPlayer()) && !event.getPlayer().isSneaking()) {
             if (this.plugin.isCitizensEnabled()) {
                 if (CitizensAPI.getNPCRegistry().isNPC(entity)) {
-                    event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.ENTITY_IS_NPC));
+                    Messages.ENTITY_IS_NPC.send(event.getPlayer());
                     event.setCancelled(true);
                     return;
                 }
@@ -196,18 +198,14 @@ public class PlayerActions implements Listener {
             PairTuple<ItemStack, Side> pair = this.interactionBookEntityOperatorsMap.remove(event.getPlayer());
             if (pair.firstValue() == null) {
                 this.api.removeBookOfEntity(entity, pair.secondValue());
-                event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY)
-                        .replace("%player%", event.getPlayer().getName())
-                        .replace("%type%", entity.getType().name())
-                );
+                Messages.BOOK_REMOVED_SUCCESSFULLY_FROM_ENTITY.send(event.getPlayer(),
+                        str -> str.replace("%player%", event.getPlayer().getName()).replace("%type%", entity.getType().name()));
                 event.setCancelled(true);
                 return;
             }
             this.api.putBookOnEntity(entity, pair.firstValue(), pair.secondValue());
-            event.getPlayer().sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.BOOK_APPLIED_SUCCESSFULLY_TO_ENTITY)
-                    .replace("%player%", event.getPlayer().getName())
-                    .replace("%type%", entity.getType().name())
-            );
+            Messages.BOOK_APPLIED_SUCCESSFULLY_TO_ENTITY.send(event.getPlayer(),
+                    str -> str.replace("%player%", event.getPlayer().getName()).replace("%type%", entity.getType().name()));
             event.setCancelled(true);
             return;
         }
@@ -278,10 +276,10 @@ public class PlayerActions implements Listener {
         PairTuple<String, String> filter = this.plugin.getPluginStorage().getCommandFilter(command);
         String filterName = filter.firstValue();
         String permission = filter.secondValue() != null && !filter.secondValue().isEmpty() ? filter.secondValue() : "none";
-        if (!("none".equalsIgnoreCase(permission) || this.api.hasPermission(player, permission)))
+        if (!("none".equalsIgnoreCase(permission) || Permissions.has(player, permission)))
             return;
         if (!this.plugin.getPluginStorage().hasFilterBook(filterName)) {
-            player.sendMessage(this.plugin.getSettings().getMessageSettings().getMessage(Message.NO_BOOK_FOR_FILTER));
+            Messages.NO_BOOK_FOR_FILTER.send(player);
             return;
         }
         ItemStack book = this.plugin.getPluginStorage().getFilterBook(filterName);
@@ -292,15 +290,15 @@ public class PlayerActions implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (this.plugin.isAuthMeEnabled())
             return;
-        if (!this.plugin.getSettings().isJoinBookEnabled())
+        if (!Settings.JOIN_BOOK_ENABLED.get())
             return;
         if (!this.plugin.getPluginStorage().hasJoinBook())
             return;
         Player player = event.getPlayer();
-        if (this.api.hasPermission(player, "astralbooks.nojoinbook"))
+        if (Permissions.NO_JOIN_BOOK.has(player))
             return;
-        if (this.plugin.getSettings().isJoinBookEnableDelay()) {
-            int delay = this.plugin.getSettings().getJoinBookDelay();
+        if (Settings.JOIN_BOOK_DELAY_ENABLED.get()) {
+            int delay = Settings.JOIN_BOOK_DELAY.get();
             if (delay <= 0)
                 delay = 0;
             this.delayedJoinBookPlayers.offer(new DelayedPlayer(player, delay * 50L)); // delay (ticks) * 50 (milliseconds)
@@ -310,16 +308,16 @@ public class PlayerActions implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        if (!this.plugin.getSettings().isJoinBookEnabled())
+        if (!Settings.JOIN_BOOK_ENABLED.get())
             return;
-        if (this.plugin.getSettings().isJoinBookEnableDelay())
+        if (Settings.JOIN_BOOK_DELAY_ENABLED.get())
             //noinspection ResultOfMethodCallIgnored
             this.delayedJoinBookPlayers.remove(new DelayedPlayer(event.getPlayer(), 0));
     }
 
     @EventHandler
     public void onBookSign(PlayerEditBookEvent event) {
-        if (!this.plugin.getSettings().isBookSignSecurityEnabled())
+        if (!Settings.SIGN_BOOK_SECURITY_ENABLED.get())
             return;
         if (!event.isSigning())
             return;

@@ -22,10 +22,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.citizensnpcs.api.npc.NPC;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
 import net.minecraft.world.InteractionHand;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftMetaBook;
 import org.bukkit.entity.Player;
@@ -47,6 +51,12 @@ public class DistributionHandler extends Distribution {
     @Override
     public String getVersion() {
         return "1_17_R1";
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void register(LiteralArgumentBuilder<?> builder) {
+        ((CraftServer) Bukkit.getServer()).getServer().vanillaCommandDispatcher.getDispatcher().register((LiteralArgumentBuilder<CommandSourceStack>) builder);
     }
 
     @Override
